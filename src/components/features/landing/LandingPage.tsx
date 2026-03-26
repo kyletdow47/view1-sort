@@ -14,6 +14,7 @@ import {
   
   Check,
 } from 'lucide-react'
+import Link from 'next/link'
 import { WaitlistModal } from './WaitlistModal'
 
 interface WaitlistResponse {
@@ -187,12 +188,20 @@ export function LandingPage() {
           <span className="text-white font-semibold text-lg tracking-tight">
             View1 <span className="text-accent">Studio</span>
           </span>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-accent text-black font-semibold text-sm rounded-lg px-4 py-2 hover:bg-green-300 transition-colors"
-          >
-            Join Waitlist
-          </button>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="border border-accent text-accent font-semibold text-sm rounded-lg px-4 py-2 hover:bg-accent hover:text-black transition-colors"
+            >
+              Open App
+            </Link>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-accent text-black font-semibold text-sm rounded-lg px-4 py-2 hover:bg-green-300 transition-colors"
+            >
+              Join Waitlist
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -211,9 +220,15 @@ export function LandingPage() {
             photographers.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/dashboard"
+              className="bg-accent text-black font-semibold rounded-xl px-8 py-4 text-lg hover:bg-green-300 transition-colors"
+            >
+              Open App
+            </Link>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-accent text-black font-semibold rounded-xl px-8 py-4 text-lg hover:bg-green-300 transition-colors"
+              className="border border-accent text-accent font-semibold rounded-xl px-8 py-4 text-lg hover:bg-accent/10 transition-colors"
             >
               Join the Waitlist
             </button>
