@@ -58,7 +58,6 @@ export async function classify(
   }
 
   const pipe = pipelineInstance as ClassificationPipeline
-  
   const rawOutput = (await (pipe as any)(imageSource, LABEL_STRINGS, { topk: topK })) as RawPipelineResult
 
   return rawOutput.map((item) => ({
