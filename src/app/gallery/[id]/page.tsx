@@ -1,174 +1,107 @@
-import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
-import { stripe } from '@/lib/stripe'
-import { GalleryView } from '@/components/features/gallery/GalleryView'
-import { AccessGate } from '@/components/features/gallery/AccessGate'
-import type { Project, Media, GalleryTheme, Profile } from '@/types/supabase'
+'use client'
 
-function getServiceSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) throw new Error('Missing Supabase service role credentials')
-  return createServiceClient(url, key)
-}
+import { use } from 'react'
+import { Download, Heart, Share2, Image, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface GalleryPageProps {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ token?: string; paid?: string; session_id?: string }>
 }
 
-export async function generateMetadata({ params }: GalleryPageProps): Promise<Metadata> {
-  const { id } = await params
-  const supabase = await createClient()
+const MOCK_CATEGORIES = ['Ceremony', 'Portraits', 'Reception', 'Details', 'Getting Ready']
 
-  const { data: project } = await supabase
-    .from('projects')
-    .select('name')
-    .eq('id', id)
-    .single()
-
-  return {
-    title: project?.name ?? 'Gallery',
-    description: 'Photo gallery',
-  }
+function MockGalleryPhoto({ index }: { index: number }) {
+  const hues = [330, 200, 280, 40, 160, 300, 180, 100, 350, 220]
+  const hue = hues[index % hues.length]
+  return (
+    <div
+      className="relative aspect-[3/2] rounded-lg overflow-hidden group cursor-pointer"
+      style={{ backgroundColor: `hsl(${hue}, 25%, 25%)` }}
+    >
+      <div className="absolute inset-0 flex items-center justify-center">
+        <Image className="text-white/10" size={40} />
+      </div>
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+      <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button className="p-1.5 bg-black/50 rounded-full text-white/70 hover:text-red-400">
+          <Heart size={14} />
+        </button>
+        <button className="p-1.5 bg-black/50 rounded-full text-white/70 hover:text-white">
+          <Download size={14} />
+        </button>
+      </div>
+    </div>
+  )
 }
 
-export default async function GalleryPage({ params, searchParams }: GalleryPageProps) {
-  const { id } = await params
-  const { token, paid, session_id } = await searchParams
-  const supabase = await createClient()
-
-  const { data: project, error: projectError } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', id)
-    .single()
-
-  if (projectError || !project) {
-    notFound()
-  }
-
-  const typedProject = project as Project
-
-  // Private gallery: require token
-  if (!typedProject.gallery_public) {
-    if (!token) {
-      return <AccessGate projectId={id} theme={typedProject.gallery_theme as GalleryTheme} />
-    }
-
-    // Validate token
-    const { data: access } = await supabase
-      .from('gallery_access')
-      .select('*')
-      .eq('project_id', id)
-      .eq('token', token)
-      .single()
-
-    if (!access) {
-      return <AccessGate projectId={id} theme={typedProject.gallery_theme as GalleryTheme} invalidToken />
-    }
-
-    const isExpired = access.expires_at && new Date(access.expires_at) < new Date()
-    if (isExpired) {
-      return <AccessGate projectId={id} theme={typedProject.gallery_theme as GalleryTheme} invalidToken />
-    }
-  }
-
-  const { data: media } = await supabase
-    .from('media')
-    .select('*')
-    .eq('project_id', id)
-    .order('sort_order', { ascending: true })
-
-  // Resolve photographer name for paywall display
-  let photographerName: string | undefined
-  const serviceSupabase = getServiceSupabase()
-
-  const { data: workspace } = await serviceSupabase
-    .from('workspaces')
-    .select('owner_id, name')
-    .eq('id', typedProject.workspace_id)
-    .single()
-
-  if (workspace) {
-    const { data: photographerProfile } = await serviceSupabase
-      .from('profiles')
-      .select('display_name')
-      .eq('id', workspace.owner_id)
-      .single()
-
-    photographerName =
-      (photographerProfile as Pick<Profile, 'display_name'> | null)?.display_name ??
-      (workspace as { name: string }).name
-  }
-
-  // Verify payment when returning from Stripe checkout
-  let hasPaid = false
-  if (paid === 'true' && session_id && typedProject.pricing_model !== 'free') {
-    try {
-      const stripeSession = await stripe.checkout.sessions.retrieve(session_id)
-
-      if (
-        stripeSession.payment_status === 'paid' &&
-        stripeSession.metadata?.projectId === id
-      ) {
-        hasPaid = true
-
-        const clientEmail =
-          stripeSession.customer_email ?? stripeSession.customer_details?.email ?? ''
-
-        // Idempotent: only create records if they don't exist yet
-        const { data: existingAccess } = await serviceSupabase
-          .from('gallery_access')
-          .select('token')
-          .eq('project_id', id)
-          .eq('email', clientEmail)
-          .eq('access_type', 'full')
-          .maybeSingle()
-
-        if (!existingAccess) {
-          const { error: accessError } = await serviceSupabase
-            .from('gallery_access')
-            .insert({ project_id: id, email: clientEmail, access_type: 'full' })
-
-          if (accessError) {
-            console.error('Failed to create gallery_access on return:', accessError)
-          }
-
-          const { error: invoiceError } = await serviceSupabase.from('invoices').insert({
-            project_id: id,
-            client_email: clientEmail,
-            amount_cents: stripeSession.amount_total ?? 0,
-            currency: typedProject.currency,
-            status: 'paid' as const,
-            stripe_payment_intent_id:
-              typeof stripeSession.payment_intent === 'string'
-                ? stripeSession.payment_intent
-                : null,
-            stripe_checkout_session_id: session_id,
-            paid_at: new Date().toISOString(),
-          })
-
-          if (invoiceError) {
-            console.error('Failed to create invoice on return:', invoiceError)
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Failed to verify payment session:', err)
-    }
-  }
+export default function GalleryPage({ params }: GalleryPageProps) {
+  const { id } = use(params)
 
   return (
-    <GalleryView
-      project={typedProject}
-      media={(media ?? []) as Media[]}
-      theme={typedProject.gallery_theme as GalleryTheme}
-      accessToken={token}
-      hasPaid={hasPaid}
-      photographerName={photographerName}
-    />
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
+      {/* Gallery Header */}
+      <header className="border-b border-white/10 px-6 py-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold">Johnson Wedding</h1>
+            <p className="text-sm text-white/50 mt-0.5">June 15, 2026 &middot; 847 photos</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="flex items-center gap-2 text-sm text-white/60 hover:text-white px-3 py-2 rounded-lg border border-white/10 hover:border-white/20 transition-colors">
+              <Share2 size={14} />
+              Share
+            </button>
+            <button className="flex items-center gap-2 bg-white text-black font-semibold text-sm rounded-lg px-4 py-2 hover:bg-white/90 transition-colors">
+              <Download size={14} />
+              Download All
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Category Nav */}
+      <nav className="border-b border-white/10 px-6">
+        <div className="max-w-6xl mx-auto flex items-center gap-1 overflow-x-auto py-2">
+          <button className="flex items-center gap-1 px-1 text-white/40">
+            <ChevronLeft size={16} />
+          </button>
+          {MOCK_CATEGORIES.map((cat, i) => (
+            <button
+              key={cat}
+              className={`px-4 py-2 text-sm rounded-lg whitespace-nowrap transition-colors ${
+                i === 0
+                  ? 'bg-white/10 text-white font-medium'
+                  : 'text-white/50 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+          <button className="flex items-center gap-1 px-1 text-white/40">
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </nav>
+
+      {/* Photo Grid */}
+      <main className="max-w-6xl mx-auto px-6 py-6">
+        {MOCK_CATEGORIES.map((category) => (
+          <section key={category} className="mb-10">
+            <h2 className="text-lg font-semibold mb-4 text-white/90">{category}</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {Array.from({ length: 8 }, (_, i) => (
+                <MockGalleryPhoto key={i} index={i + MOCK_CATEGORIES.indexOf(category) * 8} />
+              ))}
+            </div>
+          </section>
+        ))}
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 px-6 py-6 text-center">
+        <p className="text-white/30 text-sm">
+          Powered by <span className="text-white/50">View1 Sort</span>
+        </p>
+      </footer>
+    </div>
   )
 }
