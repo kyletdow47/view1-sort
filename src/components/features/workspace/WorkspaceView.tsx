@@ -90,7 +90,7 @@ export function WorkspaceView({ project, initialMedia }: WorkspaceViewProps) {
   async function handleDeleteSelected() {
     if (!confirm(`Delete ${selectedIds.size} photo(s)? This cannot be undone.`)) return
     try {
-      await removeMedia([...selectedIds])
+      await removeMedia(Array.from(selectedIds))
       deselectAll()
     } catch (err) {
       console.error('Failed to delete media:', err)

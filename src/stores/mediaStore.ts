@@ -86,7 +86,7 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     const idSet = new Set(ids)
     set((state) => ({
       media: state.media.filter((m) => !idSet.has(m.id)),
-      selectedIds: new Set([...state.selectedIds].filter((id) => !idSet.has(id))),
+      selectedIds: new Set(Array.from(state.selectedIds).filter((id) => !idSet.has(id))),
     }))
   },
 
