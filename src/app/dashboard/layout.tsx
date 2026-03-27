@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -25,73 +25,29 @@ import {
   UserCheck,
   Cloud,
   Image as ImageIcon,
+  LogOut,
 } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { useProfile } from '@/hooks/useProfile'
+import { useNotifications } from '@/hooks/useNotifications'
 
 /* ------------------------------------------------------------------ */
-/*  Notification types & mock data                                     */
+/*  Notification types & helpers                                       */
 /* ------------------------------------------------------------------ */
 
-interface Notification {
-  id: string
-  type: 'booking' | 'payment' | 'gallery_viewed' | 'client_accepted' | 'upload_complete'
-  title: string
-  description: string
-  timestamp: string
-  read: boolean
+import type { Notification as DBNotification } from '@/types/supabase'
+
+const NOTIFICATION_TYPE_CONFIG: Record<string, { icon: React.ElementType; bg: string }> = {
+  booking: { icon: CalendarDays, bg: 'bg-[#ffb780]/20 text-[#ffb780]' },
+  payment: { icon: DollarSign, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
+  gallery_viewed: { icon: Eye, bg: 'bg-[#ffb4a5]/20 text-[#ffb4a5]' },
+  client_accepted: { icon: UserCheck, bg: 'bg-[#d9c2b4]/20 text-[#d9c2b4]' },
+  upload_complete: { icon: Cloud, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
 }
 
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: '1',
-    type: 'booking',
-    title: 'New Booking Request',
-    description: 'Sarah Johnson requested a wedding shoot for July 18.',
-    timestamp: '5 min ago',
-    read: false,
-  },
-  {
-    id: '2',
-    type: 'payment',
-    title: 'Payment Received',
-    description: '$2,400 deposited for the Martinez engagement session.',
-    timestamp: '1 hr ago',
-    read: false,
-  },
-  {
-    id: '3',
-    type: 'gallery_viewed',
-    title: 'Gallery Viewed',
-    description: 'Emily Chen viewed the "Lakeside Wedding" gallery.',
-    timestamp: '3 hrs ago',
-    read: false,
-  },
-  {
-    id: '4',
-    type: 'client_accepted',
-    title: 'Client Accepted Invite',
-    description: 'David Park accepted your invitation to review proofs.',
-    timestamp: '6 hrs ago',
-    read: true,
-  },
-  {
-    id: '5',
-    type: 'upload_complete',
-    title: 'Upload Complete',
-    description: '428 photos uploaded to "Johnson Wedding" project.',
-    timestamp: '1 day ago',
-    read: true,
-  },
-]
-
-function NotificationIcon({ type }: { type: Notification['type'] }) {
-  const config: Record<Notification['type'], { icon: React.ElementType; bg: string }> = {
-    booking: { icon: CalendarDays, bg: 'bg-[#ffb780]/20 text-[#ffb780]' },
-    payment: { icon: DollarSign, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
-    gallery_viewed: { icon: Eye, bg: 'bg-[#ffb4a5]/20 text-[#ffb4a5]' },
-    client_accepted: { icon: UserCheck, bg: 'bg-[#d9c2b4]/20 text-[#d9c2b4]' },
-    upload_complete: { icon: Cloud, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
-  }
-  const { icon: Icon, bg } = config[type]
+function NotificationIcon({ type }: { type: string }) {
+  const config = NOTIFICATION_TYPE_CONFIG[type] ?? NOTIFICATION_TYPE_CONFIG.booking
+  const { icon: Icon, bg } = config
   return (
     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${bg}`}>
       <Icon size={16} />
@@ -99,12 +55,34 @@ function NotificationIcon({ type }: { type: Notification['type'] }) {
   )
 }
 
+function timeAgo(dateStr: string): string {
+  const now = Date.now()
+  const then = new Date(dateStr).getTime()
+  const diffMs = now - then
+  const minutes = Math.floor(diffMs / 60000)
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes} min ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} hr${hours > 1 ? 's' : ''} ago`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`
+  return `${Math.floor(days / 30)} mo ago`
+}
+
 function NotificationDropdown({
   open,
   onClose,
+  notifications,
+  unreadCount,
+  onMarkAllRead,
+  onMarkRead,
 }: {
   open: boolean
   onClose: () => void
+  notifications: DBNotification[]
+  unreadCount: number
+  onMarkAllRead: () => void
+  onMarkRead: (id: string) => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -122,8 +100,6 @@ function NotificationDropdown({
 
   if (!open) return null
 
-  const unreadCount = MOCK_NOTIFICATIONS.filter((n) => !n.read).length
-
   return (
     <div
       ref={ref}
@@ -139,35 +115,45 @@ function NotificationDropdown({
             </span>
           )}
         </div>
-        <button className="text-[11px] font-medium text-[#ffb780] hover:text-[#ffb780]/80 transition-colors">
+        <button
+          onClick={onMarkAllRead}
+          className="text-[11px] font-medium text-[#ffb780] hover:text-[#ffb780]/80 transition-colors"
+        >
           Mark all read
         </button>
       </div>
 
       {/* Notification list */}
       <div className="max-h-[380px] overflow-y-auto">
-        {MOCK_NOTIFICATIONS.map((notification) => (
-          <div
-            key={notification.id}
-            className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-[#252322]/60 cursor-pointer ${
-              !notification.read ? 'border-l-2 border-l-[#ffb780]' : 'border-l-2 border-l-transparent'
-            }`}
-          >
-            <NotificationIcon type={notification.type} />
-            <div className="min-w-0 flex-1">
-              <p className={`text-sm font-medium leading-snug ${!notification.read ? 'text-[#e7e1df]' : 'text-[#e7e1df]/60'}`}>
-                {notification.title}
-              </p>
-              <p className="mt-0.5 text-xs text-[#a18d80] leading-relaxed line-clamp-2">
-                {notification.description}
-              </p>
-              <p className="mt-1 text-[10px] text-[#a18d80]/60">{notification.timestamp}</p>
-            </div>
-            {!notification.read && (
-              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#ffb780]" />
-            )}
+        {notifications.length === 0 ? (
+          <div className="px-4 py-8 text-center text-sm text-[#a18d80]">
+            No notifications yet
           </div>
-        ))}
+        ) : (
+          notifications.map((notification) => (
+            <div
+              key={notification.id}
+              onClick={() => !notification.read && onMarkRead(notification.id)}
+              className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-[#252322]/60 cursor-pointer ${
+                !notification.read ? 'border-l-2 border-l-[#ffb780]' : 'border-l-2 border-l-transparent'
+              }`}
+            >
+              <NotificationIcon type={notification.type} />
+              <div className="min-w-0 flex-1">
+                <p className={`text-sm font-medium leading-snug ${!notification.read ? 'text-[#e7e1df]' : 'text-[#e7e1df]/60'}`}>
+                  {notification.title}
+                </p>
+                <p className="mt-0.5 text-xs text-[#a18d80] leading-relaxed line-clamp-2">
+                  {notification.body}
+                </p>
+                <p className="mt-1 text-[10px] text-[#a18d80]/60">{timeAgo(notification.created_at)}</p>
+              </div>
+              {!notification.read && (
+                <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#ffb780]" />
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       {/* Footer */}
@@ -264,11 +250,30 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { user, signOut } = useAuth()
+  const { profile } = useProfile()
+  const { notifications, unreadCount, markAllRead, markRead } = useNotifications()
+
   const inProject = isInsideProject(pathname)
   const inSorting = isSortingView(pathname)
   const isSchedulingActive = schedulingItems.some((item) => isActive(pathname, item.href))
   const [schedulingOpen, setSchedulingOpen] = useState(isSchedulingActive)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+
+  const userInitials = useMemo(() => {
+    if (profile?.display_name) {
+      return profile.display_name
+        .split(' ')
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    }
+    if (user?.email) {
+      return user.email.slice(0, 2).toUpperCase()
+    }
+    return '?'
+  }, [profile, user])
 
   return (
     <div className="flex min-h-screen bg-background text-on-surface">
@@ -374,8 +379,32 @@ export default function DashboardLayout({
           </div>
         </nav>
 
-        {/* Bottom section: Settings + New Shoot */}
+        {/* Bottom section: User info + Settings + New Shoot */}
         <div className="px-2 pb-5 space-y-2">
+          {/* User profile row */}
+          {(profile || user) && (
+            <div className="flex items-center gap-3 px-4 py-2 mb-1">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
+                {userInitials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-[#e7e1df] truncate">
+                  {profile?.display_name ?? user?.email ?? ''}
+                </p>
+                <p className="text-[10px] text-[#a18d80] truncate">
+                  {profile?.tier ? `${profile.tier.charAt(0).toUpperCase()}${profile.tier.slice(1)} plan` : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="shrink-0 rounded-md p-1.5 text-[#a18d80] hover:bg-[#252322] hover:text-[#e7e1df] transition-colors"
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <LogOut size={14} />
+              </button>
+            </div>
+          )}
           <Link
             href="/dashboard/settings"
             className={`flex items-center gap-3 px-4 py-3 font-body font-medium transition-colors duration-150 ${
@@ -466,17 +495,23 @@ export default function DashboardLayout({
                     aria-label="Notifications"
                   >
                     <Bell size={18} />
-                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
-                      3
-                    </span>
+                    {unreadCount > 0 && (
+                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                        {unreadCount}
+                      </span>
+                    )}
                   </button>
                   <NotificationDropdown
                     open={notificationsOpen}
                     onClose={() => setNotificationsOpen(false)}
+                    notifications={notifications}
+                    unreadCount={unreadCount}
+                    onMarkAllRead={markAllRead}
+                    onMarkRead={markRead}
                   />
                 </div>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
-                  KD
+                  {userInitials}
                 </div>
               </div>
             </>
@@ -532,13 +567,19 @@ export default function DashboardLayout({
                     aria-label="Notifications"
                   >
                     <Bell size={18} />
-                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
-                      3
-                    </span>
+                    {unreadCount > 0 && (
+                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                        {unreadCount}
+                      </span>
+                    )}
                   </button>
                   <NotificationDropdown
                     open={notificationsOpen}
                     onClose={() => setNotificationsOpen(false)}
+                    notifications={notifications}
+                    unreadCount={unreadCount}
+                    onMarkAllRead={markAllRead}
+                    onMarkRead={markRead}
                   />
                 </div>
                 <button
@@ -548,7 +589,7 @@ export default function DashboardLayout({
                   <Settings size={18} />
                 </button>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
-                  KD
+                  {userInitials}
                 </div>
               </div>
             </>
@@ -598,13 +639,19 @@ export default function DashboardLayout({
                     aria-label="Notifications"
                   >
                     <Bell size={18} />
-                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
-                      3
-                    </span>
+                    {unreadCount > 0 && (
+                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                        {unreadCount}
+                      </span>
+                    )}
                   </button>
                   <NotificationDropdown
                     open={notificationsOpen}
                     onClose={() => setNotificationsOpen(false)}
+                    notifications={notifications}
+                    unreadCount={unreadCount}
+                    onMarkAllRead={markAllRead}
+                    onMarkRead={markRead}
                   />
                 </div>
                 <button
@@ -618,7 +665,7 @@ export default function DashboardLayout({
                   Upload
                 </button>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
-                  KD
+                  {userInitials}
                 </div>
               </div>
             </>
