@@ -12,6 +12,7 @@ export type PricingModel = 'free' | 'flat_fee' | 'per_photo'
 export type MediaOrientation = 'landscape' | 'portrait' | 'square'
 export type GalleryAccessType = 'preview' | 'full'
 export type DownloadType = 'single' | 'zip' | 'all'
+export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled'
 export type InvoiceStatus = 'pending' | 'paid' | 'refunded'
 export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'trialing'
 export type EmailStatus = 'sent' | 'failed' | 'bounced'
@@ -163,6 +164,22 @@ export interface Notification {
   created_at: string
 }
 
+export interface Booking {
+  id: string
+  workspace_id: string
+  client_name: string
+  client_email: string | null
+  shoot_date: string
+  shoot_time: string | null
+  package_type: string | null
+  amount_cents: number | null
+  location: string | null
+  notes: string | null
+  status: BookingStatus
+  created_at: string
+  updated_at: string
+}
+
 export interface Waitlist {
   id: string
   email: string
@@ -206,6 +223,7 @@ export type InvoiceInsert = Omit<Invoice, 'id' | 'created_at'>
 export type SubscriptionInsert = Omit<Subscription, 'id' | 'created_at'>
 export type EmailLogInsert = Omit<EmailLog, 'id' | 'sent_at'>
 export type NotificationInsert = Omit<Notification, 'id' | 'created_at'>
+export type BookingInsert = Omit<Booking, 'id' | 'created_at' | 'updated_at'>
 export type WaitlistInsert = Omit<Waitlist, 'id' | 'created_at'>
 export type GalleryPaymentInsert = Omit<GalleryPayment, 'id' | 'created_at'>
 export type StripeEventInsert = Omit<StripeEvent, 'id' | 'created_at'>
@@ -219,6 +237,7 @@ export type WorkspaceUpdate = Partial<Omit<Workspace, 'id' | 'created_at'>>
 export type ProjectUpdate = Partial<Omit<Project, 'id' | 'workspace_id' | 'created_at'>>
 export type MediaUpdate = Partial<Omit<Media, 'id' | 'project_id' | 'created_at'>>
 export type CategoryUpdate = Partial<Omit<Category, 'id' | 'project_id'>>
+export type BookingUpdate = Partial<Omit<Booking, 'id' | 'workspace_id' | 'created_at'>>
 export type NotificationUpdate = Partial<Pick<Notification, 'read'>>
 
 // ---------------------------------------------------------------------------
@@ -288,6 +307,11 @@ export type Database = {
         Insert: NotificationInsert
         Update: NotificationUpdate
       }
+      bookings: {
+        Row: Booking
+        Insert: BookingInsert
+        Update: BookingUpdate
+      }
       waitlist: {
         Row: Waitlist
         Insert: WaitlistInsert
@@ -314,6 +338,7 @@ export type Database = {
       media_orientation: MediaOrientation
       gallery_access_type: GalleryAccessType
       download_type: DownloadType
+      booking_status: BookingStatus
       invoice_status: InvoiceStatus
       subscription_status: SubscriptionStatus
       email_status: EmailStatus
