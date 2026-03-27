@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -21,7 +21,164 @@ import {
   FileText,
   Layers,
   ChevronDown,
+  DollarSign,
+  Eye,
+  UserCheck,
+  Cloud,
 } from 'lucide-react'
+
+/* ------------------------------------------------------------------ */
+/*  Notification types & mock data                                     */
+/* ------------------------------------------------------------------ */
+
+interface Notification {
+  id: string
+  type: 'booking' | 'payment' | 'gallery_viewed' | 'client_accepted' | 'upload_complete'
+  title: string
+  description: string
+  timestamp: string
+  read: boolean
+}
+
+const MOCK_NOTIFICATIONS: Notification[] = [
+  {
+    id: '1',
+    type: 'booking',
+    title: 'New Booking Request',
+    description: 'Sarah Johnson requested a wedding shoot for July 18.',
+    timestamp: '5 min ago',
+    read: false,
+  },
+  {
+    id: '2',
+    type: 'payment',
+    title: 'Payment Received',
+    description: '$2,400 deposited for the Martinez engagement session.',
+    timestamp: '1 hr ago',
+    read: false,
+  },
+  {
+    id: '3',
+    type: 'gallery_viewed',
+    title: 'Gallery Viewed',
+    description: 'Emily Chen viewed the "Lakeside Wedding" gallery.',
+    timestamp: '3 hrs ago',
+    read: false,
+  },
+  {
+    id: '4',
+    type: 'client_accepted',
+    title: 'Client Accepted Invite',
+    description: 'David Park accepted your invitation to review proofs.',
+    timestamp: '6 hrs ago',
+    read: true,
+  },
+  {
+    id: '5',
+    type: 'upload_complete',
+    title: 'Upload Complete',
+    description: '428 photos uploaded to "Johnson Wedding" project.',
+    timestamp: '1 day ago',
+    read: true,
+  },
+]
+
+function NotificationIcon({ type }: { type: Notification['type'] }) {
+  const config: Record<Notification['type'], { icon: React.ElementType; bg: string }> = {
+    booking: { icon: CalendarDays, bg: 'bg-[#ffb780]/20 text-[#ffb780]' },
+    payment: { icon: DollarSign, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
+    gallery_viewed: { icon: Eye, bg: 'bg-[#ffb4a5]/20 text-[#ffb4a5]' },
+    client_accepted: { icon: UserCheck, bg: 'bg-[#d9c2b4]/20 text-[#d9c2b4]' },
+    upload_complete: { icon: Cloud, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
+  }
+  const { icon: Icon, bg } = config[type]
+  return (
+    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${bg}`}>
+      <Icon size={16} />
+    </div>
+  )
+}
+
+function NotificationDropdown({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        onClose()
+      }
+    }
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [open, onClose])
+
+  if (!open) return null
+
+  const unreadCount = MOCK_NOTIFICATIONS.filter((n) => !n.read).length
+
+  return (
+    <div
+      ref={ref}
+      className="absolute right-0 top-full mt-2 w-[380px] rounded-xl border border-[#534439]/60 bg-[#1d1b1a] shadow-2xl shadow-black/40 z-50"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-[#534439]/40 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="font-headline font-bold text-sm text-[#e7e1df]">Notifications</span>
+          {unreadCount > 0 && (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#d48441] px-1.5 text-[10px] font-bold text-[#4e2600]">
+              {unreadCount}
+            </span>
+          )}
+        </div>
+        <button className="text-[11px] font-medium text-[#ffb780] hover:text-[#ffb780]/80 transition-colors">
+          Mark all read
+        </button>
+      </div>
+
+      {/* Notification list */}
+      <div className="max-h-[380px] overflow-y-auto">
+        {MOCK_NOTIFICATIONS.map((notification) => (
+          <div
+            key={notification.id}
+            className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-[#252322]/60 cursor-pointer ${
+              !notification.read ? 'border-l-2 border-l-[#ffb780]' : 'border-l-2 border-l-transparent'
+            }`}
+          >
+            <NotificationIcon type={notification.type} />
+            <div className="min-w-0 flex-1">
+              <p className={`text-sm font-medium leading-snug ${!notification.read ? 'text-[#e7e1df]' : 'text-[#e7e1df]/60'}`}>
+                {notification.title}
+              </p>
+              <p className="mt-0.5 text-xs text-[#a18d80] leading-relaxed line-clamp-2">
+                {notification.description}
+              </p>
+              <p className="mt-1 text-[10px] text-[#a18d80]/60">{notification.timestamp}</p>
+            </div>
+            {!notification.read && (
+              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#ffb780]" />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div className="border-t border-[#534439]/40 px-4 py-3 text-center">
+        <button className="text-xs font-medium text-[#ffb780] hover:text-[#ffb780]/80 transition-colors">
+          View All Notifications
+        </button>
+      </div>
+    </div>
+  )
+}
 
 /* ------------------------------------------------------------------ */
 /*  Types & constants                                                  */
@@ -107,6 +264,7 @@ export default function DashboardLayout({
   const inSorting = isSortingView(pathname)
   const isSchedulingActive = schedulingItems.some((item) => isActive(pathname, item.href))
   const [schedulingOpen, setSchedulingOpen] = useState(isSchedulingActive)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
 
   return (
     <div className="flex min-h-screen bg-background text-on-surface">
@@ -294,13 +452,22 @@ export default function DashboardLayout({
                 <button className="rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441] px-4 py-2 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
                   Publish Gallery
                 </button>
-                <button
-                  className="relative rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
-                  aria-label="Notifications"
-                >
-                  <Bell size={18} />
-                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-error" />
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setNotificationsOpen(!notificationsOpen)}
+                    className="relative rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
+                    aria-label="Notifications"
+                  >
+                    <Bell size={18} />
+                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                      3
+                    </span>
+                  </button>
+                  <NotificationDropdown
+                    open={notificationsOpen}
+                    onClose={() => setNotificationsOpen(false)}
+                  />
+                </div>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
                   KD
                 </div>
@@ -351,13 +518,22 @@ export default function DashboardLayout({
 
               {/* Right actions */}
               <div className="flex items-center gap-3">
-                <button
-                  className="relative rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
-                  aria-label="Notifications"
-                >
-                  <Bell size={18} />
-                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-error" />
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setNotificationsOpen(!notificationsOpen)}
+                    className="relative rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
+                    aria-label="Notifications"
+                  >
+                    <Bell size={18} />
+                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                      3
+                    </span>
+                  </button>
+                  <NotificationDropdown
+                    open={notificationsOpen}
+                    onClose={() => setNotificationsOpen(false)}
+                  />
+                </div>
                 <button
                   className="rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
                   aria-label="Settings"
@@ -408,13 +584,22 @@ export default function DashboardLayout({
                 >
                   <Search size={18} />
                 </button>
-                <button
-                  className="relative rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
-                  aria-label="Notifications"
-                >
-                  <Bell size={18} />
-                  <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-error" />
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setNotificationsOpen(!notificationsOpen)}
+                    className="relative rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
+                    aria-label="Notifications"
+                  >
+                    <Bell size={18} />
+                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                      3
+                    </span>
+                  </button>
+                  <NotificationDropdown
+                    open={notificationsOpen}
+                    onClose={() => setNotificationsOpen(false)}
+                  />
+                </div>
                 <button
                   className="rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
                   aria-label="Settings"

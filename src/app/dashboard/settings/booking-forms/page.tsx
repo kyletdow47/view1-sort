@@ -18,6 +18,11 @@ import {
   Plane,
   Circle,
   ArrowDown,
+  Zap,
+  Eye,
+  Check,
+  Clock,
+  MessageSquare,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -74,6 +79,9 @@ function Card({
 
 export default function BookingFormsPage() {
   const [activePreset, setActivePreset] = useState('Wedding Arch')
+  const [confirmMode, setConfirmMode] = useState<'auto' | 'manual'>('auto')
+  const [emailDelay, setEmailDelay] = useState('instant')
+  const [confirmMessage, setConfirmMessage] = useState('')
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
@@ -333,6 +341,111 @@ export default function BookingFormsPage() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ====== BOOKING CONFIRMATION SECTION ====== */}
+      <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5">
+        <SectionLabel>Confirmation Settings</SectionLabel>
+
+        {/* Mode Cards */}
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          {/* Auto-Confirm */}
+          <button
+            onClick={() => setConfirmMode('auto')}
+            className={`relative flex flex-col items-start gap-3 rounded-xl p-4 text-left transition-all ${
+              confirmMode === 'auto'
+                ? 'bg-gradient-to-br from-[#ffb780]/15 to-[#d48441]/10 ring-1 ring-primary/30'
+                : 'bg-surface-container ring-1 ring-outline-variant/15 hover:bg-surface-container-high'
+            }`}
+          >
+            {confirmMode === 'auto' && (
+              <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary/20">
+                <Check size={12} className="text-primary" />
+              </div>
+            )}
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+              confirmMode === 'auto' ? 'bg-primary/20' : 'bg-surface-container-high'
+            }`}>
+              <Zap size={18} className={confirmMode === 'auto' ? 'text-primary' : 'text-on-surface-variant/60'} />
+            </div>
+            <div>
+              <h4 className={`text-sm font-bold ${confirmMode === 'auto' ? 'text-primary' : 'text-on-surface'}`}>
+                Auto-Confirm
+              </h4>
+              <p className="mt-1 text-[11px] leading-relaxed text-on-surface-variant/50">
+                Bookings are automatically confirmed. Client receives instant confirmation email.
+              </p>
+            </div>
+          </button>
+
+          {/* Manual Review */}
+          <button
+            onClick={() => setConfirmMode('manual')}
+            className={`relative flex flex-col items-start gap-3 rounded-xl p-4 text-left transition-all ${
+              confirmMode === 'manual'
+                ? 'bg-gradient-to-br from-[#ffb780]/15 to-[#d48441]/10 ring-1 ring-primary/30'
+                : 'bg-surface-container ring-1 ring-outline-variant/15 hover:bg-surface-container-high'
+            }`}
+          >
+            {confirmMode === 'manual' && (
+              <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary/20">
+                <Check size={12} className="text-primary" />
+              </div>
+            )}
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${
+              confirmMode === 'manual' ? 'bg-primary/20' : 'bg-surface-container-high'
+            }`}>
+              <Eye size={18} className={confirmMode === 'manual' ? 'text-primary' : 'text-on-surface-variant/60'} />
+            </div>
+            <div>
+              <h4 className={`text-sm font-bold ${confirmMode === 'manual' ? 'text-primary' : 'text-on-surface'}`}>
+                Manual Review
+              </h4>
+              <p className="mt-1 text-[11px] leading-relaxed text-on-surface-variant/50">
+                Photographer reviews each booking before confirming. Client receives &quot;pending&quot; email.
+              </p>
+            </div>
+          </button>
+        </div>
+
+        {/* Confirmation Email Delay */}
+        <div className="mt-5">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock size={14} className="text-on-surface-variant/50" />
+            <span className="text-xs font-medium text-on-surface-variant">
+              Confirmation email delay
+            </span>
+          </div>
+          <div className="relative">
+            <select
+              value={emailDelay}
+              onChange={(e) => setEmailDelay(e.target.value)}
+              className="w-full appearance-none rounded-lg border border-outline-variant/20 bg-surface-container px-4 py-2.5 text-sm text-on-surface outline-none transition-colors focus:border-primary/40 cursor-pointer"
+            >
+              <option value="instant">Instant</option>
+              <option value="5min">5 minutes</option>
+              <option value="1hour">1 hour</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Custom Confirmation Message */}
+        <div className="mt-5">
+          <div className="flex items-center gap-2 mb-2">
+            <MessageSquare size={14} className="text-on-surface-variant/50" />
+            <span className="text-xs font-medium text-on-surface-variant">
+              Custom confirmation message
+            </span>
+          </div>
+          <textarea
+            value={confirmMessage}
+            onChange={(e) => setConfirmMessage(e.target.value)}
+            placeholder="Thank you for your booking! We look forward to working with you..."
+            rows={3}
+            className="w-full rounded-lg border border-outline-variant/20 bg-surface-container px-4 py-3 text-sm text-on-surface placeholder-on-surface-variant/30 outline-none transition-colors focus:border-primary/40 resize-none"
+          />
         </div>
       </div>
 
