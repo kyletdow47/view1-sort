@@ -13,11 +13,17 @@ import {
   Receipt,
   Target,
   MoreHorizontal,
+  Loader2,
+  AlertCircle,
+  ExternalLink,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
+import { createClient } from '@/lib/supabase/client'
 
 /* ------------------------------------------------------------------ */
-/*  Mock data                                                          */
+/*  Mock data (client table — kept static for now)                    */
 /* ------------------------------------------------------------------ */
 
 const connectedClients = [
@@ -123,8 +129,72 @@ function StatusBadge({ status }: { status: string }) {
 /* ------------------------------------------------------------------ */
 
 export default function StripeConnectPage() {
+  const { user } = useAuth()
+  const supabase = createClient()
+  const searchParams = useSearchParams()
+
+  const [stripeAccountId, setStripeAccountId] = useState<string | null>(null)
+  const [profileLoading, setProfileLoading] = useState(true)
+  const [connecting, setConnecting] = useState(false)
+  const [connectError, setConnectError] = useState<string | null>(null)
+  const [showSuccess, setShowSuccess] = useState(false)
+
   const [payoutFreq, setPayoutFreq] =
     useState<(typeof payoutFreqs)[number]>('Weekly')
+
+  // Check for ?connected=true or ?error= from callback redirect
+  useEffect(() => {
+    if (searchParams.get('connected') === 'true') {
+      setShowSuccess(true)
+      setTimeout(() => setShowSuccess(false), 5000)
+    }
+    if (searchParams.get('error')) {
+      setConnectError('Stripe onboarding could not be completed. Please try again.')
+    }
+  }, [searchParams])
+
+  // Load profile to check if already connected
+  useEffect(() => {
+    if (!user) return
+
+    const load = async () => {
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('stripe_account_id')
+          .eq('id', user.id)
+          .single()
+
+        setStripeAccountId(data?.stripe_account_id ?? null)
+      } finally {
+        setProfileLoading(false)
+      }
+    }
+
+    load()
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleConnect = useCallback(async () => {
+    setConnecting(true)
+    setConnectError(null)
+
+    try {
+      const res = await fetch('/api/stripe/connect', { method: 'POST' })
+      const json = (await res.json()) as { url?: string; error?: string }
+
+      if (!res.ok || !json.url) {
+        throw new Error(json.error ?? 'Failed to start onboarding')
+      }
+
+      // Redirect to Stripe onboarding
+      window.location.href = json.url
+    } catch (err) {
+      setConnectError(err instanceof Error ? err.message : 'Something went wrong')
+      setConnecting(false)
+    }
+  }, [])
+
+  const isConnected = Boolean(stripeAccountId)
 
   return (
     <div className="space-y-6">
@@ -138,6 +208,24 @@ export default function StripeConnectPage() {
         </p>
       </div>
 
+      {/* Success banner */}
+      {showSuccess && (
+        <div className="flex items-center gap-3 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3">
+          <CheckCircle2 size={18} className="text-green-400 shrink-0" />
+          <p className="text-sm text-green-400">
+            Stripe Connect account linked successfully!
+          </p>
+        </div>
+      )}
+
+      {/* Error banner */}
+      {connectError && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3">
+          <AlertCircle size={18} className="text-error shrink-0" />
+          <p className="text-sm text-error">{connectError}</p>
+        </div>
+      )}
+
       {/* Top row */}
       <div className="grid grid-cols-12 gap-6">
         {/* Onboarding hero card */}
@@ -150,46 +238,92 @@ export default function StripeConnectPage() {
               <div>
                 <SectionLabel>Payment Integration</SectionLabel>
                 <h2 className="mt-2 font-headline text-2xl font-extrabold text-on-surface">
-                  Connect your Stripe Account
+                  {isConnected
+                    ? 'Stripe Account Connected'
+                    : 'Connect your Stripe Account'}
                 </h2>
                 <p className="mt-2 text-sm text-on-surface-variant leading-relaxed">
-                  Accept payments from clients seamlessly. Funds are deposited
-                  directly into your bank account with full transparency.
+                  {isConnected
+                    ? 'Your Stripe Express account is linked. Clients can now pay you directly through their galleries.'
+                    : 'Accept payments from clients seamlessly. Funds are deposited directly into your bank account with full transparency.'}
                 </p>
               </div>
 
-              <div className="space-y-3">
-                <BenefitItem
-                  icon={Zap}
-                  title="Instant Payouts"
-                  desc="Get paid within minutes of client payment"
-                />
-                <BenefitItem
-                  icon={Shield}
-                  title="Secure Payments"
-                  desc="PCI-compliant with end-to-end encryption"
-                />
-                <BenefitItem
-                  icon={FileText}
-                  title="Automated Tax Reports"
-                  desc="1099-K generation and annual summaries"
-                />
-              </div>
+              {!isConnected && (
+                <div className="space-y-3">
+                  <BenefitItem
+                    icon={Zap}
+                    title="Instant Payouts"
+                    desc="Get paid within minutes of client payment"
+                  />
+                  <BenefitItem
+                    icon={Shield}
+                    title="Secure Payments"
+                    desc="PCI-compliant with end-to-end encryption"
+                  />
+                  <BenefitItem
+                    icon={FileText}
+                    title="Automated Tax Reports"
+                    desc="1099-K generation and annual summaries"
+                  />
+                </div>
+              )}
 
-              <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-8 py-3 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
-                <CreditCard size={16} />
-                Connect with Stripe
-                <ChevronRight size={16} />
-              </button>
+              {profileLoading ? (
+                <div className="flex items-center gap-2 text-on-surface-variant">
+                  <Loader2 size={16} className="animate-spin" />
+                  <span className="text-sm">Loading…</span>
+                </div>
+              ) : isConnected ? (
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={handleConnect}
+                    disabled={connecting}
+                    className="flex items-center gap-2 rounded-xl border border-outline-variant/30 px-5 py-2.5 text-sm font-medium text-on-surface-variant transition-colors hover:border-primary/30 hover:text-primary disabled:opacity-60"
+                  >
+                    {connecting ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <ExternalLink size={14} />
+                    )}
+                    Manage in Stripe
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleConnect}
+                  disabled={connecting}
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-8 py-3 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90 disabled:opacity-60"
+                >
+                  {connecting ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <CreditCard size={16} />
+                  )}
+                  {connecting ? 'Redirecting…' : 'Connect with Stripe'}
+                  {!connecting && <ChevronRight size={16} />}
+                </button>
+              )}
             </div>
 
             {/* Decorative illustration placeholder */}
             <div className="hidden lg:flex h-52 w-52 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-surface-container to-surface-container-high border border-outline-variant/20">
               <div className="space-y-2 text-center">
-                <CreditCard size={40} className="mx-auto text-primary/40" />
-                <span className="text-[10px] text-on-surface-variant/40 uppercase tracking-wider">
-                  Stripe
-                </span>
+                {isConnected ? (
+                  <>
+                    <CheckCircle2 size={40} className="mx-auto text-green-400/60" />
+                    <span className="text-[10px] text-green-400/60 uppercase tracking-wider">
+                      Connected
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard size={40} className="mx-auto text-primary/40" />
+                    <span className="text-[10px] text-on-surface-variant/40 uppercase tracking-wider">
+                      Stripe
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -199,39 +333,60 @@ export default function StripeConnectPage() {
         <Card className="col-span-12 lg:col-span-4">
           <SectionLabel>Account Status</SectionLabel>
           <div className="mt-3 flex items-center gap-2">
-            <CheckCircle2 size={18} className="text-green-400" />
-            <span className="text-sm font-semibold text-green-400">
-              Verified
-            </span>
+            {profileLoading ? (
+              <Loader2 size={18} className="animate-spin text-on-surface-variant/50" />
+            ) : isConnected ? (
+              <>
+                <CheckCircle2 size={18} className="text-green-400" />
+                <span className="text-sm font-semibold text-green-400">
+                  Verified
+                </span>
+              </>
+            ) : (
+              <>
+                <AlertCircle size={18} className="text-yellow-400" />
+                <span className="text-sm font-semibold text-yellow-400">
+                  Not connected
+                </span>
+              </>
+            )}
           </div>
 
-          <div className="mt-5 space-y-4">
-            <div>
-              <SectionLabel>Next Payout</SectionLabel>
-              <p className="mt-1 font-headline text-2xl font-extrabold text-on-surface">
-                $4,250.00
-              </p>
-            </div>
+          {isConnected && (
+            <div className="mt-5 space-y-4">
+              <div>
+                <SectionLabel>Next Payout</SectionLabel>
+                <p className="mt-1 font-headline text-2xl font-extrabold text-on-surface">
+                  $4,250.00
+                </p>
+              </div>
 
-            <div className="space-y-1.5">
-              <SectionLabel>Payout Frequency</SectionLabel>
-              <div className="flex gap-1.5">
-                {payoutFreqs.map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setPayoutFreq(f)}
-                    className={`flex-1 rounded-lg py-2 text-xs font-medium transition-colors ${
-                      payoutFreq === f
-                        ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600]'
-                        : 'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/20 hover:ring-primary/30'
-                    }`}
-                  >
-                    {f}
-                  </button>
-                ))}
+              <div className="space-y-1.5">
+                <SectionLabel>Payout Frequency</SectionLabel>
+                <div className="flex gap-1.5">
+                  {payoutFreqs.map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => setPayoutFreq(f)}
+                      className={`flex-1 rounded-lg py-2 text-xs font-medium transition-colors ${
+                        payoutFreq === f
+                          ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600]'
+                          : 'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/20 hover:ring-primary/30'
+                      }`}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {!isConnected && !profileLoading && (
+            <p className="mt-4 text-xs text-on-surface-variant leading-relaxed">
+              Connect your Stripe account to start accepting payments from clients.
+            </p>
+          )}
         </Card>
       </div>
 
