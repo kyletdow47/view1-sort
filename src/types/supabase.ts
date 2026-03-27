@@ -70,6 +70,7 @@ export interface Media {
   project_id: string
   storage_path: string
   filename: string
+  display_name: string | null
   mime_type: string
   size_bytes: number
   width: number | null
