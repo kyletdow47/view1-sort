@@ -35,7 +35,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Projects', href: '/dashboard/project/demo-1', icon: FolderOpen },
+  { label: 'Projects', href: '/dashboard/projects', icon: FolderOpen },
   { label: 'AI Sort', href: '/dashboard/ai-sort', icon: Sparkles },
   { label: 'Clients', href: '/dashboard/clients', icon: Users },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
@@ -56,9 +56,9 @@ function isActive(pathname: string, href: string): boolean {
   if (href === '/dashboard') {
     return pathname === '/dashboard'
   }
-  // For project links like /dashboard/project/demo-1, match any /dashboard/project path
-  if (href.startsWith('/dashboard/project/')) {
-    return pathname.startsWith('/dashboard/project')
+  // Projects nav item matches both /dashboard/projects and /dashboard/project/*
+  if (href === '/dashboard/projects') {
+    return pathname === '/dashboard/projects' || pathname.startsWith('/dashboard/project/')
   }
   return pathname.startsWith(href)
 }
