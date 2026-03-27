@@ -28,6 +28,9 @@ export interface Profile {
   tier: UserTier
   stripe_customer_id: string | null
   stripe_account_id: string | null
+  stripe_subscription_id: string | null
+  subscription_status: SubscriptionStatus | null
+  stripe_connect_enabled: boolean
   onboarded: boolean
   created_at: string
   updated_at: string
@@ -166,6 +169,27 @@ export interface Waitlist {
   created_at: string
 }
 
+export interface GalleryPayment {
+  id: string
+  project_id: string
+  stripe_session_id: string
+  amount: number | null
+  currency: string
+  status: string
+  client_email: string | null
+  paid_at: string | null
+  created_at: string
+}
+
+export interface StripeEvent {
+  id: string
+  stripe_event_id: string
+  event_type: string
+  processed: boolean
+  processed_at: string | null
+  created_at: string
+}
+
 // ---------------------------------------------------------------------------
 // Insert types (omit server-generated fields)
 // ---------------------------------------------------------------------------
@@ -183,6 +207,8 @@ export type SubscriptionInsert = Omit<Subscription, 'id' | 'created_at'>
 export type EmailLogInsert = Omit<EmailLog, 'id' | 'sent_at'>
 export type NotificationInsert = Omit<Notification, 'id' | 'created_at'>
 export type WaitlistInsert = Omit<Waitlist, 'id' | 'created_at'>
+export type GalleryPaymentInsert = Omit<GalleryPayment, 'id' | 'created_at'>
+export type StripeEventInsert = Omit<StripeEvent, 'id' | 'created_at'>
 
 // ---------------------------------------------------------------------------
 // Update types (all fields optional except PK)
@@ -266,6 +292,16 @@ export type Database = {
         Row: Waitlist
         Insert: WaitlistInsert
         Update: never
+      }
+      gallery_payments: {
+        Row: GalleryPayment
+        Insert: GalleryPaymentInsert
+        Update: Partial<Omit<GalleryPayment, 'id' | 'project_id' | 'created_at'>>
+      }
+      stripe_events: {
+        Row: StripeEvent
+        Insert: StripeEventInsert
+        Update: Partial<Omit<StripeEvent, 'id' | 'created_at'>>
       }
     }
     Enums: {

@@ -7,14 +7,15 @@ export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl
   let response = NextResponse.next({ request })
 
-  // Demo bypass — add ?demo=true to any URL to skip auth
-  if (searchParams.get('demo') === 'true') {
-    // Set a cookie so subsequent navigations also bypass
-    response.cookies.set('demo_mode', 'true', { path: '/', maxAge: 60 * 60 * 24 })
-    return response
-  }
-  if (request.cookies.get('demo_mode')?.value === 'true') {
-    return response
+  // Demo bypass — development only. Never active in production.
+  if (process.env.NODE_ENV === 'development') {
+    if (searchParams.get('demo') === 'true') {
+      response.cookies.set('demo_mode', 'true', { path: '/', maxAge: 60 * 60 * 24 })
+      return response
+    }
+    if (request.cookies.get('demo_mode')?.value === 'true') {
+      return response
+    }
   }
 
   const supabase = createServerClient(
