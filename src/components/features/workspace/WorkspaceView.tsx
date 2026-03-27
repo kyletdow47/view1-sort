@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { clsx } from 'clsx'
 import { Globe, Grid3X3, HardDrive, List, Search, Upload, X } from 'lucide-react'
@@ -64,10 +64,14 @@ export function WorkspaceView({ project, initialMedia }: WorkspaceViewProps) {
     setMedia(initialMedia)
   }, [initialMedia, setMedia])
 
-  const groups = groupedByCategory()
-  const categoryNames = Object.keys(groups)
-  const allFilteredMedia = filteredMedia()
-  const flatMediaItems = allFilteredMedia.map(mediaToItem)
+  const groups = useMemo(() => groupedByCategory(), [groupedByCategory])
+  const categoryNames = useMemo(() => Object.keys(groups), [groups])
+  const allFilteredMedia = useMemo(() => filteredMedia(), [filteredMedia])
+  const flatMediaItems = useMemo(() => allFilteredMedia.map(mediaToItem), [allFilteredMedia])
+  const totalBytes = useMemo(
+    () => allFilteredMedia.reduce((sum, m) => sum + m.size_bytes, 0),
+    [allFilteredMedia],
+  )
 
   const handleSelect = useCallback(
     (id: string, shiftKey: boolean) => {
@@ -82,10 +86,13 @@ export function WorkspaceView({ project, initialMedia }: WorkspaceViewProps) {
     [flatMediaItems, toggle, selectRange],
   )
 
-  function handleDoubleClick(id: string) {
-    const idx = flatMediaItems.findIndex((m) => m.id === id)
-    if (idx !== -1) setLightboxIndex(idx)
-  }
+  const handleDoubleClick = useCallback(
+    (id: string) => {
+      const idx = flatMediaItems.findIndex((m) => m.id === id)
+      if (idx !== -1) setLightboxIndex(idx)
+    },
+    [flatMediaItems],
+  )
 
   async function handleDeleteSelected() {
     if (!confirm(`Delete ${selectedIds.size} photo(s)? This cannot be undone.`)) return
@@ -96,8 +103,6 @@ export function WorkspaceView({ project, initialMedia }: WorkspaceViewProps) {
       console.error('Failed to delete media:', err)
     }
   }
-
-  const totalBytes = allFilteredMedia.reduce((sum, m) => sum + m.size_bytes, 0)
   const storagePercent = Math.min((totalBytes / STORAGE_LIMIT_BYTES) * 100, 100)
 
   return (

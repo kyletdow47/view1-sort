@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { memo, useRef } from 'react'
 import { clsx } from 'clsx'
 import { GripVertical, ImageOff, Maximize2, RectangleHorizontal, RectangleVertical, Square } from 'lucide-react'
 import { Badge } from '@/components/common'
@@ -21,7 +21,7 @@ function OrientationIcon({ orientation }: { orientation?: MediaOrientation | nul
   return null
 }
 
-export function MediaCard({ media, onSelect, onDoubleClick, className }: MediaCardProps) {
+export const MediaCard = memo(function MediaCard({ media, onSelect, onDoubleClick, className }: MediaCardProps) {
   const lastClickRef = useRef<number>(0)
 
   function handleClick(e: React.MouseEvent) {
@@ -130,4 +130,4 @@ export function MediaCard({ media, onSelect, onDoubleClick, className }: MediaCa
       )}
     </div>
   )
-}
+})
