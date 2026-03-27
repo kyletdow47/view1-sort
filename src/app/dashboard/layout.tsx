@@ -345,7 +345,7 @@ export default function DashboardLayout({
                 schedulingOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
               }`}
             >
-              <ul className="space-y-1">
+              <ul className="space-y-0.5 pl-4">
                 {schedulingItems.map((item) => {
                   const active = isActive(pathname, item.href)
                   const Icon = item.icon
@@ -353,14 +353,14 @@ export default function DashboardLayout({
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        className={`flex items-center gap-3 px-4 py-3 font-body font-medium transition-colors duration-150 ${
+                        className={`flex items-center gap-2.5 px-3 py-2 text-[13px] font-body font-medium transition-colors duration-150 ${
                           active
-                            ? 'rounded-lg bg-[#252322] text-[#ffb780]'
-                            : 'text-[#e7e1df]/50 hover:bg-[#252322]/50 hover:text-[#e7e1df]'
+                            ? 'rounded-md bg-[#252322] text-[#ffb780]'
+                            : 'text-[#e7e1df]/40 hover:bg-[#252322]/50 hover:text-[#e7e1df]'
                         }`}
                       >
                         <Icon
-                          size={20}
+                          size={16}
                           className="shrink-0"
                           fill={active ? 'currentColor' : 'none'}
                         />

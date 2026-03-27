@@ -66,7 +66,7 @@ function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5 ${className}`}
+      className={`rounded-xl border border-outline-variant/30 bg-surface-container-low p-4 ${className}`}
     >
       {children}
     </div>
@@ -84,15 +84,15 @@ export default function BookingFormsPage() {
   const [confirmMessage, setConfirmMessage] = useState('')
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
-      {/* 3-Column Layout */}
-      <div className="flex-1 grid grid-cols-12 gap-4 overflow-hidden min-h-0">
+    <div className="flex flex-col">
+      {/* 3-Column Layout — fits one screen */}
+      <div className="grid grid-cols-12 gap-3">
         {/* ====== LEFT COLUMN ====== */}
-        <div className="col-span-12 lg:col-span-3 overflow-y-auto space-y-4 pr-1">
+        <div className="col-span-12 lg:col-span-3 space-y-3 pr-1">
           {/* Workflow Presets */}
           <Card>
             <SectionLabel>Workflow Presets</SectionLabel>
-            <div className="mt-3 space-y-2">
+            <div className="mt-2 space-y-1.5">
               {workflowPresets.map((preset) => {
                 const Icon = preset.icon
                 const isActive = activePreset === preset.name
@@ -100,7 +100,7 @@ export default function BookingFormsPage() {
                   <button
                     key={preset.name}
                     onClick={() => setActivePreset(preset.name)}
-                    className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium transition-colors ${
+                    className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors ${
                       isActive
                         ? 'bg-gradient-to-br from-[#ffb780]/15 to-[#d48441]/10 text-primary ring-1 ring-primary/30'
                         : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
@@ -117,20 +117,17 @@ export default function BookingFormsPage() {
           {/* Form Elements */}
           <Card>
             <SectionLabel>Form Elements</SectionLabel>
-            <p className="mt-1 text-[11px] text-on-surface-variant/50">
-              Drag to add to your flow
-            </p>
-            <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="mt-2 grid grid-cols-2 gap-1.5">
               {formElements.map((el) => {
                 const Icon = el.icon
                 return (
                   <div
                     key={el.name}
                     draggable
-                    className="flex flex-col items-center gap-2 rounded-xl border border-outline-variant/20 bg-surface-container p-3 cursor-grab text-center transition-colors hover:border-primary/30 hover:bg-surface-container-high active:cursor-grabbing"
+                    className="flex flex-col items-center gap-1 rounded-lg border border-outline-variant/20 bg-surface-container p-2 cursor-grab text-center transition-colors hover:border-primary/30 hover:bg-surface-container-high active:cursor-grabbing"
                   >
-                    <Icon size={18} className="text-on-surface-variant" />
-                    <span className="text-[11px] font-medium text-on-surface-variant">
+                    <Icon size={15} className="text-on-surface-variant" />
+                    <span className="text-[10px] font-medium text-on-surface-variant">
                       {el.name}
                     </span>
                   </div>
@@ -141,13 +138,13 @@ export default function BookingFormsPage() {
         </div>
 
         {/* ====== CENTER COLUMN ====== */}
-        <div className="col-span-12 lg:col-span-5 overflow-y-auto space-y-4 px-1">
+        <div className="col-span-12 lg:col-span-5 space-y-3 px-1">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-headline text-2xl italic font-extrabold text-on-surface">
+              <h1 className="font-headline text-xl italic font-extrabold text-on-surface">
                 Booking Flow
               </h1>
-              <p className="text-xs text-on-surface-variant mt-0.5">
+              <p className="text-[11px] text-on-surface-variant mt-0.5">
                 {activePreset} workflow
               </p>
             </div>
@@ -199,10 +196,10 @@ export default function BookingFormsPage() {
           </Card>
 
           {/* Flow Connector */}
-          <div className="flex flex-col items-center gap-0.5 py-1">
-            <div className="h-6 w-px bg-outline-variant/30" />
-            <ArrowDown size={14} className="text-outline-variant/40" />
-            <div className="h-6 w-px bg-outline-variant/30" />
+          <div className="flex flex-col items-center gap-0 py-0">
+            <div className="h-3 w-px bg-outline-variant/30" />
+            <ArrowDown size={12} className="text-outline-variant/40" />
+            <div className="h-3 w-px bg-outline-variant/30" />
           </div>
 
           {/* Step 02 */}
@@ -236,20 +233,20 @@ export default function BookingFormsPage() {
         </div>
 
         {/* ====== RIGHT COLUMN ====== */}
-        <div className="col-span-12 lg:col-span-4 overflow-y-auto px-1">
-          <div className="mb-3">
+        <div className="col-span-12 lg:col-span-4 px-1">
+          <div className="mb-2">
             <SectionLabel>Live Client Preview</SectionLabel>
           </div>
 
-          {/* Phone mockup */}
-          <div className="mx-auto w-[320px]">
-            <div className="rounded-[2.5rem] border-4 border-[#373433] bg-[#151312] p-2 shadow-2xl">
+          {/* Phone mockup — compact */}
+          <div className="mx-auto w-[280px]">
+            <div className="rounded-[2rem] border-[3px] border-[#373433] bg-[#151312] p-1.5 shadow-2xl">
               {/* Notch */}
-              <div className="mx-auto mb-2 h-5 w-28 rounded-full bg-[#151312] border border-outline-variant/20" />
+              <div className="mx-auto mb-1.5 h-4 w-24 rounded-full bg-[#151312] border border-outline-variant/20" />
 
               {/* Screen */}
-              <div className="rounded-[2rem] bg-white overflow-hidden" style={{ height: 560 }}>
-                <div className="p-5 space-y-5">
+              <div className="rounded-[1.5rem] bg-white overflow-hidden" style={{ height: 440 }}>
+                <div className="p-4 space-y-3">
                   {/* Header */}
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -274,7 +271,7 @@ export default function BookingFormsPage() {
                   </div>
 
                   {/* Form fields */}
-                  <div className="space-y-4">
+                  <div className="space-y-2.5">
                     <div className="space-y-1">
                       <label className="text-[11px] font-medium text-gray-700">
                         Full Name *
@@ -325,8 +322,8 @@ export default function BookingFormsPage() {
                       <label className="text-[11px] font-medium text-gray-700">
                         Additional Details
                       </label>
-                      <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-6">
-                        <span className="text-[12px] text-gray-400">
+                      <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-3">
+                        <span className="text-[11px] text-gray-400">
                           Tell us about your vision...
                         </span>
                       </div>
@@ -345,11 +342,11 @@ export default function BookingFormsPage() {
       </div>
 
       {/* ====== BOOKING CONFIRMATION SECTION ====== */}
-      <div className="mt-4 rounded-2xl border border-outline-variant/30 bg-surface-container-low p-5">
+      <div className="mt-3 rounded-xl border border-outline-variant/30 bg-surface-container-low p-4">
         <SectionLabel>Confirmation Settings</SectionLabel>
 
         {/* Mode Cards */}
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-3 grid grid-cols-2 gap-3">
           {/* Auto-Confirm */}
           <button
             onClick={() => setConfirmMode('auto')}
@@ -450,7 +447,7 @@ export default function BookingFormsPage() {
       </div>
 
       {/* ====== BOTTOM STATUS BAR ====== */}
-      <div className="mt-4 flex items-center justify-between rounded-xl border border-outline-variant/20 bg-surface-container-low px-5 py-3">
+      <div className="mt-3 flex items-center justify-between rounded-lg border border-outline-variant/20 bg-surface-container-low px-4 py-2.5">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <Circle size={8} className="fill-green-400 text-green-400" />
