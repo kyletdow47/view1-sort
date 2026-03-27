@@ -129,7 +129,7 @@ export function WaitlistModal({ isOpen, onClose }: WaitlistModalProps) {
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="w-full bg-accent text-black font-semibold rounded-lg px-4 py-3 hover:bg-green-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-accent text-black font-semibold rounded-lg px-4 py-3 hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === 'loading' ? 'Joining...' : 'Join Waitlist'}
               </button>

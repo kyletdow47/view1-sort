@@ -197,7 +197,7 @@ export function LandingPage() {
             </Link>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="bg-accent text-black font-semibold text-sm rounded-lg px-4 py-2 hover:bg-green-300 transition-colors"
+              className="bg-accent text-black font-semibold text-sm rounded-lg px-4 py-2 hover:bg-accent-hover transition-colors"
             >
               Join Waitlist
             </button>
@@ -222,7 +222,7 @@ export function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/dashboard"
-              className="bg-accent text-black font-semibold rounded-xl px-8 py-4 text-lg hover:bg-green-300 transition-colors"
+              className="bg-accent text-black font-semibold rounded-xl px-8 py-4 text-lg hover:bg-accent-hover transition-colors"
             >
               Open App
             </Link>
@@ -378,7 +378,7 @@ export function LandingPage() {
                   onClick={() => setIsModalOpen(true)}
                   className={`w-full rounded-xl px-4 py-3 font-semibold text-sm transition-colors ${
                     highlight
-                      ? 'bg-accent text-black hover:bg-green-300'
+                      ? 'bg-accent text-black hover:bg-accent-hover'
                       : 'border border-view1-border text-white hover:border-white/40'
                   }`}
                 >
@@ -422,7 +422,7 @@ export function LandingPage() {
               <button
                 type="submit"
                 disabled={inlineStatus === 'loading'}
-                className="bg-accent text-black font-semibold rounded-xl px-6 py-3 hover:bg-green-300 transition-colors disabled:opacity-50 whitespace-nowrap"
+                className="bg-accent text-black font-semibold rounded-xl px-6 py-3 hover:bg-accent-hover transition-colors disabled:opacity-50 whitespace-nowrap"
               >
                 {inlineStatus === 'loading' ? 'Joining...' : 'Join Waitlist'}
               </button>

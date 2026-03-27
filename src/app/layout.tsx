@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
-import { DM_Sans, JetBrains_Mono } from 'next/font/google'
+import { DM_Sans, JetBrains_Mono, Playfair_Display } from 'next/font/google'
 import { Toaster } from 'sonner'
 import '@/styles/globals.css'
 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono' })
+const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
 
 export const metadata: Metadata = {
   title: 'View1 Studio — Photo Sorter',
@@ -18,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${jetbrainsMono.variable} font-sans bg-background text-white`}>
+      <body className={`${dmSans.variable} ${jetbrainsMono.variable} ${playfair.variable} font-sans bg-background text-white`}>
         {children}
         <Toaster
           position="top-right"

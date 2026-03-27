@@ -158,7 +158,7 @@ export default function OnboardingPage() {
 
         <button
           onClick={handleNext}
-          className="w-full flex items-center justify-center gap-2 bg-accent text-black font-semibold rounded-lg py-2.5 text-sm hover:bg-green-300 transition-colors"
+          className="w-full flex items-center justify-center gap-2 bg-accent text-black font-semibold rounded-lg py-2.5 text-sm hover:bg-accent-hover transition-colors"
         >
           {step === 3 ? 'Get Started' : 'Continue'}
           <ChevronRight size={16} />

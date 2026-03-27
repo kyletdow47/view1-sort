@@ -61,7 +61,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-white">Projects</h1>
           <p className="text-muted text-sm mt-1">4 projects &middot; 2 active</p>
         </div>
-        <button className="flex items-center gap-2 bg-accent text-black font-semibold text-sm rounded-lg px-4 py-2.5 hover:bg-green-300 transition-colors">
+        <button className="flex items-center gap-2 bg-accent text-black font-semibold text-sm rounded-lg px-4 py-2.5 hover:bg-accent-hover transition-colors">
           <Plus size={16} />
           New Project
         </button>

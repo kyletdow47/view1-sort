@@ -45,7 +45,7 @@ export default function SignupPage() {
           </div>
           <button
             type="submit"
-            className="w-full bg-accent text-black font-semibold rounded-lg py-2.5 text-sm hover:bg-green-300 transition-colors"
+            className="w-full bg-accent text-black font-semibold rounded-lg py-2.5 text-sm hover:bg-accent-hover transition-colors"
           >
             Create Account
           </button>

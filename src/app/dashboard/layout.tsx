@@ -1,65 +1,32 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
-  User,
-  CreditCard,
-  Banknote,
-  Palette,
-  FileText,
-  Users,
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  Bell,
   FolderOpen,
+  Users,
+  Wallet,
+  Settings,
+  Aperture,
+  Plus,
+  Search,
+  Bell,
 } from 'lucide-react'
 
 interface NavItem {
   label: string
   href: string
   icon: React.ElementType
-  phase2?: boolean
 }
 
-interface NavSection {
-  title: string
-  items: NavItem[]
-}
-
-const navSections: NavSection[] = [
-  {
-    title: '',
-    items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    ],
-  },
-  {
-    title: 'Projects',
-    items: [
-      { label: 'All Projects', href: '/dashboard/project', icon: FolderOpen },
-    ],
-  },
-  {
-    title: 'Settings',
-    items: [
-      { label: 'Account', href: '/dashboard/settings', icon: User },
-      { label: 'Billing', href: '/dashboard/billing', icon: CreditCard },
-      { label: 'Stripe Connect', href: '/dashboard/settings/connect', icon: Banknote },
-      { label: 'Gallery Themes', href: '/dashboard/settings/themes', icon: Palette },
-      { label: 'Booking Forms', href: '/dashboard/settings/booking-forms', icon: FileText, phase2: true },
-    ],
-  },
-  {
-    title: '',
-    items: [
-      { label: 'Clients', href: '/dashboard/clients', icon: Users, phase2: true },
-      { label: 'Bookings', href: '/dashboard/bookings', icon: Calendar, phase2: true },
-    ],
-  },
+const navItems: NavItem[] = [
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Projects', href: '/dashboard/project', icon: FolderOpen },
+  { label: 'Clients', href: '/dashboard/clients', icon: Users },
+  { label: 'Finances', href: '/dashboard/billing', icon: Wallet },
+  { label: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
 function isActive(pathname: string, href: string): boolean {
@@ -69,18 +36,16 @@ function isActive(pathname: string, href: string): boolean {
   return pathname.startsWith(href)
 }
 
-function getPageTitle(pathname: string): string {
-  for (const section of navSections) {
-    for (const item of section.items) {
-      if (isActive(pathname, item.href)) {
-        return item.label
-      }
-    }
+function isInsideProject(pathname: string): boolean {
+  return /^\/dashboard\/project\/[^/]+/.test(pathname)
+}
+
+function getProjectName(pathname: string): string {
+  const match = pathname.match(/^\/dashboard\/project\/([^/]+)/)
+  if (match) {
+    return decodeURIComponent(match[1]).replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
   }
-  if (pathname.startsWith('/dashboard/project/')) {
-    return 'Project'
-  }
-  return 'Dashboard'
+  return 'Project'
 }
 
 export default function DashboardLayout({
@@ -88,121 +53,161 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
-  const sidebarWidth = collapsed ? 'w-16' : 'w-60'
+  const inProject = isInsideProject(pathname)
 
   return (
     <div className="flex min-h-screen bg-background text-white font-sans">
-      {/* Sidebar */}
+      {/* Sidebar — fixed 220px */}
       <aside
-        className={`${sidebarWidth} fixed inset-y-0 left-0 z-30 flex flex-col border-r border-view1-border bg-surface transition-all duration-200 ease-in-out`}
+        className="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-view1-border bg-surface"
+        style={{ width: 220 }}
       >
-        {/* Logo */}
-        <Link
-          href="/dashboard"
-          className="flex h-14 items-center gap-2 border-b border-view1-border px-4"
-        >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-background font-bold text-sm">
-            V1
-          </span>
-          {!collapsed && (
-            <span className="text-sm font-semibold tracking-tight whitespace-nowrap overflow-hidden">
+        {/* Brand */}
+        <div className="flex items-center gap-2.5 px-5 py-5">
+          <Aperture size={22} className="shrink-0 text-accent" />
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-accent leading-tight">
               View1 Sort
             </span>
-          )}
-        </Link>
+            <span className="text-[10px] text-muted leading-tight">
+              Editorial Workspace
+            </span>
+          </div>
+        </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
-          {navSections.map((section, sIdx) => (
-            <div key={sIdx}>
-              {section.title && !collapsed && (
-                <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted">
-                  {section.title}
-                </p>
-              )}
-              {section.title && collapsed && (
-                <div className="mx-auto mb-1 h-px w-8 bg-view1-border" />
-              )}
-              <ul className="space-y-0.5">
-                {section.items.map((item) => {
-                  const active = isActive(pathname, item.href)
-                  const Icon = item.icon
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        title={collapsed ? item.label : undefined}
-                        className={`group flex items-center gap-3 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors duration-150 ${
-                          active
-                            ? 'bg-accent/10 text-accent'
-                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                        }`}
-                      >
-                        <Icon
-                          size={18}
-                          className={`shrink-0 ${active ? 'text-accent' : 'text-gray-500 group-hover:text-white'}`}
-                        />
-                        {!collapsed && (
-                          <span className="flex-1 truncate">{item.label}</span>
-                        )}
-                        {!collapsed && item.phase2 && (
-                          <span className="ml-auto rounded bg-white/5 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted">
-                            Phase 2
-                          </span>
-                        )}
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          ))}
+        <nav className="flex-1 px-3 py-2">
+          <ul className="space-y-1">
+            {navItems.map((item) => {
+              const active = isActive(pathname, item.href)
+              const Icon = item.icon
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+                      active
+                        ? 'bg-[#D4915C26] text-accent'
+                        : 'text-muted hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    <Icon
+                      size={18}
+                      className={`shrink-0 ${active ? 'text-accent' : 'text-muted'}`}
+                    />
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
         </nav>
 
-        {/* Collapse toggle */}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="flex h-12 items-center justify-center border-t border-view1-border text-gray-500 transition-colors hover:text-white"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </button>
+        {/* New Project button */}
+        <div className="px-3 pb-4">
+          <Link
+            href="/dashboard/project/new"
+            className="flex items-center justify-center gap-2 w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-accent-hover"
+          >
+            <Plus size={16} className="shrink-0" />
+            New Project
+          </Link>
+        </div>
       </aside>
 
       {/* Main wrapper */}
-      <div
-        className={`flex flex-1 flex-col transition-all duration-200 ease-in-out ${
-          collapsed ? 'ml-16' : 'ml-60'
-        }`}
-      >
+      <div className="flex flex-1 flex-col" style={{ marginLeft: 220 }}>
         {/* Header */}
         <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-view1-border bg-background/80 px-6 backdrop-blur-sm">
-          {/* Left: page title */}
-          <h1 className="text-sm font-semibold tracking-tight">
-            {getPageTitle(pathname)}
-          </h1>
+          {inProject ? (
+            <>
+              {/* Project header: search + tabs + actions */}
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Search
+                    size={14}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search selection..."
+                    className="h-8 w-48 rounded-md bg-surface pl-8 pr-3 text-xs text-white placeholder-muted border border-view1-border outline-none focus:border-accent/50"
+                  />
+                </div>
+              </div>
 
-          {/* Right: actions */}
-          <div className="flex items-center gap-4">
-            {/* Notifications */}
-            <button
-              className="relative rounded-lg p-2 text-gray-500 transition-colors hover:bg-white/5 hover:text-white"
-              aria-label="Notifications"
-            >
-              <Bell size={18} />
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent" />
-            </button>
+              {/* Project tabs */}
+              <div className="flex items-center gap-6">
+                <span className="text-sm font-medium text-muted">
+                  {getProjectName(pathname)}
+                </span>
+                <nav className="flex items-center gap-5">
+                  <span className="border-b-2 border-accent pb-0.5 text-xs font-medium text-accent">
+                    Overview
+                  </span>
+                  <span className="text-xs font-medium text-muted hover:text-white cursor-pointer transition-colors">
+                    Metadata
+                  </span>
+                  <span className="text-xs font-medium text-muted hover:text-white cursor-pointer transition-colors">
+                    Export History
+                  </span>
+                </nav>
+              </div>
 
-            {/* User avatar */}
-            <button
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-view1-border text-xs font-semibold text-gray-400 transition-colors hover:text-white"
-              aria-label="User menu"
-            >
-              U
-            </button>
-          </div>
+              {/* Right actions */}
+              <div className="flex items-center gap-3">
+                <button
+                  className="relative rounded-lg p-2 text-muted transition-colors hover:bg-white/5 hover:text-white"
+                  aria-label="Notifications"
+                >
+                  <Bell size={16} />
+                </button>
+                <button
+                  className="rounded-lg p-2 text-muted transition-colors hover:bg-white/5 hover:text-white"
+                  aria-label="Settings"
+                >
+                  <Settings size={16} />
+                </button>
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/20 text-[10px] font-semibold text-accent">
+                  KD
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Default header: search + actions */}
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Search
+                    size={14}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Search projects or assets..."
+                    className="h-8 w-56 rounded-md bg-surface pl-8 pr-3 text-xs text-white placeholder-muted border border-view1-border outline-none focus:border-accent/50"
+                  />
+                </div>
+              </div>
+
+              {/* Right actions */}
+              <div className="flex items-center gap-4">
+                <span className="text-xs font-medium text-muted uppercase tracking-wide cursor-pointer hover:text-white transition-colors">
+                  Notifications
+                </span>
+                <span className="text-xs font-medium text-muted uppercase tracking-wide cursor-pointer hover:text-white transition-colors">
+                  Publish
+                </span>
+                <button className="rounded-lg bg-accent px-3.5 py-1.5 text-xs font-semibold text-black transition-colors hover:bg-accent-hover">
+                  Upload
+                </button>
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/20 text-[10px] font-semibold text-accent">
+                  KD
+                </div>
+              </div>
+            </>
+          )}
         </header>
 
         {/* Content */}

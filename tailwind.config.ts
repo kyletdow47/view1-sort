@@ -10,14 +10,18 @@ const config: Config = {
     extend: {
       colors: {
         background: '#0C0C0E',
-        surface: '#1a1a1f',
+        surface: '#161619',
+        'surface-alt': '#1a1a1f',
         'view1-border': '#2a2a35',
-        accent: '#4ADE80',
+        accent: '#D4915C',
+        'accent-hover': '#E0A06E',
         muted: '#6b7280',
+        'muted-light': '#9ca3af',
       },
       fontFamily: {
-        sans: ['DM Sans', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['var(--font-dm-sans)', 'DM Sans', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'Playfair Display', 'serif'],
+        mono: ['var(--font-jetbrains-mono)', 'JetBrains Mono', 'monospace'],
       },
     },
   },

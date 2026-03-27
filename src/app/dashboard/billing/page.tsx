@@ -123,7 +123,7 @@ export default function BillingPage() {
               {!plan.current && (
                 <button className={`w-full rounded-lg px-4 py-2.5 font-semibold text-sm transition-colors ${
                   plan.highlight
-                    ? 'bg-accent text-black hover:bg-green-300'
+                    ? 'bg-accent text-black hover:bg-accent-hover'
                     : 'border border-view1-border text-white hover:border-accent/50'
                 }`}>
                   Upgrade to {plan.name}
