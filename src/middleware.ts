@@ -4,8 +4,18 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname, searchParams } = request.nextUrl
   let response = NextResponse.next({ request })
+
+  // Demo bypass — add ?demo=true to any URL to skip auth
+  if (searchParams.get('demo') === 'true') {
+    // Set a cookie so subsequent navigations also bypass
+    response.cookies.set('demo_mode', 'true', { path: '/', maxAge: 60 * 60 * 24 })
+    return response
+  }
+  if (request.cookies.get('demo_mode')?.value === 'true') {
+    return response
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
