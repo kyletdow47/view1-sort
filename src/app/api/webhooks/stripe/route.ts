@@ -3,6 +3,14 @@ import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 import type { PlanTier } from '@/lib/stripe/plans'
+// Dynamic imports to avoid build-time issues in API routes
+async function loadEmailUtils() {
+  const [{ sendEmail }, templates] = await Promise.all([
+    import('@/lib/email/send'),
+    import('@/lib/email/templates'),
+  ])
+  return { sendEmail, ...templates }
+}
 
 function getServiceSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -59,15 +67,75 @@ async function handleCheckoutSessionCompleted(
   }
 
   if (session.mode === 'payment' && session.metadata?.projectId) {
+    const projectId = session.metadata.projectId
+    const clientEmail = session.customer_email
+
     await supabase.from('gallery_payments').insert({
-      project_id: session.metadata.projectId,
+      project_id: projectId,
       stripe_session_id: session.id,
       amount: session.amount_total,
       currency: session.currency,
       status: 'paid',
-      client_email: session.customer_email,
+      client_email: clientEmail,
       paid_at: new Date().toISOString(),
     })
+
+    // Upgrade client access to 'full' after payment
+    if (clientEmail) {
+      await supabase
+        .from('gallery_access')
+        .update({ access_type: 'full' })
+        .eq('project_id', projectId)
+        .eq('email', clientEmail.toLowerCase())
+    }
+
+    // Send payment confirmation email to client
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://photo-sorter-theta.vercel.app'
+    const { data: project } = await supabase
+      .from('projects')
+      .select('name, workspace_id')
+      .eq('id', projectId)
+      .single()
+
+    if (clientEmail && project) {
+      const { sendEmail, paymentConfirmationEmail, paymentReceivedEmail } = await loadEmailUtils()
+      const amountFormatted = ((session.amount_total ?? 0) / 100).toFixed(2)
+      const confirmEmail = paymentConfirmationEmail(
+        project.name,
+        `$${amountFormatted}`,
+        session.currency ?? 'usd',
+        `${appUrl}/gallery/${projectId}?paid=true`
+      )
+      sendEmail({ to: clientEmail, subject: confirmEmail.subject, html: confirmEmail.html }).catch(() => {})
+
+      // Send payment received email to photographer
+      if (project.workspace_id) {
+        const { data: workspace } = await supabase
+          .from('workspaces')
+          .select('owner_id')
+          .eq('id', project.workspace_id)
+          .single()
+
+        if (workspace) {
+          const { data: photographer } = await supabase
+            .from('profiles')
+            .select('email, display_name')
+            .eq('id', workspace.owner_id)
+            .single()
+
+          if (photographer?.email) {
+            const receivedEmail = paymentReceivedEmail(
+              photographer.display_name ?? 'Photographer',
+              clientEmail,
+              project.name,
+              `$${amountFormatted}`,
+              `${appUrl}/dashboard/billing`
+            )
+            sendEmail({ to: photographer.email, subject: receivedEmail.subject, html: receivedEmail.html }).catch(() => {})
+          }
+        }
+      }
+    }
   }
 }
 
