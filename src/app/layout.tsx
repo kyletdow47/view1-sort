@@ -1,14 +1,15 @@
 import type { Metadata } from 'next'
-import { DM_Sans, JetBrains_Mono, Playfair_Display } from 'next/font/google'
+import { Inter, Manrope, Space_Grotesk, Playfair_Display } from 'next/font/google'
 import { Toaster } from 'sonner'
 import '@/styles/globals.css'
 
-const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
-const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains-mono' })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' })
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk' })
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
 
 export const metadata: Metadata = {
-  title: 'View1 Studio — Photo Sorter',
+  title: 'View1 Sort — AI Photo Sorting for Professional Photographers',
   description: 'AI-powered photo sorting and client delivery for professional photographers',
 }
 
@@ -18,16 +19,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${dmSans.variable} ${jetbrainsMono.variable} ${playfair.variable} font-sans bg-background text-white`}>
+    <html lang="en" className="dark">
+      <body className={`${inter.variable} ${manrope.variable} ${spaceGrotesk.variable} ${playfair.variable} font-body bg-background text-on-surface selection:bg-primary/30 antialiased`}>
         {children}
         <Toaster
           position="top-right"
           toastOptions={{
             style: {
-              background: '#1a1a1f',
-              border: '1px solid #2a2a35',
-              color: '#ffffff',
+              background: '#211f1e',
+              border: '1px solid #534439',
+              color: '#e7e1df',
             },
           }}
         />

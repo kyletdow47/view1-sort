@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .primary-gradient {
+    background: linear-gradient(135deg, #ffb780 0%, #d48441 100%);
+  }
+  .glass-effect {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .glass-panel {
+    background: rgba(55, 52, 51, 0.4);
+    backdrop-filter: blur(20px);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #151312; }
+::-webkit-scrollbar-thumb { background: #373433; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #ffb780; }
+
+/* Material icons support */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}

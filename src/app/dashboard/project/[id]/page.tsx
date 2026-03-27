@@ -2,345 +2,261 @@
 
 import { use, useState } from 'react'
 import {
-  Grid3X3,
-  Film,
-  SlidersHorizontal,
-  ChevronRight,
-  CheckSquare,
   ArrowRightLeft,
   Star,
   Download,
   Trash2,
-  ChevronDown,
-  Cloud,
+  X,
+  Check,
 } from 'lucide-react'
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>
 }
 
-interface CategoryData {
-  name: string
-  count: number
-  photos: Array<{ id: number; hue: number; saturation: number; lightness: number; width: number; height: number }>
+interface PhotoFile {
+  id: number
+  filename: string
+  iso: string
+  focal: string
+  aperture: string
+  type: 'EDITED' | 'RAW'
+  selected: boolean
+  starred: boolean
+  hue: number
+  sat: number
+  light: number
 }
 
-const MOCK_CATEGORIES: CategoryData[] = [
-  {
-    name: 'Ceremony',
-    count: 84,
-    photos: [
-      { id: 1, hue: 25, saturation: 45, lightness: 28, width: 2, height: 2 },
-      { id: 2, hue: 35, saturation: 38, lightness: 22, width: 1, height: 1 },
-      { id: 3, hue: 18, saturation: 50, lightness: 25, width: 1, height: 1 },
-      { id: 4, hue: 30, saturation: 42, lightness: 20, width: 1, height: 1 },
-      { id: 5, hue: 22, saturation: 35, lightness: 30, width: 1, height: 1 },
-    ],
-  },
-  {
-    name: 'Portraits',
-    count: 112,
-    photos: [
-      { id: 6, hue: 15, saturation: 48, lightness: 26, width: 1, height: 1 },
-      { id: 7, hue: 40, saturation: 40, lightness: 24, width: 1, height: 1 },
-      { id: 8, hue: 28, saturation: 52, lightness: 22, width: 1, height: 1 },
-    ],
-  },
-  {
-    name: 'Reception',
-    count: 52,
-    photos: [
-      { id: 9, hue: 10, saturation: 55, lightness: 20, width: 1, height: 1 },
-      { id: 10, hue: 45, saturation: 35, lightness: 28, width: 1, height: 1 },
-      { id: 11, hue: 20, saturation: 44, lightness: 25, width: 1, height: 1 },
-    ],
-  },
+const MOCK_PHOTOS: PhotoFile[] = [
+  { id: 1, filename: 'DSC_0842.ARW', iso: '100', focal: '85mm', aperture: 'f/1.4', type: 'EDITED', selected: false, starred: true, hue: 25, sat: 55, light: 32 },
+  { id: 2, filename: 'DSC_0843.ARW', iso: '200', focal: '35mm', aperture: 'f/2.0', type: 'RAW', selected: false, starred: false, hue: 18, sat: 48, light: 28 },
+  { id: 3, filename: 'DSC_0844.ARW', iso: '400', focal: '50mm', aperture: 'f/1.8', type: 'EDITED', selected: true, starred: false, hue: 30, sat: 60, light: 30 },
+  { id: 4, filename: 'DSC_0845.ARW', iso: '100', focal: '85mm', aperture: 'f/1.4', type: 'RAW', selected: true, starred: true, hue: 22, sat: 50, light: 25 },
+  { id: 5, filename: 'DSC_0846.ARW', iso: '800', focal: '24mm', aperture: 'f/2.8', type: 'EDITED', selected: false, starred: false, hue: 35, sat: 45, light: 34 },
+  { id: 6, filename: 'DSC_0847.ARW', iso: '100', focal: '70mm', aperture: 'f/2.0', type: 'RAW', selected: true, starred: false, hue: 15, sat: 52, light: 27 },
+  { id: 7, filename: 'DSC_0848.ARW', iso: '200', focal: '85mm', aperture: 'f/1.4', type: 'EDITED', selected: true, starred: true, hue: 28, sat: 58, light: 31 },
+  { id: 8, filename: 'DSC_0849.ARW', iso: '400', focal: '50mm', aperture: 'f/1.8', type: 'RAW', selected: false, starred: false, hue: 20, sat: 42, light: 26 },
+  { id: 9, filename: 'DSC_0850.ARW', iso: '100', focal: '35mm', aperture: 'f/1.4', type: 'EDITED', selected: true, starred: false, hue: 32, sat: 50, light: 29 },
+  { id: 10, filename: 'DSC_0851.ARW', iso: '200', focal: '85mm', aperture: 'f/2.0', type: 'RAW', selected: true, starred: true, hue: 24, sat: 55, light: 33 },
+  { id: 11, filename: 'DSC_0852.ARW', iso: '100', focal: '50mm', aperture: 'f/1.4', type: 'EDITED', selected: true, starred: false, hue: 19, sat: 48, light: 28 },
+  { id: 12, filename: 'DSC_0853.ARW', iso: '800', focal: '24mm', aperture: 'f/2.8', type: 'RAW', selected: false, starred: false, hue: 27, sat: 44, light: 30 },
+  { id: 13, filename: 'DSC_0854.ARW', iso: '200', focal: '70mm', aperture: 'f/1.8', type: 'EDITED', selected: true, starred: false, hue: 33, sat: 56, light: 32 },
+  { id: 14, filename: 'DSC_0855.ARW', iso: '400', focal: '85mm', aperture: 'f/1.4', type: 'RAW', selected: true, starred: true, hue: 21, sat: 52, light: 27 },
+  { id: 15, filename: 'DSC_0856.ARW', iso: '100', focal: '35mm', aperture: 'f/2.0', type: 'EDITED', selected: true, starred: false, hue: 26, sat: 50, light: 31 },
 ]
 
 function PhotoCard({
-  hue,
-  saturation,
-  lightness,
-  className = '',
+  photo,
+  onToggleSelect,
+  onToggleStar,
 }: {
-  hue: number
-  saturation: number
-  lightness: number
-  className?: string
+  photo: PhotoFile
+  onToggleSelect: () => void
+  onToggleStar: () => void
 }) {
   return (
-    <div
-      className={`relative rounded-lg overflow-hidden group cursor-pointer ${className}`}
-      style={{ backgroundColor: `hsl(${hue}, ${saturation}%, ${lightness}%)` }}
-    >
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
-      {/* Subtle gradient for depth */}
+    <div className="group">
+      {/* Image area - 3:4 aspect ratio */}
       <div
-        className="absolute inset-0"
+        className="relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer"
         style={{
-          background: `linear-gradient(135deg, hsl(${hue}, ${saturation + 5}%, ${lightness + 8}%) 0%, hsl(${hue + 10}, ${saturation}%, ${lightness - 4}%) 100%)`,
+          background: `linear-gradient(135deg, hsl(${photo.hue}, ${photo.sat}%, ${photo.light}%) 0%, hsl(${photo.hue + 12}, ${photo.sat - 8}%, ${photo.light - 6}%) 100%)`,
         }}
-      />
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
-    </div>
-  )
-}
+      >
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
 
-function CeremonyGrid({ photos }: { photos: CategoryData['photos'] }) {
-  return (
-    <div className="space-y-3">
-      {/* Main masonry: 1 large left (2/3), 2 stacked right (1/3) */}
-      <div className="grid grid-cols-3 gap-3" style={{ height: '380px' }}>
-        <div className="col-span-2">
-          <PhotoCard
-            hue={photos[0].hue}
-            saturation={photos[0].saturation}
-            lightness={photos[0].lightness}
-            className="w-full h-full"
-          />
-        </div>
-        <div className="col-span-1 flex flex-col gap-3">
-          <PhotoCard
-            hue={photos[1].hue}
-            saturation={photos[1].saturation}
-            lightness={photos[1].lightness}
-            className="w-full flex-1"
-          />
-          <PhotoCard
-            hue={photos[2].hue}
-            saturation={photos[2].saturation}
-            lightness={photos[2].lightness}
-            className="w-full flex-1"
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function EqualGrid({ photos }: { photos: CategoryData['photos'] }) {
-  return (
-    <div className="grid grid-cols-3 gap-3" style={{ height: '240px' }}>
-      {photos.map((photo) => (
-        <PhotoCard
-          key={photo.id}
-          hue={photo.hue}
-          saturation={photo.saturation}
-          lightness={photo.lightness}
-          className="w-full h-full"
-        />
-      ))}
-    </div>
-  )
-}
-
-function CloudBackupCard() {
-  return (
-    <div className="rounded-lg p-4 mt-3" style={{ backgroundColor: '#161619' }}>
-      <div className="flex items-center gap-2 mb-2">
-        <Cloud size={16} style={{ color: '#6b7280' }} />
-        <span className="text-sm font-medium text-white">Cloud Backup</span>
-      </div>
-      <div className="w-full rounded-full h-2 mb-2" style={{ backgroundColor: '#2a2a35' }}>
-        <div
-          className="h-2 rounded-full"
-          style={{ width: '82%', backgroundColor: '#D4915C' }}
-        />
-      </div>
-      <p className="text-xs" style={{ color: '#6b7280' }}>
-        Syncing high-res RAW files... 82%
-      </p>
-    </div>
-  )
-}
-
-function CategorySection({ category, index }: { category: CategoryData; index: number }) {
-  return (
-    <div className="mb-10">
-      {/* Category Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-baseline gap-3">
-          <h3 className="text-xl font-semibold text-white">{category.name}</h3>
-          <span className="text-sm" style={{ color: '#6b7280' }}>
-            {category.count} Photos
+        {/* EDITED / RAW badge */}
+        <div className="absolute top-2.5 left-2.5">
+          <span
+            className={`font-label text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-md font-bold ${
+              photo.type === 'EDITED'
+                ? 'bg-[#0c5252]/80 text-[#95d1d1]'
+                : 'bg-[#373433]/80 text-[#a18d80]'
+            }`}
+          >
+            {photo.type}
           </span>
         </div>
+
+        {/* Selection circle */}
         <button
-          className="text-sm font-medium hover:underline"
-          style={{ color: '#D4915C' }}
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleSelect()
+          }}
+          className={`absolute top-2.5 right-2.5 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+            photo.selected
+              ? 'bg-[#d48441] border-[#d48441]'
+              : 'border-[#a18d80]/60 bg-black/30 opacity-0 group-hover:opacity-100'
+          }`}
         >
-          Expand Collection
+          {photo.selected && <Check size={12} className="text-[#4e2600]" />}
+        </button>
+
+        {/* Star icon */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleStar()
+          }}
+          className={`absolute bottom-2.5 right-2.5 transition-opacity ${
+            photo.starred
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100'
+          }`}
+        >
+          <Star
+            size={16}
+            className={
+              photo.starred
+                ? 'text-[#ffb780] fill-[#ffb780]'
+                : 'text-white/70'
+            }
+          />
         </button>
       </div>
 
-      {/* Photo Grid */}
-      {index === 0 ? (
-        <>
-          <CeremonyGrid photos={category.photos} />
-          <CloudBackupCard />
-        </>
-      ) : (
-        <EqualGrid photos={category.photos} />
-      )}
+      {/* File info below card */}
+      <div className="mt-2 px-0.5">
+        <p className="text-xs text-[#e7e1df] truncate">{photo.filename}</p>
+        <p className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]">
+          ISO {photo.iso} &bull; {photo.focal} &bull; {photo.aperture}
+        </p>
+      </div>
     </div>
   )
 }
 
 export default function ProjectPage({ params }: ProjectPageProps) {
   const { id } = use(params)
-  const [viewMode, setViewMode] = useState<'grid' | 'filmstrip'>('grid')
-  const [selectedCount] = useState(32)
+  const [photos, setPhotos] = useState<PhotoFile[]>(MOCK_PHOTOS)
+
+  const selectedCount = photos.filter((p) => p.selected).length
+
+  const toggleSelect = (photoId: number) => {
+    setPhotos((prev) =>
+      prev.map((p) => (p.id === photoId ? { ...p, selected: !p.selected } : p))
+    )
+  }
+
+  const toggleStar = (photoId: number) => {
+    setPhotos((prev) =>
+      prev.map((p) => (p.id === photoId ? { ...p, starred: !p.starred } : p))
+    )
+  }
+
+  const clearSelection = () => {
+    setPhotos((prev) => prev.map((p) => ({ ...p, selected: false })))
+  }
 
   const projectName =
     id === 'demo-1'
-      ? 'Johnson Wedding'
+      ? 'Portraits & First Look'
       : id === 'demo-2'
-        ? '123 Oak Street Listing'
+        ? 'Property Showcase'
         : id === 'demo-3'
-          ? 'Portugal Travel Series'
-          : id === 'demo-4'
-            ? 'Corporate Headshots'
-            : 'Project'
+          ? 'Lisboa Street Photography'
+          : 'Portraits & First Look'
 
   return (
-    <div className="flex flex-col h-[calc(100vh-56px)]" style={{ backgroundColor: '#0C0C0E' }}>
-      {/* ─── Project Header ─── */}
-      <div className="px-6 pt-6 pb-4" style={{ borderBottom: '1px solid #2a2a35' }}>
-        <div className="flex items-start justify-between">
+    <div className="flex flex-col min-h-[calc(100vh-56px)] bg-[#151312] relative">
+      {/* ── Header ── */}
+      <div className="px-6 pt-6 pb-5 border-b border-outline-variant">
+        <p className="font-label text-[10px] uppercase tracking-widest text-[#d48441] mb-2">
+          March 22, 2026
+        </p>
+        <h1 className="font-headline text-4xl font-bold italic text-[#e7e1df] mb-3">
+          {projectName}
+        </h1>
+        <div className="flex items-center gap-6">
           <div>
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-1.5 mb-2">
-              <span
-                className="text-xs font-semibold tracking-wider uppercase"
-                style={{ color: '#D4915C' }}
-              >
-                Projects
-              </span>
-              <ChevronRight size={12} style={{ color: '#D4915C' }} />
-              <span
-                className="text-xs font-semibold tracking-wider uppercase"
-                style={{ color: '#D4915C' }}
-              >
-                {projectName}
-              </span>
-            </div>
-
-            {/* Project Title */}
-            <h1 className="font-serif italic text-4xl text-white mb-2">
-              {projectName}
-            </h1>
-
-            {/* Status line */}
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
-                Sorted
-              </span>
-              <span className="text-sm" style={{ color: '#6b7280' }}>
-                248 Selected Items &bull; September 14, 2023
-              </span>
-            </div>
+            <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]">
+              Selected
+            </span>
+            <span className="ml-2 font-headline text-sm font-bold text-[#e7e1df]">
+              42
+              <span className="text-[#a18d80] font-normal">/453</span>
+            </span>
           </div>
+          <div className="w-px h-4 bg-outline-variant" />
+          <div>
+            <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]">
+              Storage
+            </span>
+            <span className="ml-2 font-headline text-sm font-bold text-[#e7e1df]">
+              1.2 TB
+            </span>
+          </div>
+        </div>
+      </div>
 
-          {/* Right side controls */}
-          <div className="flex items-center gap-2 mt-2">
-            {/* Grid / Filmstrip toggle */}
-            <div
-              className="flex items-center rounded-lg p-0.5"
-              style={{ backgroundColor: '#161619' }}
-            >
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === 'grid'
-                    ? 'bg-white/10 text-white'
-                    : 'text-gray-500 hover:text-white'
-                }`}
-              >
-                <Grid3X3 size={16} />
-              </button>
-              <button
-                onClick={() => setViewMode('filmstrip')}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === 'filmstrip'
-                    ? 'bg-white/10 text-white'
-                    : 'text-gray-500 hover:text-white'
-                }`}
-              >
-                <Film size={16} />
-              </button>
+      {/* ── Media Grid ── */}
+      <div className="flex-1 overflow-y-auto px-6 py-6 pb-28">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+          {photos.map((photo) => (
+            <PhotoCard
+              key={photo.id}
+              photo={photo}
+              onToggleSelect={() => toggleSelect(photo.id)}
+              onToggleStar={() => toggleStar(photo.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* ── Bottom Floating Move Bar ── */}
+      {selectedCount > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+          <div className="glass-panel rounded-2xl border border-outline-variant px-6 py-3 flex items-center gap-5 shadow-2xl shadow-black/50">
+            {/* File count */}
+            <div className="flex items-center gap-2">
+              <span className="bg-[#d48441] text-[#4e2600] font-headline text-xs font-bold px-2 py-0.5 rounded-md">
+                {selectedCount}
+              </span>
+              <span className="font-label text-[10px] uppercase tracking-widest text-[#e7e1df]">
+                Files Selected
+              </span>
             </div>
+
+            {/* Separator */}
+            <div className="w-px h-6 bg-outline-variant" />
+
+            {/* Action icons */}
+            <button className="flex items-center gap-1.5 text-[#d9c2b4] hover:text-[#ffb780] transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5">
+              <ArrowRightLeft size={16} />
+              <span className="font-label text-[10px] uppercase tracking-widest">Move</span>
+            </button>
+            <button className="flex items-center gap-1.5 text-[#d9c2b4] hover:text-[#ffb780] transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5">
+              <Star size={16} />
+              <span className="font-label text-[10px] uppercase tracking-widest">Star</span>
+            </button>
+            <button className="flex items-center gap-1.5 text-[#d9c2b4] hover:text-[#ffb780] transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5">
+              <Download size={16} />
+              <span className="font-label text-[10px] uppercase tracking-widest">Export</span>
+            </button>
+            <button className="flex items-center gap-1.5 text-[#e7765f] hover:text-[#ffb4a5] transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5">
+              <Trash2 size={16} />
+              <span className="font-label text-[10px] uppercase tracking-widest">Delete</span>
+            </button>
+
+            {/* Separator */}
+            <div className="w-px h-6 bg-outline-variant" />
+
+            {/* Cancel */}
             <button
-              className="p-2 rounded-lg hover:bg-white/5 transition-colors"
-              style={{ color: '#6b7280' }}
+              onClick={clearSelection}
+              className="flex items-center gap-1.5 text-[#a18d80] hover:text-[#e7e1df] transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5"
             >
-              <SlidersHorizontal size={16} />
+              <X size={14} />
+              <span className="font-label text-[10px] uppercase tracking-widest">
+                Cancel Selection
+              </span>
             </button>
           </div>
         </div>
-      </div>
-
-      {/* ─── Selection Toolbar ─── */}
-      <div
-        className="flex items-center justify-between px-6 py-2.5"
-        style={{ borderBottom: '1px solid #2a2a35', backgroundColor: '#0C0C0E' }}
-      >
-        <div className="flex items-center gap-4">
-          {/* Checkbox + count */}
-          <div className="flex items-center gap-2">
-            <CheckSquare size={16} style={{ color: '#D4915C' }} />
-            <span className="text-sm font-medium text-white">
-              {selectedCount} Selected
-            </span>
-          </div>
-
-          {/* Divider */}
-          <div className="w-px h-5" style={{ backgroundColor: '#2a2a35' }} />
-
-          {/* Action buttons */}
-          <button className="flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-md hover:bg-white/5 transition-colors" style={{ color: '#6b7280' }}>
-            <ArrowRightLeft size={14} />
-            Move to...
-          </button>
-          <button className="flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-md hover:bg-white/5 transition-colors" style={{ color: '#6b7280' }}>
-            <Star size={14} />
-            Star
-          </button>
-          <button className="flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-md hover:bg-white/5 transition-colors" style={{ color: '#6b7280' }}>
-            <Download size={14} />
-            Export
-          </button>
-          <button className="flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-md hover:bg-white/5 text-red-400/70 hover:text-red-400 transition-colors">
-            <Trash2 size={14} />
-            Delete
-          </button>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Filters link */}
-          <button
-            className="text-xs font-semibold tracking-wider uppercase hover:underline"
-            style={{ color: '#D4915C' }}
-          >
-            Filters
-          </button>
-
-          {/* Orientation dropdown */}
-          <button
-            className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border transition-colors hover:border-gray-500"
-            style={{ color: '#6b7280', borderColor: '#2a2a35' }}
-          >
-            All Orientations
-            <ChevronDown size={14} />
-          </button>
-        </div>
-      </div>
-
-      {/* ─── Content: Category Sections ─── */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
-        {MOCK_CATEGORIES.map((category, index) => (
-          <CategorySection key={category.name} category={category} index={index} />
-        ))}
-      </div>
+      )}
     </div>
   )
 }
