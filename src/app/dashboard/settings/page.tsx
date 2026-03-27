@@ -7,20 +7,23 @@ import {
   Globe,
   ChevronDown,
   Zap,
-  ToggleRight,
   Trash2,
   Crown,
   Check,
   HardDrive,
-  Cpu,
   HelpCircle,
   MessageSquare,
   BookOpen,
+  Save,
+  Loader2,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import Image from 'next/image'
+import { useAuth } from '@/hooks/useAuth'
+import { createClient } from '@/lib/supabase/client'
 
 /* ------------------------------------------------------------------ */
-/*  Mock data                                                          */
+/*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
 const currencies = ['USD', 'EUR', 'GBP'] as const
@@ -98,9 +101,121 @@ function ProgressBar({
 /* ------------------------------------------------------------------ */
 
 export default function SettingsPage() {
+  const { user } = useAuth()
+  const supabase = createClient()
+
+  // Profile state
+  const [displayName, setDisplayName] = useState('')
+  const [businessName, setBusinessName] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null)
+  const [profileLoading, setProfileLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  // UI-only workflow state
   const [currency, setCurrency] = useState<(typeof currencies)[number]>('USD')
   const [sensitivity, setSensitivity] = useState(72)
   const [autoSync, setAutoSync] = useState(true)
+
+  // Load profile + workspace on mount
+  useEffect(() => {
+    if (!user) return
+
+    const load = async () => {
+      try {
+        const [profileResult, workspaceResult] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('display_name,avatar_url')
+            .eq('id', user.id)
+            .single(),
+          supabase
+            .from('workspaces')
+            .select('id,name')
+            .eq('owner_id', user.id)
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .single(),
+        ])
+
+        if (profileResult.data) {
+          setDisplayName(profileResult.data.display_name ?? '')
+          setAvatarUrl(profileResult.data.avatar_url)
+          setAvatarPreview(profileResult.data.avatar_url)
+        }
+        if (workspaceResult.data) {
+          setBusinessName(workspaceResult.data.name)
+          setWorkspaceId(workspaceResult.data.id)
+        }
+      } finally {
+        setProfileLoading(false)
+      }
+    }
+
+    load()
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleAvatarChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file || !user) return
+
+      // Show local preview immediately
+      const reader = new FileReader()
+      reader.onload = (ev) => setAvatarPreview(ev.target?.result as string)
+      reader.readAsDataURL(file)
+
+      // Upload to Supabase Storage (avatars bucket)
+      const ext = file.name.split('.').pop() ?? 'jpg'
+      const path = `${user.id}/avatar.${ext}`
+      const { error } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true })
+
+      if (!error) {
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from('avatars').getPublicUrl(path)
+        setAvatarUrl(publicUrl)
+      }
+    },
+    [user, supabase],
+  )
+
+  const handleSave = useCallback(async () => {
+    if (!user) return
+    setSaving(true)
+    setSaveStatus('idle')
+    setSaveError(null)
+
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ display_name: displayName.trim() || null, avatar_url: avatarUrl })
+        .eq('id', user.id)
+      if (profileError) throw new Error(profileError.message)
+
+      if (workspaceId && businessName.trim()) {
+        const { error: wsError } = await supabase
+          .from('workspaces')
+          .update({ name: businessName.trim() })
+          .eq('id', workspaceId)
+        if (wsError) throw new Error(wsError.message)
+      }
+
+      setSaveStatus('success')
+      setTimeout(() => setSaveStatus('idle'), 3000)
+    } catch (err) {
+      setSaveStatus('error')
+      setSaveError(err instanceof Error ? err.message : 'Failed to save changes')
+    } finally {
+      setSaving(false)
+    }
+  }, [user, supabase, displayName, businessName, avatarUrl, workspaceId])
 
   return (
     <div className="space-y-6">
@@ -127,47 +242,116 @@ export default function SettingsPage() {
               </h2>
             </div>
 
-            <div className="flex items-start gap-6">
-              {/* Logo upload */}
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex h-20 w-20 items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/40 bg-surface-container">
-                  <Camera size={28} className="text-on-surface-variant/30" />
-                </div>
-                <button className="text-[11px] font-medium text-primary hover:underline">
-                  Upload Logo
-                </button>
+            {profileLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <Loader2 size={24} className="animate-spin text-primary/50" />
               </div>
+            ) : (
+              <>
+                <div className="flex items-start gap-6">
+                  {/* Avatar upload */}
+                  <div className="flex flex-col items-center gap-2">
+                    <button
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="relative flex h-20 w-20 items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/40 bg-surface-container overflow-hidden hover:border-primary/40 transition-colors"
+                      title="Upload avatar"
+                    >
+                      {avatarPreview ? (
+                        <Image
+                          src={avatarPreview}
+                          alt="Avatar"
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <Camera size={28} className="text-on-surface-variant/30" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="text-[11px] font-medium text-primary hover:underline"
+                    >
+                      Upload Logo
+                    </button>
+                    <input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                    />
+                  </div>
 
-              {/* Fields */}
-              <div className="flex-1 space-y-4">
-                <div className="space-y-1.5">
-                  <SectionLabel>Business Name</SectionLabel>
-                  <input
-                    type="text"
-                    defaultValue="Aperture Studios"
-                    className="w-full rounded-lg bg-surface-container px-4 py-2.5 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20 focus:ring-primary/50"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <SectionLabel>Email</SectionLabel>
-                  <div className="flex items-center gap-2 rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
-                    <Mail size={14} className="text-on-surface-variant/50" />
-                    <span className="text-sm text-on-surface">
-                      hello@aperturestudios.com
-                    </span>
+                  {/* Fields */}
+                  <div className="flex-1 space-y-4">
+                    <div className="space-y-1.5">
+                      <SectionLabel>Full Name</SectionLabel>
+                      <input
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="Your name"
+                        className="w-full rounded-lg bg-surface-container px-4 py-2.5 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20 focus:ring-primary/50"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <SectionLabel>Business Name</SectionLabel>
+                      <input
+                        type="text"
+                        value={businessName}
+                        onChange={(e) => setBusinessName(e.target.value)}
+                        placeholder="Your studio name"
+                        className="w-full rounded-lg bg-surface-container px-4 py-2.5 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20 focus:ring-primary/50"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <SectionLabel>Email</SectionLabel>
+                      <div className="flex items-center gap-2 rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
+                        <Mail size={14} className="text-on-surface-variant/50" />
+                        <span className="text-sm text-on-surface">
+                          {user?.email ?? '—'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <SectionLabel>Portfolio URL</SectionLabel>
+                      <div className="flex items-center gap-2 rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
+                        <Globe size={14} className="text-on-surface-variant/50" />
+                        <span className="text-sm text-primary">
+                          view1.studio/{businessName.toLowerCase().replace(/\s+/g, '-') || 'your-studio'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <SectionLabel>Portfolio URL</SectionLabel>
-                  <div className="flex items-center gap-2 rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
-                    <Globe size={14} className="text-on-surface-variant/50" />
-                    <span className="text-sm text-primary">
-                      view1.studio/aperture
+
+                {/* Save row */}
+                <div className="mt-6 flex items-center gap-3">
+                  <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2.5 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90 disabled:opacity-60"
+                  >
+                    {saving ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Save size={14} />
+                    )}
+                    {saving ? 'Saving…' : 'Save Changes'}
+                  </button>
+                  {saveStatus === 'success' && (
+                    <span className="text-sm text-secondary flex items-center gap-1">
+                      <Check size={14} />
+                      Saved
                     </span>
-                  </div>
+                  )}
+                  {saveStatus === 'error' && (
+                    <span className="text-sm text-error">{saveError}</span>
+                  )}
                 </div>
-              </div>
-            </div>
+              </>
+            )}
           </Card>
 
           {/* Global Workflow */}
