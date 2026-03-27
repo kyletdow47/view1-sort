@@ -1,12 +1,14 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   FolderOpen,
+  Sparkles,
   Users,
+  BarChart3,
   Wallet,
   Settings,
   Camera,
@@ -15,6 +17,10 @@ import {
   Bell,
   Upload,
   PenLine,
+  CalendarDays,
+  FileText,
+  Layers,
+  ChevronDown,
 } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
@@ -29,10 +35,17 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Projects', href: '/dashboard/project', icon: FolderOpen },
+  { label: 'Projects', href: '/dashboard/project/demo-1', icon: FolderOpen },
+  { label: 'AI Sort', href: '/dashboard/ai-sort', icon: Sparkles },
   { label: 'Clients', href: '/dashboard/clients', icon: Users },
+  { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { label: 'Finances', href: '/dashboard/billing', icon: Wallet },
-  { label: 'Settings', href: '/dashboard/settings', icon: Settings },
+]
+
+const schedulingItems: NavItem[] = [
+  { label: 'Calendar', href: '/dashboard/calendar', icon: CalendarDays },
+  { label: 'Booking Forms', href: '/dashboard/settings/booking-forms', icon: FileText },
+  { label: 'Bulk Management', href: '/dashboard/bulk', icon: Layers },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -42,6 +55,10 @@ const navItems: NavItem[] = [
 function isActive(pathname: string, href: string): boolean {
   if (href === '/dashboard') {
     return pathname === '/dashboard'
+  }
+  // For project links like /dashboard/project/demo-1, match any /dashboard/project path
+  if (href.startsWith('/dashboard/project/')) {
+    return pathname.startsWith('/dashboard/project')
   }
   return pathname.startsWith(href)
 }
@@ -88,6 +105,8 @@ export default function DashboardLayout({
   const pathname = usePathname()
   const inProject = isInsideProject(pathname)
   const inSorting = isSortingView(pathname)
+  const isSchedulingActive = schedulingItems.some((item) => isActive(pathname, item.href))
+  const [schedulingOpen, setSchedulingOpen] = useState(isSchedulingActive)
 
   return (
     <div className="flex min-h-screen bg-background text-on-surface">
@@ -113,7 +132,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Navigation */}
-        <nav className="mt-2 flex-1">
+        <nav className="mt-2 flex-1 overflow-y-auto">
           <ul className="space-y-1">
             {navItems.map((item) => {
               const active = isActive(pathname, item.href)
@@ -139,16 +158,76 @@ export default function DashboardLayout({
               )
             })}
           </ul>
+
+          {/* Collapsible Scheduling Tools */}
+          <div className="mt-4 mx-2">
+            <button
+              onClick={() => setSchedulingOpen(!schedulingOpen)}
+              className="flex w-full items-center justify-between px-4 py-2"
+            >
+              <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]">
+                Scheduling Tools
+              </span>
+              <ChevronDown
+                size={14}
+                className={`text-[#a18d80] transition-transform duration-200 ${
+                  schedulingOpen ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+            <div
+              className={`overflow-hidden transition-all duration-200 ease-in-out ${
+                schedulingOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <ul className="space-y-1">
+                {schedulingItems.map((item) => {
+                  const active = isActive(pathname, item.href)
+                  const Icon = item.icon
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className={`flex items-center gap-3 px-4 py-3 font-body font-medium transition-colors duration-150 ${
+                          active
+                            ? 'rounded-lg bg-[#252322] text-[#ffb780]'
+                            : 'text-[#e7e1df]/50 hover:bg-[#252322]/50 hover:text-[#e7e1df]'
+                        }`}
+                      >
+                        <Icon
+                          size={20}
+                          className="shrink-0"
+                          fill={active ? 'currentColor' : 'none'}
+                        />
+                        <span>{item.label}</span>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          </div>
         </nav>
 
-        {/* New Project button */}
-        <div className="px-4 pb-5">
+        {/* Bottom section: Settings + New Shoot */}
+        <div className="px-2 pb-5 space-y-2">
+          <Link
+            href="/dashboard/settings"
+            className={`flex items-center gap-3 px-4 py-3 font-body font-medium transition-colors duration-150 ${
+              isActive(pathname, '/dashboard/settings')
+                ? 'rounded-lg bg-[#252322] text-[#ffb780]'
+                : 'text-[#e7e1df]/50 hover:bg-[#252322]/50 hover:text-[#e7e1df]'
+            }`}
+          >
+            <Settings size={20} className="shrink-0" fill={isActive(pathname, '/dashboard/settings') ? 'currentColor' : 'none'} />
+            <span>Settings</span>
+          </Link>
           <Link
             href="/dashboard/project/new"
             className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3 font-headline font-bold text-[#4e2600] transition-opacity hover:opacity-90"
           >
             <Plus size={18} className="shrink-0" />
-            New Project
+            + New Shoot
           </Link>
         </div>
       </aside>
@@ -314,6 +393,10 @@ export default function DashboardLayout({
                   {pathname.startsWith('/dashboard/billing') && 'Finances'}
                   {pathname.startsWith('/dashboard/settings') && 'Settings'}
                   {pathname === '/dashboard/project' && 'Projects'}
+                  {pathname.startsWith('/dashboard/ai-sort') && 'AI Sort'}
+                  {pathname.startsWith('/dashboard/analytics') && 'Analytics'}
+                  {pathname.startsWith('/dashboard/calendar') && 'Calendar'}
+                  {pathname.startsWith('/dashboard/bulk') && 'Bulk Management'}
                 </h1>
               </div>
 
