@@ -25,6 +25,8 @@ import {
   UserCheck,
   Cloud,
   Image as ImageIcon,
+  Menu,
+  X,
 } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
@@ -127,7 +129,7 @@ function NotificationDropdown({
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-full mt-2 w-[380px] rounded-xl border border-[#534439]/60 bg-[#1d1b1a] shadow-2xl shadow-black/40 z-50"
+      className="absolute right-0 top-full mt-2 w-[min(380px,calc(100vw-2rem))] rounded-xl border border-[#534439]/60 bg-[#1d1b1a] shadow-2xl shadow-black/40 z-50"
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-[#534439]/40 px-4 py-3">
@@ -269,21 +271,37 @@ export default function DashboardLayout({
   const isSchedulingActive = schedulingItems.some((item) => isActive(pathname, item.href))
   const [schedulingOpen, setSchedulingOpen] = useState(isSchedulingActive)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileSidebarOpen(false)
+  }, [pathname])
 
   return (
     <div className="flex min-h-screen bg-background text-on-surface">
+      {/* Mobile sidebar backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/60 md:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* ============================================================ */}
-      {/*  SIDEBAR — fixed 256px (w-64)                                */}
+      {/*  SIDEBAR — fixed 256px (w-64), slides in on mobile           */}
       {/* ============================================================ */}
       <aside
-        className="fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-[#1c1a19] shadow-[4px_0_24px_-4px_rgba(0,0,0,0.5)]"
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-[#1c1a19] shadow-[4px_0_24px_-4px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-in-out ${
+          mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        }`}
       >
         {/* Brand */}
         <div className="flex items-center gap-3 px-5 py-6">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441]">
             <Camera size={18} className="text-[#4e2600]" />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col flex-1">
             <span className="font-headline font-black text-2xl tracking-tighter leading-tight text-[#ffb780]">
               View1 Sort
             </span>
@@ -291,6 +309,14 @@ export default function DashboardLayout({
               Editorial Studio
             </span>
           </div>
+          {/* Close button (mobile only) */}
+          <button
+            className="md:hidden rounded-lg p-1 text-on-surface-variant/50 hover:bg-surface-container"
+            onClick={() => setMobileSidebarOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Navigation */}
@@ -400,18 +426,27 @@ export default function DashboardLayout({
       {/* ============================================================ */}
       {/*  MAIN WRAPPER                                                */}
       {/* ============================================================ */}
-      <div className="flex flex-1 flex-col ml-64">
+      <div className="flex flex-1 flex-col md:ml-64">
         {/* ---------------------------------------------------------- */}
         {/*  HEADER — fixed, contextual                                */}
         {/* ---------------------------------------------------------- */}
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-outline-variant/30 bg-background/90 px-6 backdrop-blur-md">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-outline-variant/30 bg-background/90 px-4 md:px-6 backdrop-blur-md">
 
           {inSorting ? (
             /* ====== SORTING VIEW HEADER ====== */
             <>
-              <div className="flex items-center gap-4">
-                {/* Search */}
-                <div className="relative">
+              <div className="flex items-center gap-2 md:gap-4 min-w-0">
+                {/* Hamburger (mobile only) */}
+                <button
+                  className="md:hidden rounded-lg p-1.5 text-on-surface-variant/60 hover:bg-surface-container"
+                  onClick={() => setMobileSidebarOpen(true)}
+                  aria-label="Open menu"
+                >
+                  <Menu size={20} />
+                </button>
+
+                {/* Search (desktop only) */}
+                <div className="relative hidden md:block">
                   <Search
                     size={16}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50"
@@ -424,12 +459,12 @@ export default function DashboardLayout({
                 </div>
 
                 {/* Project name */}
-                <span className="font-headline font-bold text-lg text-on-surface">
+                <span className="font-headline font-bold text-base md:text-lg text-on-surface truncate">
                   {getProjectName(pathname)}
                 </span>
 
-                {/* Tabs */}
-                <nav className="flex items-center gap-1 ml-2">
+                {/* Tabs (desktop only) */}
+                <nav className="hidden md:flex items-center gap-1 ml-2">
                   {['Overview', 'Sorting', 'Selection', 'Delivery'].map((tab) => {
                     const isTabActive = getCurrentProjectTab(pathname) === tab
                     const tabSlug = tab === 'Overview' ? '' : `/${tab.toLowerCase()}`
@@ -451,13 +486,13 @@ export default function DashboardLayout({
               </div>
 
               {/* Right actions */}
-              <div className="flex items-center gap-3">
-                <button className="flex items-center gap-2 rounded-lg border border-outline-variant/30 px-3 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container">
+              <div className="flex items-center gap-2 md:gap-3 shrink-0">
+                <button className="hidden md:flex items-center gap-2 rounded-lg border border-outline-variant/30 px-3 py-2 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container">
                   <PenLine size={14} />
                   Batch Rename
                 </button>
-                <button className="rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441] px-4 py-2 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
-                  Publish Gallery
+                <button className="rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441] px-3 md:px-4 py-2 text-xs md:text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
+                  Publish
                 </button>
                 <div className="relative">
                   <button
@@ -483,9 +518,18 @@ export default function DashboardLayout({
           ) : inProject ? (
             /* ====== PROJECT PAGE HEADER ====== */
             <>
-              <div className="flex items-center gap-4">
-                {/* Search */}
-                <div className="relative">
+              <div className="flex items-center gap-2 md:gap-4 min-w-0">
+                {/* Hamburger (mobile only) */}
+                <button
+                  className="md:hidden rounded-lg p-1.5 text-on-surface-variant/60 hover:bg-surface-container"
+                  onClick={() => setMobileSidebarOpen(true)}
+                  aria-label="Open menu"
+                >
+                  <Menu size={20} />
+                </button>
+
+                {/* Search (desktop only) */}
+                <div className="relative hidden md:block">
                   <Search
                     size={16}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50"
@@ -497,11 +541,11 @@ export default function DashboardLayout({
                   />
                 </div>
 
-                {/* Project name + tabs */}
-                <span className="font-headline font-bold text-lg text-on-surface">
+                {/* Project name + tabs (desktop only) */}
+                <span className="font-headline font-bold text-base md:text-lg text-on-surface truncate">
                   {getProjectName(pathname)}
                 </span>
-                <nav className="flex items-center gap-1 ml-2">
+                <nav className="hidden md:flex items-center gap-1 ml-2">
                   {['Overview', 'Metadata', 'Export History'].map((tab) => {
                     const isTabActive =
                       (tab === 'Overview' && !pathname.match(/\/(metadata|export-history)$/)) ||
@@ -524,7 +568,7 @@ export default function DashboardLayout({
               </div>
 
               {/* Right actions */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 md:gap-3 shrink-0">
                 <div className="relative">
                   <button
                     onClick={() => setNotificationsOpen(!notificationsOpen)}
@@ -542,7 +586,7 @@ export default function DashboardLayout({
                   />
                 </div>
                 <button
-                  className="rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
+                  className="hidden md:block rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
                   aria-label="Settings"
                 >
                   <Settings size={18} />
@@ -555,9 +599,18 @@ export default function DashboardLayout({
           ) : (
             /* ====== DEFAULT / DASHBOARD HEADER ====== */
             <>
-              <div className="flex items-center gap-4">
-                {/* Search */}
-                <div className="relative">
+              <div className="flex items-center gap-2 md:gap-4 min-w-0">
+                {/* Hamburger (mobile only) */}
+                <button
+                  className="md:hidden rounded-lg p-1.5 text-on-surface-variant/60 hover:bg-surface-container"
+                  onClick={() => setMobileSidebarOpen(true)}
+                  aria-label="Open menu"
+                >
+                  <Menu size={20} />
+                </button>
+
+                {/* Search (desktop only) */}
+                <div className="relative hidden md:block">
                   <Search
                     size={16}
                     className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50"
@@ -570,7 +623,7 @@ export default function DashboardLayout({
                 </div>
 
                 {/* Page title */}
-                <h1 className="font-headline font-bold text-xl text-on-surface">
+                <h1 className="font-headline font-bold text-lg md:text-xl text-on-surface truncate">
                   {pathname === '/dashboard' && 'Dashboard'}
                   {pathname.startsWith('/dashboard/clients') && 'Clients'}
                   {pathname.startsWith('/dashboard/billing') && 'Finances'}
@@ -584,13 +637,7 @@ export default function DashboardLayout({
               </div>
 
               {/* Right actions */}
-              <div className="flex items-center gap-3">
-                <button
-                  className="relative rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
-                  aria-label="Search"
-                >
-                  <Search size={18} />
-                </button>
+              <div className="flex items-center gap-2 md:gap-3 shrink-0">
                 <div className="relative">
                   <button
                     onClick={() => setNotificationsOpen(!notificationsOpen)}
@@ -608,14 +655,14 @@ export default function DashboardLayout({
                   />
                 </div>
                 <button
-                  className="rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
+                  className="hidden md:block rounded-lg p-2 text-on-surface-variant/50 transition-colors hover:bg-surface-container hover:text-on-surface"
                   aria-label="Settings"
                 >
                   <Settings size={18} />
                 </button>
-                <button className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441] px-4 py-2 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
+                <button className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441] px-3 md:px-4 py-2 text-xs md:text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
                   <Upload size={14} />
-                  Upload
+                  <span className="hidden sm:inline">Upload</span>
                 </button>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
                   KD
@@ -628,7 +675,7 @@ export default function DashboardLayout({
         {/* ---------------------------------------------------------- */}
         {/*  CONTENT                                                   */}
         {/* ---------------------------------------------------------- */}
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
     </div>
   )
