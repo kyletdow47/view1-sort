@@ -3,6 +3,12 @@ import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 import type { PlanTier } from '@/lib/stripe/plans'
+import {
+  sendPaymentConfirmationEmail,
+  sendPaymentReceivedEmail,
+  sendPaymentFailedEmail,
+} from '@/lib/email'
+import { notifyPaymentReceived } from '@/lib/notifications'
 
 function getServiceSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -68,6 +74,58 @@ async function handleCheckoutSessionCompleted(
       client_email: session.customer_email,
       paid_at: new Date().toISOString(),
     })
+
+    // Send payment emails + notification (non-blocking)
+    const amountStr = `$${((session.amount_total ?? 0) / 100).toFixed(2)}`
+    const clientEmail = session.customer_email ?? ''
+
+    // Fetch project info for email context
+    const { data: project } = await supabase
+      .from('projects')
+      .select('name, workspace_id')
+      .eq('id', session.metadata.projectId)
+      .single()
+
+    const projectName = (project as { name: string } | null)?.name ?? 'Gallery'
+    const galleryUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/gallery/${session.metadata.projectId}`
+
+    // Send confirmation to client
+    if (clientEmail) {
+      sendPaymentConfirmationEmail(
+        clientEmail, clientEmail, projectName, amountStr, galleryUrl,
+      ).catch((e) => console.error('Payment confirmation email failed:', e))
+    }
+
+    // Send notification + email to photographer
+    if (project) {
+      const { data: workspace } = await supabase
+        .from('workspaces')
+        .select('owner_id')
+        .eq('id', (project as { workspace_id: string }).workspace_id)
+        .single()
+
+      if (workspace) {
+        const ownerId = (workspace as { owner_id: string }).owner_id
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', ownerId)
+          .single()
+
+        const { data: ownerAuth } = await supabase.auth.admin.getUserById(ownerId)
+        const ownerEmail = ownerAuth?.user?.email
+
+        if (ownerEmail) {
+          const displayName = (ownerProfile as { display_name: string | null } | null)?.display_name ?? 'Photographer'
+          sendPaymentReceivedEmail(
+            ownerEmail, displayName, clientEmail, projectName, amountStr,
+          ).catch((e) => console.error('Payment received email failed:', e))
+        }
+
+        notifyPaymentReceived(ownerId, clientEmail, projectName, amountStr)
+          .catch((e) => console.error('Payment notification failed:', e))
+      }
+    }
   }
 }
 
@@ -110,6 +168,16 @@ async function handleInvoicePaymentFailed(
     .from('profiles')
     .update({ subscription_status: 'past_due' })
     .eq('stripe_subscription_id', invoice.subscription as string)
+
+  // Send payment failed email to customer
+  const customerEmail = invoice.customer_email
+  if (customerEmail) {
+    const amountStr = `$${((invoice.amount_due ?? 0) / 100).toFixed(2)}`
+    const retryUrl = invoice.hosted_invoice_url ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/dashboard/billing`
+    sendPaymentFailedEmail(
+      customerEmail, customerEmail, 'Subscription', amountStr, retryUrl,
+    ).catch((e) => console.error('Payment failed email error:', e))
+  }
 }
 
 async function handleAccountUpdated(
