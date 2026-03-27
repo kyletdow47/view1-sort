@@ -51,7 +51,7 @@ async function handleCheckoutSessionCompleted(
     await supabase
       .from('profiles')
       .update({
-        subscription_tier: tier,
+        tier,
         subscription_status: subscription.status,
         stripe_subscription_id: subscription.id,
       })
@@ -81,7 +81,7 @@ async function handleSubscriptionUpdated(
   await supabase
     .from('profiles')
     .update({
-      subscription_tier: tier,
+      tier,
       subscription_status: subscription.status,
     })
     .eq('stripe_subscription_id', subscription.id)
@@ -94,7 +94,7 @@ async function handleSubscriptionDeleted(
   await supabase
     .from('profiles')
     .update({
-      subscription_tier: 'free',
+      tier: 'free',
       subscription_status: 'canceled',
       stripe_subscription_id: null,
     })
@@ -119,14 +119,13 @@ async function handleAccountUpdated(
   await supabase
     .from('profiles')
     .update({ stripe_connect_enabled: account.charges_enabled })
-    .eq('stripe_connect_account_id', account.id)
+    .eq('stripe_account_id', account.id)
 }
 
 async function handlePaymentIntentSucceeded(
   supabase: ReturnType<typeof getServiceSupabase>,
   paymentIntent: Stripe.PaymentIntent
 ): Promise<void> {
-  if (!paymentIntent.invoice) return
   await supabase
     .from('invoices')
     .update({
@@ -134,7 +133,7 @@ async function handlePaymentIntentSucceeded(
       paid_at: new Date().toISOString(),
       stripe_payment_intent_id: paymentIntent.id,
     })
-    .eq('stripe_invoice_id', paymentIntent.invoice as string)
+    .eq('stripe_payment_intent_id', paymentIntent.id)
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
