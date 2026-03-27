@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getWorkspaces } from '@/lib/queries/projects'
+import { BookingsPageClient } from '@/components/features/bookings/BookingsPageClient'
 import type { Booking, BookingStatus } from '@/types/supabase'
 
 /* ------------------------------------------------------------------ */
@@ -258,26 +259,8 @@ export default async function BookingsPage() {
     .map((d) => d.getDate())
 
   return (
+    <BookingsPageClient workspaceId={workspace?.id ?? ''}>
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-headline text-3xl italic font-extrabold text-on-surface flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441]">
-              <CalendarDays size={20} className="text-[#4e2600]" />
-            </div>
-            Bookings
-          </h1>
-          <p className="mt-1 text-sm text-on-surface-variant">
-            Manage your booking pipeline and schedule
-          </p>
-        </div>
-        <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2.5 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
-          <Plus size={16} />
-          New Booking
-        </button>
-      </div>
-
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-4">
         <StatCard label="Upcoming" value={upcoming} icon={CalendarDays} color="bg-[#95d1d1]/15 text-[#95d1d1]" />
@@ -332,5 +315,6 @@ export default async function BookingsPage() {
         </div>
       </div>
     </div>
+    </BookingsPageClient>
   )
 }

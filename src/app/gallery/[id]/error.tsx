@@ -21,7 +21,7 @@ export default function GalleryError({
         <AlertTriangle className="w-10 h-10 text-error mx-auto mb-4" />
         <h2 className="font-headline text-lg text-on-surface mb-2">Gallery unavailable</h2>
         <p className="text-on-surface-variant text-sm mb-6">
-          We couldn't load this gallery. It may have been removed or you may not have access.
+          We couldn&apos;t load this gallery. It may have been removed or you may not have access.
         </p>
         <Button onClick={reset} className="flex items-center gap-2 mx-auto">
           <RefreshCw className="w-4 h-4" />

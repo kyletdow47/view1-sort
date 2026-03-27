@@ -16,6 +16,7 @@ function getServiceSupabase() {
 
 interface CheckoutRequestBody {
   email: string
+  mediaIds?: string[]
 }
 
 export async function POST(
@@ -31,7 +32,7 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
   }
 
-  const { email } = body
+  const { email, mediaIds } = body
   if (!email || typeof email !== 'string' || !email.includes('@')) {
     return NextResponse.json({ error: 'A valid email address is required.' }, { status: 400 })
   }
@@ -96,21 +97,38 @@ export async function POST(
     }
     totalAmountCents = typedProject.flat_fee_cents
   } else {
-    // per_photo: we charge for all photos; download route enforces per-photo tracking
+    // per_photo: charge for selected photos (mediaIds) or all if none specified
     if (!typedProject.per_photo_cents || typedProject.per_photo_cents <= 0) {
       return NextResponse.json({ error: 'Invalid per-photo pricing configuration.' }, { status: 422 })
     }
 
-    const { count, error: countError } = await supabase
-      .from('media')
-      .select('id', { count: 'exact', head: true })
-      .eq('project_id', projectId)
+    let photoCount: number
 
-    if (countError || !count || count === 0) {
-      return NextResponse.json({ error: 'No photos found in this gallery.' }, { status: 422 })
+    if (mediaIds && mediaIds.length > 0) {
+      // Validate all IDs belong to this project
+      const { count, error: countError } = await supabase
+        .from('media')
+        .select('id', { count: 'exact', head: true })
+        .eq('project_id', projectId)
+        .in('id', mediaIds)
+
+      if (countError || !count || count === 0) {
+        return NextResponse.json({ error: 'No valid photos selected.' }, { status: 422 })
+      }
+      photoCount = count
+    } else {
+      const { count, error: countError } = await supabase
+        .from('media')
+        .select('id', { count: 'exact', head: true })
+        .eq('project_id', projectId)
+
+      if (countError || !count || count === 0) {
+        return NextResponse.json({ error: 'No photos found in this gallery.' }, { status: 422 })
+      }
+      photoCount = count
     }
 
-    totalAmountCents = typedProject.per_photo_cents * count
+    totalAmountCents = typedProject.per_photo_cents * photoCount
   }
 
   const applicationFeeAmount = Math.round(totalAmountCents * (feePercent / 100))

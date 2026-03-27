@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { useClassifier } from '@/hooks/useClassifier'
+import { createClient } from '@/lib/supabase/client'
 import type { ClassificationResult } from '@/lib/ai/classifier'
 
 /* ---------- types ---------- */
@@ -82,6 +83,15 @@ export default function AISortPage() {
               : f
           )
         )
+
+        // Write ai_category + ai_confidence back to Supabase (best-effort, match by filename)
+        if (topResult) {
+          const supabase = createClient()
+          void supabase
+            .from('media')
+            .update({ ai_category: topResult.category, ai_confidence: topResult.score })
+            .eq('filename', item.file.name)
+        }
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Classification failed'
         setFiles((prev) =>

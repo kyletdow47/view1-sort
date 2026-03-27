@@ -20,7 +20,7 @@ export default function SettingsError({
       <AlertTriangle className="w-10 h-10 text-error mb-4" />
       <h2 className="font-headline text-lg text-on-surface mb-2">Failed to load settings</h2>
       <p className="text-on-surface-variant text-sm mb-6 max-w-sm">
-        We couldn't load your settings. Please try again.
+        We couldn&apos;t load your settings. Please try again.
       </p>
       <Button onClick={reset} className="flex items-center gap-2">
         <RefreshCw className="w-4 h-4" />

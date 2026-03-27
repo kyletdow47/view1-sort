@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ShoppingCart,
@@ -10,6 +11,7 @@ import {
   Lock,
   ShieldCheck,
   CreditCard,
+  Loader2,
 } from 'lucide-react'
 import type { Media, Project } from '@/types/supabase'
 
@@ -28,13 +30,51 @@ function formatCurrency(cents: number, currency: string): string {
 }
 
 export function CartView({ project, media, projectId }: CartViewProps) {
+  const router = useRouter()
   const [items, setItems] = useState<Media[]>(media)
+  const [email, setEmail] = useState('')
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
 
   const pricePerPhoto = project.per_photo_cents ?? 0
   const subtotalCents = items.length * pricePerPhoto
 
   const removeItem = (id: string) => {
     setItems((prev) => prev.filter((item) => item.id !== id))
+  }
+
+  const handleCheckout = async () => {
+    if (!email || !email.includes('@')) {
+      setCheckoutError('Please enter a valid email address.')
+      return
+    }
+
+    setIsCheckingOut(true)
+    setCheckoutError(null)
+
+    try {
+      const res = await fetch(`/api/gallery/${projectId}/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          mediaIds: items.map((i) => i.id),
+        }),
+      })
+
+      const data = (await res.json()) as { url?: string; error?: string }
+
+      if (!res.ok || !data.url) {
+        setCheckoutError(data.error ?? 'Failed to create checkout session.')
+        return
+      }
+
+      router.push(data.url)
+    } catch {
+      setCheckoutError('Something went wrong. Please try again.')
+    } finally {
+      setIsCheckingOut(false)
+    }
   }
 
   return (
@@ -159,15 +199,32 @@ export function CartView({ project, media, projectId }: CartViewProps) {
               </div>
             </div>
 
+            {/* Email input */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-[#a18d80]">Email for receipt</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full rounded-xl border border-[#534439]/30 bg-[#100e0d] px-4 py-3 text-sm text-[#e7e1df] placeholder-[#534439] outline-none focus:border-[#ffb780]/40"
+              />
+            </div>
+
+            {checkoutError && (
+              <p className="text-xs text-[#e7765f]">{checkoutError}</p>
+            )}
+
             {/* Checkout button */}
             {items.length > 0 ? (
-              <Link
-                href={`/gallery/${projectId}/checkout`}
-                className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600] hover:opacity-90 shadow-lg shadow-[#d48441]/20 transition-opacity"
+              <button
+                onClick={handleCheckout}
+                disabled={isCheckingOut}
+                className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600] hover:opacity-90 shadow-lg shadow-[#d48441]/20 transition-opacity disabled:opacity-50"
               >
                 <CreditCard size={18} />
-                Proceed to Checkout
-              </Link>
+                {isCheckingOut ? 'Redirecting to Stripe...' : 'Proceed to Checkout'}
+              </button>
             ) : (
               <button
                 disabled
