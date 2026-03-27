@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Link from 'next/link';
 import {
   UploadCloud,
   FileType,
@@ -258,10 +259,10 @@ export default function AISortPage() {
                 </p>
               </div>
             </div>
-            <button className="px-8 py-3 bg-secondary text-on-secondary rounded-xl font-headline font-bold uppercase tracking-tight shadow-lg hover:shadow-secondary/20 transition-all flex items-center gap-2">
+            <Link href="/dashboard/gallery" className="px-8 py-3 bg-secondary text-on-secondary rounded-xl font-headline font-bold uppercase tracking-tight shadow-lg hover:shadow-secondary/20 transition-all flex items-center gap-2">
               View Full Gallery
               <ChevronRight className="w-5 h-5" />
-            </button>
+            </Link>
           </div>
 
           {/* Start sorting CTA */}

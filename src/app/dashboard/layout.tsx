@@ -9,7 +9,6 @@ import {
   Sparkles,
   Users,
   BarChart3,
-  Wallet,
   Settings,
   Camera,
   Plus,
@@ -25,6 +24,7 @@ import {
   Eye,
   UserCheck,
   Cloud,
+  Image as ImageIcon,
 } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
@@ -192,11 +192,11 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Projects', href: '/dashboard/projects', icon: FolderOpen },
   { label: 'AI Sort', href: '/dashboard/ai-sort', icon: Sparkles },
+  { label: 'Gallery', href: '/dashboard/gallery', icon: ImageIcon },
+  { label: 'Projects', href: '/dashboard/projects', icon: FolderOpen },
   { label: 'Clients', href: '/dashboard/clients', icon: Users },
-  { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
-  { label: 'Finances', href: '/dashboard/billing', icon: Wallet },
+  { label: 'Analytics & Finances', href: '/dashboard/billing', icon: BarChart3 },
 ]
 
 const schedulingItems: NavItem[] = [
@@ -216,6 +216,10 @@ function isActive(pathname: string, href: string): boolean {
   // Projects nav item matches both /dashboard/projects and /dashboard/project/*
   if (href === '/dashboard/projects') {
     return pathname === '/dashboard/projects' || pathname.startsWith('/dashboard/project/')
+  }
+  // Analytics & Finances matches both /dashboard/billing and /dashboard/analytics
+  if (href === '/dashboard/billing') {
+    return pathname.startsWith('/dashboard/billing') || pathname.startsWith('/dashboard/analytics')
   }
   return pathname.startsWith(href)
 }
@@ -317,18 +321,21 @@ export default function DashboardLayout({
             })}
           </ul>
 
-          {/* Collapsible Scheduling Tools */}
-          <div className="mt-4 mx-2">
+          {/* Scheduling Tools — collapsible nav item */}
+          <div className="mt-1 mx-2">
             <button
               onClick={() => setSchedulingOpen(!schedulingOpen)}
-              className="flex w-full items-center justify-between px-4 py-2"
+              className={`flex w-full items-center gap-3 px-4 py-3 font-body font-medium transition-colors duration-150 ${
+                isSchedulingActive
+                  ? 'rounded-lg bg-[#252322] text-[#ffb780]'
+                  : 'text-[#e7e1df]/50 hover:bg-[#252322]/50 hover:text-[#e7e1df]'
+              }`}
             >
-              <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]">
-                Scheduling Tools
-              </span>
+              <CalendarDays size={20} className="shrink-0" fill={isSchedulingActive ? 'currentColor' : 'none'} />
+              <span className="flex-1 text-left">Scheduling</span>
               <ChevronDown
-                size={14}
-                className={`text-[#a18d80] transition-transform duration-200 ${
+                size={16}
+                className={`transition-transform duration-200 ${
                   schedulingOpen ? 'rotate-180' : ''
                 }`}
               />
