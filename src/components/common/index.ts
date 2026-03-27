@@ -19,6 +19,9 @@ export type { InputProps } from './Input'
 export { Modal } from './Modal'
 export type { ModalProps } from './Modal'
 
+export { Skeleton } from './Skeleton'
+export type { SkeletonProps } from './Skeleton'
+
 export { Spinner } from './Spinner'
 export type { SpinnerProps } from './Spinner'
 
