@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -28,6 +28,7 @@ import {
   Menu,
   X,
 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 /* ------------------------------------------------------------------ */
 /*  Notification types & mock data                                     */
@@ -85,6 +86,41 @@ const MOCK_NOTIFICATIONS: Notification[] = [
   },
 ]
 
+/* ------------------------------------------------------------------ */
+/*  Supabase helpers                                                   */
+/* ------------------------------------------------------------------ */
+
+function mapNotificationType(
+  dbType: string
+): Notification['type'] {
+  const mapping: Record<string, Notification['type']> = {
+    payment_received: 'payment',
+    gallery_invite_sent: 'gallery_viewed',
+    project_published: 'upload_complete',
+    upload_complete: 'upload_complete',
+    gallery_viewed: 'gallery_viewed',
+    booking_created: 'booking',
+    client_accepted: 'client_accepted',
+  }
+  return mapping[dbType] ?? 'booking'
+}
+
+function formatRelativeTime(iso: string): string {
+  const now = Date.now()
+  const then = new Date(iso).getTime()
+  const diffSeconds = Math.floor((now - then) / 1000)
+
+  if (diffSeconds < 60) return 'just now'
+  const diffMinutes = Math.floor(diffSeconds / 60)
+  if (diffMinutes < 60) return `${diffMinutes} min ago`
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours < 24) return `${diffHours} hr ago`
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+  const diffMonths = Math.floor(diffDays / 30)
+  return `${diffMonths} mo ago`
+}
+
 function NotificationIcon({ type }: { type: Notification['type'] }) {
   const config: Record<Notification['type'], { icon: React.ElementType; bg: string }> = {
     booking: { icon: CalendarDays, bg: 'bg-[#ffb780]/20 text-[#ffb780]' },
@@ -104,11 +140,62 @@ function NotificationIcon({ type }: { type: Notification['type'] }) {
 function NotificationDropdown({
   open,
   onClose,
+  onUnreadCountChange,
 }: {
   open: boolean
   onClose: () => void
+  onUnreadCountChange?: (count: number) => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
+  const [loaded, setLoaded] = useState(false)
+
+  // Fetch real notifications from Supabase
+  useEffect(() => {
+    if (loaded) return
+    const supabase = createClient()
+    supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const mapped = data.map((n: Record<string, unknown>) => ({
+            id: String(n.id),
+            type: mapNotificationType(String(n.type)),
+            title: String(n.title),
+            description: String(n.body ?? ''),
+            timestamp: formatRelativeTime(String(n.created_at)),
+            read: Boolean(n.read),
+          }))
+          setNotifications(mapped)
+          onUnreadCountChange?.(mapped.filter((n) => !n.read).length)
+        } else {
+          // Keep mock data, report mock unread count
+          onUnreadCountChange?.(MOCK_NOTIFICATIONS.filter((n) => !n.read).length)
+        }
+        setLoaded(true)
+      })
+  }, [loaded, onUnreadCountChange])
+
+  // Mark all notifications as read via Supabase
+  const handleMarkAllRead = useCallback(() => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    onUnreadCountChange?.(0)
+
+    const supabase = createClient()
+    const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id)
+    if (unreadIds.length > 0) {
+      supabase
+        .from('notifications')
+        .update({ read: true })
+        .in('id', unreadIds)
+        .then(() => {
+          // silently succeed — UI already updated optimistically
+        })
+    }
+  }, [notifications, onUnreadCountChange])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -124,7 +211,7 @@ function NotificationDropdown({
 
   if (!open) return null
 
-  const unreadCount = MOCK_NOTIFICATIONS.filter((n) => !n.read).length
+  const unreadCount = notifications.filter((n) => !n.read).length
 
   return (
     <div
@@ -141,14 +228,17 @@ function NotificationDropdown({
             </span>
           )}
         </div>
-        <button className="text-[11px] font-medium text-[#ffb780] hover:text-[#ffb780]/80 transition-colors">
+        <button
+          onClick={handleMarkAllRead}
+          className="text-[11px] font-medium text-[#ffb780] hover:text-[#ffb780]/80 transition-colors"
+        >
           Mark all read
         </button>
       </div>
 
       {/* Notification list */}
       <div className="max-h-[380px] overflow-y-auto">
-        {MOCK_NOTIFICATIONS.map((notification) => (
+        {notifications.map((notification) => (
           <div
             key={notification.id}
             className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-[#252322]/60 cursor-pointer ${
@@ -271,6 +361,7 @@ export default function DashboardLayout({
   const isSchedulingActive = schedulingItems.some((item) => isActive(pathname, item.href))
   const [schedulingOpen, setSchedulingOpen] = useState(isSchedulingActive)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [notificationUnreadCount, setNotificationUnreadCount] = useState(0)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   // Close mobile sidebar on route change
@@ -501,13 +592,16 @@ export default function DashboardLayout({
                     aria-label="Notifications"
                   >
                     <Bell size={18} />
-                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
-                      3
-                    </span>
+                    {notificationUnreadCount > 0 && (
+                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                        {notificationUnreadCount}
+                      </span>
+                    )}
                   </button>
                   <NotificationDropdown
                     open={notificationsOpen}
                     onClose={() => setNotificationsOpen(false)}
+                    onUnreadCountChange={setNotificationUnreadCount}
                   />
                 </div>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
@@ -576,13 +670,16 @@ export default function DashboardLayout({
                     aria-label="Notifications"
                   >
                     <Bell size={18} />
-                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
-                      3
-                    </span>
+                    {notificationUnreadCount > 0 && (
+                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                        {notificationUnreadCount}
+                      </span>
+                    )}
                   </button>
                   <NotificationDropdown
                     open={notificationsOpen}
                     onClose={() => setNotificationsOpen(false)}
+                    onUnreadCountChange={setNotificationUnreadCount}
                   />
                 </div>
                 <button
@@ -645,13 +742,16 @@ export default function DashboardLayout({
                     aria-label="Notifications"
                   >
                     <Bell size={18} />
-                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
-                      3
-                    </span>
+                    {notificationUnreadCount > 0 && (
+                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                        {notificationUnreadCount}
+                      </span>
+                    )}
                   </button>
                   <NotificationDropdown
                     open={notificationsOpen}
                     onClose={() => setNotificationsOpen(false)}
+                    onUnreadCountChange={setNotificationUnreadCount}
                   />
                 </div>
                 <button

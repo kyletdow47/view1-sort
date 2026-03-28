@@ -1,13 +1,15 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useState, useEffect } from 'react'
 import {
   Check,
   Copy,
   Archive,
   Save,
   X,
+  Loader2,
 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 interface SettingsPageProps {
   params: Promise<{ id: string }>
@@ -28,6 +30,73 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
   const [deliveredAccess, setDeliveredAccess] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState('dark-room')
   const [copied, setCopied] = useState(false)
+  const [clientName, setClientName] = useState('')
+  const [projectDate, setProjectDate] = useState('')
+  const [location, setLocation] = useState('')
+  const [flatFee, setFlatFee] = useState('')
+  const [perFilePrice, setPerFilePrice] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+
+  // Load project data on mount
+  useEffect(() => {
+    const load = async () => {
+      const supabase = createClient()
+      const { data } = await supabase.from('projects').select('*').eq('id', id).single()
+      if (data) {
+        setClientName(data.client_name ?? '')
+        setProjectDate(data.project_date ?? '')
+        setLocation(data.location ?? '')
+        setSelectedTheme(data.gallery_theme ?? 'dark-room')
+        setPricingModel(data.pricing_model === 'per_photo' ? 'per-file' : 'flat')
+        setFlatFee(data.flat_fee_cents ? String(data.flat_fee_cents / 100) : '')
+        setPerFilePrice(data.per_photo_cents ? String(data.per_photo_cents / 100) : '')
+        setPreviewAccess(data.preview_access ?? true)
+        setProofingAccess(data.proofing_access ?? true)
+        setDeliveredAccess(data.delivered_access ?? false)
+      }
+    }
+    load()
+  }, [id])
+
+  const handleSave = async () => {
+    setSaving(true)
+    setSaveError(null)
+    setSaveSuccess(false)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.from('projects').update({
+        client_name: clientName,
+        project_date: projectDate,
+        location,
+        gallery_theme: selectedTheme,
+        pricing_model: pricingModel === 'flat' ? 'flat_fee' : 'per_photo',
+        flat_fee_cents: flatFee ? Math.round(parseFloat(flatFee) * 100) : null,
+        per_photo_cents: perFilePrice ? Math.round(parseFloat(perFilePrice) * 100) : null,
+        preview_access: previewAccess,
+        proofing_access: proofingAccess,
+        delivered_access: deliveredAccess,
+      }).eq('id', id)
+      if (error) throw error
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 3000)
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleArchive = async () => {
+    const supabase = createClient()
+    const { error } = await supabase.from('projects').update({ status: 'archived' }).eq('id', id)
+    if (error) {
+      setSaveError('Failed to archive project')
+    } else {
+      setSaveSuccess(true)
+    }
+  }
 
   const magicLink = `https://view1.studio/g/${id}/preview?token=eyJhb...`
 
@@ -70,7 +139,9 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
                 </label>
                 <input
                   type="text"
-                  defaultValue="Sarah & Michael Johnson"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="Client name"
                   className="w-full bg-[#211f1e] border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-[#e7e1df] placeholder-[#534439] focus:border-[#ffb780] focus:outline-none transition-colors"
                 />
               </div>
@@ -82,7 +153,9 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
                 </label>
                 <input
                   type="text"
-                  defaultValue="March 22, 2026"
+                  value={projectDate}
+                  onChange={(e) => setProjectDate(e.target.value)}
+                  placeholder="Project date"
                   className="w-full bg-[#211f1e] border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-[#e7e1df] placeholder-[#534439] focus:border-[#ffb780] focus:outline-none transition-colors"
                 />
               </div>
@@ -94,7 +167,9 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
                 </label>
                 <input
                   type="text"
-                  defaultValue="Villa Rosa, Sintra, Portugal"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Shoot location"
                   className="w-full bg-[#211f1e] border border-outline-variant rounded-xl px-4 py-2.5 text-sm text-[#e7e1df] placeholder-[#534439] focus:border-[#ffb780] focus:outline-none transition-colors"
                 />
               </div>
@@ -126,11 +201,15 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
                 <p className="font-headline text-sm font-bold text-[#e7e1df] mb-1">
                   Flat-Fee
                 </p>
-                <p className="font-headline text-2xl font-bold text-[#ffb780]">
-                  $2,400
-                </p>
+                <input
+                  type="text"
+                  value={flatFee}
+                  onChange={(e) => setFlatFee(e.target.value)}
+                  placeholder="0"
+                  className="font-headline text-2xl font-bold text-[#ffb780] bg-transparent border-none outline-none w-full"
+                />
                 <p className="font-label text-[10px] uppercase tracking-widest text-[#a18d80] mt-1">
-                  Per Project
+                  Per Project ($)
                 </p>
               </button>
 
@@ -151,11 +230,15 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
                 <p className="font-headline text-sm font-bold text-[#e7e1df] mb-1">
                   Per-File
                 </p>
-                <p className="font-headline text-2xl font-bold text-[#ffb780]">
-                  $15
-                </p>
+                <input
+                  type="text"
+                  value={perFilePrice}
+                  onChange={(e) => setPerFilePrice(e.target.value)}
+                  placeholder="0"
+                  className="font-headline text-2xl font-bold text-[#ffb780] bg-transparent border-none outline-none w-full"
+                />
                 <p className="font-label text-[10px] uppercase tracking-widest text-[#a18d80] mt-1">
-                  Per File
+                  Per File ($)
                 </p>
               </button>
             </div>
@@ -303,9 +386,26 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
         </div>
       </div>
 
+      {/* Save status banners */}
+      {saveSuccess && (
+        <div className="mt-4 flex items-center gap-3 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3">
+          <Check size={18} className="text-green-400 shrink-0" />
+          <p className="text-sm text-green-400">Settings saved successfully!</p>
+        </div>
+      )}
+      {saveError && (
+        <div className="mt-4 flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3">
+          <X size={18} className="text-red-400 shrink-0" />
+          <p className="text-sm text-red-400">{saveError}</p>
+        </div>
+      )}
+
       {/* ── Bottom Action Bar ── */}
       <div className="flex items-center justify-between mt-8 pt-6 border-t border-outline-variant">
-        <button className="flex items-center gap-2 rounded-xl border border-[#e7765f]/30 bg-[#e7765f]/10 px-5 py-2.5 text-sm text-[#ffb4a5] hover:bg-[#e7765f]/20 transition-colors">
+        <button
+          onClick={handleArchive}
+          className="flex items-center gap-2 rounded-xl border border-[#e7765f]/30 bg-[#e7765f]/10 px-5 py-2.5 text-sm text-[#ffb4a5] hover:bg-[#e7765f]/20 transition-colors"
+        >
           <Archive size={16} />
           Archive Project
         </button>
@@ -315,9 +415,13 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
             <X size={16} />
             Discard Changes
           </button>
-          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-6 py-2.5 text-sm font-bold text-[#4e2600] hover:opacity-90 transition-opacity">
-            <Save size={16} />
-            Save Configurations
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-6 py-2.5 text-sm font-bold text-[#4e2600] hover:opacity-90 transition-opacity disabled:opacity-60"
+          >
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            {saving ? 'Saving...' : 'Save Configurations'}
           </button>
         </div>
       </div>

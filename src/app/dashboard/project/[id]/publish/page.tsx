@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Send,
   ArrowLeft,
@@ -16,9 +16,11 @@ import {
   Users,
   Check,
   Sparkles,
+  Loader2,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 /* ------------------------------------------------------------------ */
 /*  Mock data                                                           */
@@ -76,14 +78,79 @@ export default function PublishPage() {
   const [copied, setCopied] = useState(false)
   const [email, setEmail] = useState('')
   const [selectedTheme, setSelectedTheme] = useState('minimal-dark')
+  const [isPublished, setIsPublished] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const [inviting, setInviting] = useState(false)
+  const [publishError, setPublishError] = useState<string | null>(null)
+  const [inviteSuccess, setInviteSuccess] = useState(false)
+  const [inviteError, setInviteError] = useState<string | null>(null)
 
   const allReady = checklistItems.filter((i) => i.done).length
   const totalItems = checklistItems.length
   const readyPercent = Math.round((allReady / totalItems) * 100)
 
+  const galleryUrl = `https://view1.studio/g/${projectId}`
+
+  // Load project data on mount to check current status
+  useEffect(() => {
+    const load = async () => {
+      const supabase = createClient()
+      const { data } = await supabase.from('projects').select('status, published_at, gallery_theme').eq('id', projectId).single()
+      if (data) {
+        if (data.status === 'published') setIsPublished(true)
+        if (data.gallery_theme) setSelectedTheme(data.gallery_theme)
+      }
+    }
+    load()
+  }, [projectId])
+
   const handleCopy = () => {
+    navigator.clipboard.writeText(galleryUrl).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handlePublish = async () => {
+    setPublishing(true)
+    setPublishError(null)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.from('projects').update({
+        status: 'published',
+        published_at: new Date().toISOString(),
+      }).eq('id', projectId)
+      if (error) throw error
+      setIsPublished(true)
+    } catch (err) {
+      setPublishError(err instanceof Error ? err.message : 'Failed to publish gallery')
+    } finally {
+      setPublishing(false)
+    }
+  }
+
+  const handleInvite = async () => {
+    if (!email) return
+    setInviting(true)
+    setInviteError(null)
+    setInviteSuccess(false)
+    try {
+      const res = await fetch(`/api/gallery/${projectId}/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error ?? 'Failed to send invite')
+      }
+      setInviteSuccess(true)
+      setEmail('')
+      setTimeout(() => setInviteSuccess(false), 3000)
+    } catch (err) {
+      setInviteError(err instanceof Error ? err.message : 'Failed to send invite')
+    } finally {
+      setInviting(false)
+    }
   }
 
   return (
@@ -250,7 +317,7 @@ export default function PublishPage() {
         <div className="flex items-center gap-2">
           <div className="flex-1 rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
             <span className="text-sm text-on-surface">
-              https://view1.studio/g/sarah-james-wedding
+              {galleryUrl}
             </span>
           </div>
           <button
@@ -291,21 +358,52 @@ export default function PublishPage() {
               className="w-full rounded-lg bg-surface-container pl-10 pr-4 py-2.5 text-sm text-on-surface placeholder-on-surface-variant/40 outline-none ring-1 ring-outline-variant/20 focus:ring-primary/50"
             />
           </div>
-          <button className="flex items-center gap-2 rounded-lg bg-surface-container px-5 py-2.5 text-sm font-medium text-on-surface ring-1 ring-outline-variant/20 hover:ring-primary/30 hover:text-primary transition-all whitespace-nowrap">
-            <Sparkles size={16} />
-            Send Magic Link
+          <button
+            onClick={handleInvite}
+            disabled={inviting || !email}
+            className="flex items-center gap-2 rounded-lg bg-surface-container px-5 py-2.5 text-sm font-medium text-on-surface ring-1 ring-outline-variant/20 hover:ring-primary/30 hover:text-primary transition-all whitespace-nowrap disabled:opacity-60"
+          >
+            {inviting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+            {inviting ? 'Sending...' : 'Send Magic Link'}
           </button>
         </div>
+
+        {inviteSuccess && (
+          <p className="text-sm text-green-400 mt-2">Magic link sent successfully!</p>
+        )}
+        {inviteError && (
+          <p className="text-sm text-red-400 mt-2">{inviteError}</p>
+        )}
       </Card>
 
+      {/* Publish status / error */}
+      {publishError && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3">
+          <p className="text-sm text-red-400">{publishError}</p>
+        </div>
+      )}
+
       {/* Publish Button */}
-      <button className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-4 font-headline font-bold text-lg text-[#4e2600] transition-opacity hover:opacity-90 shadow-lg shadow-[#d48441]/20">
-        <Send size={20} />
-        Publish Gallery
-      </button>
+      {isPublished ? (
+        <div className="w-full flex items-center justify-center gap-2 rounded-xl bg-green-500/10 border border-green-500/30 py-4 font-headline font-bold text-lg text-green-400">
+          <CheckCircle2 size={20} />
+          Gallery Published
+        </div>
+      ) : (
+        <button
+          onClick={handlePublish}
+          disabled={publishing}
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-4 font-headline font-bold text-lg text-[#4e2600] transition-opacity hover:opacity-90 shadow-lg shadow-[#d48441]/20 disabled:opacity-60"
+        >
+          {publishing ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+          {publishing ? 'Publishing...' : 'Publish Gallery'}
+        </button>
+      )}
 
       <p className="text-center text-xs text-on-surface-variant/50">
-        Once published, your client will receive an email notification with a viewing link
+        {isPublished
+          ? 'Your gallery is live. Share the link above with your client.'
+          : 'Once published, your client will receive an email notification with a viewing link'}
       </p>
     </div>
   )

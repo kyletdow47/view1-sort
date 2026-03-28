@@ -134,19 +134,24 @@ export default function StripeConnectPage() {
   const searchParams = useSearchParams()
 
   const [stripeAccountId, setStripeAccountId] = useState<string | null>(null)
+  const [stripeConnectEnabled, setStripeConnectEnabled] = useState(false)
   const [profileLoading, setProfileLoading] = useState(true)
   const [connecting, setConnecting] = useState(false)
   const [connectError, setConnectError] = useState<string | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [showPending, setShowPending] = useState(false)
 
   const [payoutFreq, setPayoutFreq] =
     useState<(typeof payoutFreqs)[number]>('Weekly')
 
-  // Check for ?connected=true or ?error= from callback redirect
+  // Check for ?connected=true or ?connected=pending or ?error= from callback redirect
   useEffect(() => {
     if (searchParams.get('connected') === 'true') {
       setShowSuccess(true)
       setTimeout(() => setShowSuccess(false), 5000)
+    }
+    if (searchParams.get('connected') === 'pending') {
+      setShowPending(true)
     }
     if (searchParams.get('error')) {
       setConnectError('Stripe onboarding could not be completed. Please try again.')
@@ -161,11 +166,12 @@ export default function StripeConnectPage() {
       try {
         const { data } = await supabase
           .from('profiles')
-          .select('stripe_account_id')
+          .select('stripe_account_id, stripe_connect_enabled')
           .eq('id', user.id)
           .single()
 
         setStripeAccountId(data?.stripe_account_id ?? null)
+        setStripeConnectEnabled(data?.stripe_connect_enabled ?? false)
       } finally {
         setProfileLoading(false)
       }
@@ -215,6 +221,36 @@ export default function StripeConnectPage() {
           <p className="text-sm text-green-400">
             Stripe Connect account linked successfully!
           </p>
+        </div>
+      )}
+
+      {/* Pending banner */}
+      {showPending && (
+        <div className="flex items-center gap-3 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3">
+          <AlertCircle size={18} className="text-yellow-400 shrink-0" />
+          <p className="text-sm text-yellow-400">
+            Your Stripe account setup is in progress. Some features may be limited until verification is complete.
+          </p>
+        </div>
+      )}
+
+      {/* Incomplete setup CTA — has account ID but not fully enabled */}
+      {!profileLoading && stripeAccountId && !stripeConnectEnabled && !showPending && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <AlertCircle size={18} className="text-yellow-400 shrink-0" />
+            <p className="text-sm text-yellow-400">
+              Your Stripe account is not fully verified. Complete your setup to start accepting payments.
+            </p>
+          </div>
+          <button
+            onClick={handleConnect}
+            disabled={connecting}
+            className="shrink-0 flex items-center gap-2 rounded-lg bg-yellow-500/20 px-4 py-2 text-sm font-medium text-yellow-400 hover:bg-yellow-500/30 transition-colors disabled:opacity-60"
+          >
+            {connecting ? <Loader2 size={14} className="animate-spin" /> : <ExternalLink size={14} />}
+            Complete Setup
+          </button>
         </div>
       )}
 
