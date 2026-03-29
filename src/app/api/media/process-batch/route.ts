@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { uploadFromUrl, getThumbnailUrl, getPreviewUrl } from '@/lib/cloudflare'
+import { getImageUrl } from '@/lib/cloudflare'
 
 /**
  * POST /api/media/process-batch
  *
- * Process all unprocessed media in a project (those missing cloudflare_image_id).
- * Useful for backfilling media uploaded before Cloudflare was integrated.
+ * Process all unprocessed media in a project (those missing thumbnail_url).
+ * Sets public URLs from Supabase Storage.
  *
  * Body: { projectId: string, limit?: number }
  */
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       .from('media')
       .select('id, storage_path, file_name, project_id')
       .eq('project_id', projectId)
-      .is('cloudflare_image_id', null)
+      .is('thumbnail_url', null)
       .limit(limit)
 
     if (fetchError) {
@@ -52,30 +52,13 @@ export async function POST(request: Request) {
 
     for (const media of mediaList) {
       try {
-        const { data: signedData } = await supabase.storage
-          .from('photos')
-          .createSignedUrl(media.storage_path, 300)
-
-        if (!signedData?.signedUrl) {
-          errors.push({ mediaId: media.id, error: 'Failed to create signed URL' })
-          continue
-        }
-
-        const result = await uploadFromUrl(signedData.signedUrl, {
-          mediaId: media.id,
-          projectId: media.project_id,
-          fileName: media.file_name,
-        })
-
-        const thumbnailUrl = getThumbnailUrl(result.imageId)
-        const watermarkedUrl = getPreviewUrl(result.imageId)
+        const publicUrl = getImageUrl(media.storage_path)
 
         await supabase
           .from('media')
           .update({
-            cloudflare_image_id: result.imageId,
-            thumbnail_url: thumbnailUrl,
-            watermarked_url: watermarkedUrl,
+            thumbnail_url: publicUrl,
+            watermarked_url: publicUrl,
             status: 'processed',
           })
           .eq('id', media.id)

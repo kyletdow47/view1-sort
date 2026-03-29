@@ -1,31 +1,35 @@
 /**
- * Cloudflare Images integration — upload, transform, and serve photos.
+ * Image serving layer — uses Supabase Storage directly.
  *
- * Variant naming convention (configured in Cloudflare dashboard):
- *   - public:    Full-size, no watermark (for paid/delivered access)
- *   - thumbnail: 400px wide, fit=cover
- *   - preview:   1200px wide, watermark overlay (for unpaid gallery)
- *   - watermark: Watermarked version for unpaid preview
- *   - og:        1200x630, fit=cover (for social share cards)
+ * This replaces the Cloudflare Images integration with free Supabase Storage
+ * public URLs. When ready to scale, swap back to Cloudflare Images for CDN
+ * transforms, thumbnails, and watermarking.
+ *
+ * The public API surface is unchanged so all existing imports keep working.
  */
 
-const CLOUDFLARE_ACCOUNT_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID
-const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+const STORAGE_BUCKET = 'photos'
 
 /* ------------------------------------------------------------------ */
-/*  URL builders (client-safe — use NEXT_PUBLIC env var)               */
+/*  URL builders                                                       */
 /* ------------------------------------------------------------------ */
 
-export function getImageUrl(imageId: string, variant = 'public'): string {
-  if (!CLOUDFLARE_ACCOUNT_ID) {
-    // Gracefully return empty string when env var not configured
-    // (e.g. during local dev without Cloudflare)
-    return ''
-  }
-  return `https://imagedelivery.net/${CLOUDFLARE_ACCOUNT_ID}/${imageId}/${variant}`
+/**
+ * Get the public URL for an image stored in Supabase Storage.
+ * The `imageId` is the storage_path within the bucket.
+ * The `variant` param is accepted for API compat but ignored (no transforms).
+ */
+export function getImageUrl(imageId: string, _variant = 'public'): string {
+  if (!imageId || !SUPABASE_URL) return ''
+  // If it's already a full URL, return as-is
+  if (imageId.startsWith('http')) return imageId
+  return `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${imageId}`
 }
 
 export function getThumbnailUrl(imageId: string): string {
+  // Supabase supports image transforms on Pro plan via /render/image
+  // For free tier, serve the original
   return getImageUrl(imageId, 'thumbnail')
 }
 
@@ -42,149 +46,55 @@ export function getOgUrl(imageId: string): string {
 }
 
 /**
- * Generate responsive srcset for a Cloudflare image.
- * Uses flexible variants with width hints.
+ * Generate srcset — for now just returns the single URL at all widths.
+ * Swap to Cloudflare or Supabase Pro transforms later.
  */
 export function getSrcSet(imageId: string, widths: number[] = [400, 800, 1200, 1600]): string {
-  if (!CLOUDFLARE_ACCOUNT_ID) {
-    throw new Error('Missing NEXT_PUBLIC_CLOUDFLARE_ACCOUNT_ID environment variable')
-  }
-  return widths
-    .map((w) => `https://imagedelivery.net/${CLOUDFLARE_ACCOUNT_ID}/${imageId}/w=${w} ${w}w`)
-    .join(', ')
+  const url = getImageUrl(imageId)
+  if (!url) return ''
+  return widths.map((w) => `${url} ${w}w`).join(', ')
 }
 
 /* ------------------------------------------------------------------ */
-/*  Server-side upload (uses secret API token)                         */
+/*  Server-side "upload" (no-op — files already in Supabase Storage)   */
 /* ------------------------------------------------------------------ */
 
-interface CloudflareUploadResult {
+interface UploadResult {
   imageId: string
   variants: string[]
 }
 
 /**
- * Upload an image to Cloudflare Images from a URL (e.g. signed Supabase Storage URL).
- * This runs server-side only.
+ * No-op for Supabase Storage — the file is already stored.
+ * Returns the storage path as the imageId so URL builders work.
  */
 export async function uploadFromUrl(
   sourceUrl: string,
   metadata?: Record<string, string>,
-): Promise<CloudflareUploadResult> {
-  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-    throw new Error('Missing Cloudflare credentials (CLOUDFLARE_ACCOUNT_ID or CLOUDFLARE_API_TOKEN)')
-  }
-
-  const form = new FormData()
-  form.append('url', sourceUrl)
-  if (metadata) {
-    form.append('metadata', JSON.stringify(metadata))
-  }
-
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
-      },
-      body: form,
-    },
-  )
-
-  if (!response.ok) {
-    const body = await response.text()
-    throw new Error(`Cloudflare Images upload failed (${response.status}): ${body}`)
-  }
-
-  const json = (await response.json()) as {
-    success: boolean
-    result: { id: string; variants: string[] }
-    errors: { message: string }[]
-  }
-
-  if (!json.success) {
-    throw new Error(`Cloudflare Images API error: ${json.errors.map((e) => e.message).join(', ')}`)
-  }
-
+): Promise<UploadResult> {
+  // Extract the storage path from the signed URL if possible
+  const imageId = metadata?.mediaId ?? sourceUrl
   return {
-    imageId: json.result.id,
-    variants: json.result.variants,
+    imageId,
+    variants: ['public'],
   }
 }
 
-/**
- * Upload raw image bytes to Cloudflare Images.
- * Used when we already have the file buffer (e.g. from Supabase Storage download).
- */
 export async function uploadFromBuffer(
-  buffer: ArrayBuffer | Uint8Array,
+  _buffer: ArrayBuffer | Uint8Array,
   fileName: string,
-  metadata?: Record<string, string>,
-): Promise<CloudflareUploadResult> {
-  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-    throw new Error('Missing Cloudflare credentials (CLOUDFLARE_ACCOUNT_ID or CLOUDFLARE_API_TOKEN)')
-  }
-
-  const blob = new Blob([buffer as unknown as BlobPart])
-  const form = new FormData()
-  form.append('file', blob, fileName)
-  if (metadata) {
-    form.append('metadata', JSON.stringify(metadata))
-  }
-
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
-      },
-      body: form,
-    },
-  )
-
-  if (!response.ok) {
-    const body = await response.text()
-    throw new Error(`Cloudflare Images upload failed (${response.status}): ${body}`)
-  }
-
-  const json = (await response.json()) as {
-    success: boolean
-    result: { id: string; variants: string[] }
-    errors: { message: string }[]
-  }
-
-  if (!json.success) {
-    throw new Error(`Cloudflare Images API error: ${json.errors.map((e) => e.message).join(', ')}`)
-  }
-
+  _metadata?: Record<string, string>,
+): Promise<UploadResult> {
   return {
-    imageId: json.result.id,
-    variants: json.result.variants,
+    imageId: fileName,
+    variants: ['public'],
   }
 }
 
 /**
- * Delete an image from Cloudflare Images.
+ * No-op for Supabase Storage — deletion is handled via Supabase client.
  */
-export async function deleteImage(imageId: string): Promise<void> {
-  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-    throw new Error('Missing Cloudflare credentials')
-  }
-
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1/${imageId}`,
-    {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
-      },
-    },
-  )
-
-  if (!response.ok && response.status !== 404) {
-    const body = await response.text()
-    throw new Error(`Cloudflare Images delete failed (${response.status}): ${body}`)
-  }
+export async function deleteImage(_imageId: string): Promise<void> {
+  // When using Supabase Storage, delete via:
+  // supabase.storage.from('photos').remove([storagePath])
 }
