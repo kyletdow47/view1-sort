@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
 import { GalleryView } from '@/components/features/gallery/GalleryView'
 import { AccessGate } from '@/components/features/gallery/AccessGate'
 import { GalleryPaywall } from '@/components/features/gallery/GalleryPaywall'
@@ -7,11 +9,12 @@ import type { GalleryTheme, Media, Project } from '@/types/supabase'
 
 interface GalleryPageProps {
   params: Promise<{ id: string }>
-  searchParams: { token?: string }
+  searchParams: Promise<{ token?: string }>
 }
 
-export default async function GalleryPage({ params, searchParams }: GalleryPageProps) {
-  const { id } = await params
+export default async function GalleryPage(props: GalleryPageProps) {
+  const searchParams = await props.searchParams;
+  const { id } = await props.params
   const token = typeof searchParams.token === 'string' ? searchParams.token : undefined
 
   const supabase = await createClient()
