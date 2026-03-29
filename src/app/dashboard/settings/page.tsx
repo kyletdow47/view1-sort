@@ -120,6 +120,7 @@ export default function SettingsPage() {
   const [currency, setCurrency] = useState<(typeof currencies)[number]>('USD')
   const [sensitivity, setSensitivity] = useState(72)
   const [autoSync, setAutoSync] = useState(true)
+  const [portalLoading, setPortalLoading] = useState(false)
 
   // Load profile + workspace on mount
   useEffect(() => {
@@ -185,6 +186,22 @@ export default function SettingsPage() {
     },
     [user, supabase],
   )
+
+  const handleManageSubscription = useCallback(async () => {
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/billing/portal', { method: 'POST' })
+      const data = await res.json() as { url?: string; error?: string }
+      if (!res.ok || !data.url) {
+        throw new Error(data.error ?? 'Could not open billing portal')
+      }
+      window.location.href = data.url
+    } catch (err) {
+      console.error('Billing portal error:', err)
+    } finally {
+      setPortalLoading(false)
+    }
+  }, [])
 
   const handleSave = useCallback(async () => {
     if (!user) return
@@ -495,8 +512,12 @@ export default function SettingsPage() {
               </ul>
 
               <div className="mt-6 space-y-2">
-                <button className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-2.5 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
-                  Manage Subscription
+                <button
+                  onClick={handleManageSubscription}
+                  disabled={portalLoading}
+                  className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-2.5 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90 disabled:opacity-60"
+                >
+                  {portalLoading ? 'Loading…' : 'Manage Subscription'}
                 </button>
                 <button className="w-full rounded-xl border border-outline-variant/30 py-2.5 text-sm font-medium text-on-surface-variant transition-colors hover:border-primary/30 hover:text-primary">
                   Switch to Annual (Save 20%)
