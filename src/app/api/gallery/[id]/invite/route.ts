@@ -123,6 +123,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     to: email.toLowerCase(),
     subject: emailTemplate.subject,
     html: emailTemplate.html,
+    template: 'gallery-invitation',
   })
 
   return NextResponse.json({

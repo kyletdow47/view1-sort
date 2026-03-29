@@ -129,11 +129,11 @@ async function handleCheckoutSessionCompleted(
         if (ownerEmail) {
           const displayName = (ownerProfile as { display_name: string | null } | null)?.display_name ?? 'Photographer'
           sendPaymentReceivedEmail(
-            ownerEmail, displayName, clientEmail, projectName, amountStr,
+            ownerEmail, displayName, clientEmail ?? 'Unknown', projectName, amountStr,
           ).catch((e) => console.error('Payment received email failed:', e))
         }
 
-        notifyPaymentReceived(ownerId, clientEmail, projectName, amountStr)
+        notifyPaymentReceived(ownerId, clientEmail ?? 'Unknown', projectName, amountStr)
           .catch((e) => console.error('Payment notification failed:', e))
       }
     }
