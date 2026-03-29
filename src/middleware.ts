@@ -1,21 +1,21 @@
-import { createServerClient } from '@supabase/ssr'
-import type { CookieOptions } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+
+const DEMO_BYPASS_KEY = 'view1-preview-2026'
 
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl
   let response = NextResponse.next({ request })
 
-  // Demo bypass — development only. Never active in production.
-  if (process.env.NODE_ENV === 'development') {
-    if (searchParams.get('demo') === 'true') {
-      response.cookies.set('demo_mode', 'true', { path: '/', maxAge: 60 * 60 * 24 })
-      return response
-    }
-    if (request.cookies.get('demo_mode')?.value === 'true') {
-      return response
-    }
+  // Demo bypass — allows browsing all pages without auth/onboarding.
+  // Activate with ?demo=view1-preview-2026
+  if (searchParams.get('demo') === DEMO_BYPASS_KEY) {
+    response.cookies.set('demo_mode', 'true', { path: '/', maxAge: 60 * 60 * 24 })
+    return response
+  }
+  if (request.cookies.get('demo_mode')?.value === 'true') {
+    return response
   }
 
   const supabase = createServerClient(
@@ -65,7 +65,7 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (profile && !(profile as { onboarded: boolean }).onboarded) {
+    if (profile && !profile.onboarded) {
       const onboardingUrl = request.nextUrl.clone()
       onboardingUrl.pathname = '/onboarding'
       return NextResponse.redirect(onboardingUrl)
