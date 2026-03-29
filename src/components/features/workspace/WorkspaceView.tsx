@@ -19,6 +19,7 @@ function mediaToItem(m: Media): MediaItem {
     id: m.id,
     filename: m.filename,
     thumbnail_url: m.thumbnail_url,
+    cloudflare_image_id: m.cloudflare_image_id,
     ai_category: m.ai_category,
     ai_confidence: m.ai_confidence,
     orientation: m.orientation,

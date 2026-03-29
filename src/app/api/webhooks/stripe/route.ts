@@ -3,14 +3,12 @@ import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
 import type { PlanTier } from '@/lib/stripe/plans'
-// Dynamic imports to avoid build-time issues in API routes
-async function loadEmailUtils() {
-  const [{ sendEmail }, templates] = await Promise.all([
-    import('@/lib/email/send'),
-    import('@/lib/email/templates'),
-  ])
-  return { sendEmail, ...templates }
-}
+import {
+  sendPaymentConfirmationEmail,
+  sendPaymentReceivedEmail,
+  sendPaymentFailedEmail,
+} from '@/lib/email'
+import { notifyPaymentReceived } from '@/lib/notifications'
 
 function getServiceSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -89,51 +87,54 @@ async function handleCheckoutSessionCompleted(
         .eq('email', clientEmail.toLowerCase())
     }
 
-    // Send payment confirmation email to client
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://photo-sorter-theta.vercel.app'
+    // Send payment emails + notification (non-blocking)
+    const amountStr = `$${((session.amount_total ?? 0) / 100).toFixed(2)}`
+
+    // Fetch project info for email context
     const { data: project } = await supabase
       .from('projects')
       .select('name, workspace_id')
       .eq('id', projectId)
       .single()
 
-    if (clientEmail && project) {
-      const { sendEmail, paymentConfirmationEmail, paymentReceivedEmail } = await loadEmailUtils()
-      const amountFormatted = ((session.amount_total ?? 0) / 100).toFixed(2)
-      const confirmEmail = paymentConfirmationEmail(
-        project.name,
-        `$${amountFormatted}`,
-        session.currency ?? 'usd',
-        `${appUrl}/gallery/${projectId}?paid=true`
-      )
-      sendEmail({ to: clientEmail, subject: confirmEmail.subject, html: confirmEmail.html }).catch(() => {})
+    const projectName = (project as { name: string } | null)?.name ?? 'Gallery'
+    const galleryUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/gallery/${projectId}`
 
-      // Send payment received email to photographer
-      if (project.workspace_id) {
-        const { data: workspace } = await supabase
-          .from('workspaces')
-          .select('owner_id')
-          .eq('id', project.workspace_id)
+    // Send confirmation to client
+    if (clientEmail) {
+      sendPaymentConfirmationEmail(
+        clientEmail, clientEmail, projectName, amountStr, galleryUrl,
+      ).catch((e) => console.error('Payment confirmation email failed:', e))
+    }
+
+    // Send notification + email to photographer
+    if (project) {
+      const { data: workspace } = await supabase
+        .from('workspaces')
+        .select('owner_id')
+        .eq('id', (project as { workspace_id: string }).workspace_id)
+        .single()
+
+      if (workspace) {
+        const ownerId = (workspace as { owner_id: string }).owner_id
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', ownerId)
           .single()
 
-        if (workspace) {
-          const { data: photographer } = await supabase
-            .from('profiles')
-            .select('email, display_name')
-            .eq('id', workspace.owner_id)
-            .single()
+        const { data: ownerAuth } = await supabase.auth.admin.getUserById(ownerId)
+        const ownerEmail = ownerAuth?.user?.email
 
-          if (photographer?.email) {
-            const receivedEmail = paymentReceivedEmail(
-              photographer.display_name ?? 'Photographer',
-              clientEmail,
-              project.name,
-              `$${amountFormatted}`,
-              `${appUrl}/dashboard/billing`
-            )
-            sendEmail({ to: photographer.email, subject: receivedEmail.subject, html: receivedEmail.html }).catch(() => {})
-          }
+        if (ownerEmail) {
+          const displayName = (ownerProfile as { display_name: string | null } | null)?.display_name ?? 'Photographer'
+          sendPaymentReceivedEmail(
+            ownerEmail, displayName, clientEmail, projectName, amountStr,
+          ).catch((e) => console.error('Payment received email failed:', e))
         }
+
+        notifyPaymentReceived(ownerId, clientEmail, projectName, amountStr)
+          .catch((e) => console.error('Payment notification failed:', e))
       }
     }
   }
@@ -178,6 +179,16 @@ async function handleInvoicePaymentFailed(
     .from('profiles')
     .update({ subscription_status: 'past_due' })
     .eq('stripe_subscription_id', invoice.subscription as string)
+
+  // Send payment failed email to customer
+  const customerEmail = invoice.customer_email
+  if (customerEmail) {
+    const amountStr = `$${((invoice.amount_due ?? 0) / 100).toFixed(2)}`
+    const retryUrl = invoice.hosted_invoice_url ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/dashboard/billing`
+    sendPaymentFailedEmail(
+      customerEmail, customerEmail, 'Subscription', amountStr, retryUrl,
+    ).catch((e) => console.error('Payment failed email error:', e))
+  }
 }
 
 async function handleAccountUpdated(

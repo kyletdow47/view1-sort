@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -27,109 +27,29 @@ import {
   Image as ImageIcon,
   Menu,
   X,
+  LogOut,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/hooks/useAuth'
+import { useProfile } from '@/hooks/useProfile'
+import { useNotifications } from '@/hooks/useNotifications'
 
 /* ------------------------------------------------------------------ */
-/*  Notification types & mock data                                     */
+/*  Notification types & helpers                                       */
 /* ------------------------------------------------------------------ */
 
-interface Notification {
-  id: string
-  type: 'booking' | 'payment' | 'gallery_viewed' | 'client_accepted' | 'upload_complete'
-  title: string
-  description: string
-  timestamp: string
-  read: boolean
+import type { Notification as DBNotification } from '@/types/supabase'
+
+const NOTIFICATION_TYPE_CONFIG: Record<string, { icon: React.ElementType; bg: string }> = {
+  booking: { icon: CalendarDays, bg: 'bg-[#ffb780]/20 text-[#ffb780]' },
+  payment: { icon: DollarSign, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
+  gallery_viewed: { icon: Eye, bg: 'bg-[#ffb4a5]/20 text-[#ffb4a5]' },
+  client_accepted: { icon: UserCheck, bg: 'bg-[#d9c2b4]/20 text-[#d9c2b4]' },
+  upload_complete: { icon: Cloud, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
 }
 
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: '1',
-    type: 'booking',
-    title: 'New Booking Request',
-    description: 'Sarah Johnson requested a wedding shoot for July 18.',
-    timestamp: '5 min ago',
-    read: false,
-  },
-  {
-    id: '2',
-    type: 'payment',
-    title: 'Payment Received',
-    description: '$2,400 deposited for the Martinez engagement session.',
-    timestamp: '1 hr ago',
-    read: false,
-  },
-  {
-    id: '3',
-    type: 'gallery_viewed',
-    title: 'Gallery Viewed',
-    description: 'Emily Chen viewed the "Lakeside Wedding" gallery.',
-    timestamp: '3 hrs ago',
-    read: false,
-  },
-  {
-    id: '4',
-    type: 'client_accepted',
-    title: 'Client Accepted Invite',
-    description: 'David Park accepted your invitation to review proofs.',
-    timestamp: '6 hrs ago',
-    read: true,
-  },
-  {
-    id: '5',
-    type: 'upload_complete',
-    title: 'Upload Complete',
-    description: '428 photos uploaded to "Johnson Wedding" project.',
-    timestamp: '1 day ago',
-    read: true,
-  },
-]
-
-/* ------------------------------------------------------------------ */
-/*  Supabase helpers                                                   */
-/* ------------------------------------------------------------------ */
-
-function mapNotificationType(
-  dbType: string
-): Notification['type'] {
-  const mapping: Record<string, Notification['type']> = {
-    payment_received: 'payment',
-    gallery_invite_sent: 'gallery_viewed',
-    project_published: 'upload_complete',
-    upload_complete: 'upload_complete',
-    gallery_viewed: 'gallery_viewed',
-    booking_created: 'booking',
-    client_accepted: 'client_accepted',
-  }
-  return mapping[dbType] ?? 'booking'
-}
-
-function formatRelativeTime(iso: string): string {
-  const now = Date.now()
-  const then = new Date(iso).getTime()
-  const diffSeconds = Math.floor((now - then) / 1000)
-
-  if (diffSeconds < 60) return 'just now'
-  const diffMinutes = Math.floor(diffSeconds / 60)
-  if (diffMinutes < 60) return `${diffMinutes} min ago`
-  const diffHours = Math.floor(diffMinutes / 60)
-  if (diffHours < 24) return `${diffHours} hr ago`
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-  const diffMonths = Math.floor(diffDays / 30)
-  return `${diffMonths} mo ago`
-}
-
-function NotificationIcon({ type }: { type: Notification['type'] }) {
-  const config: Record<Notification['type'], { icon: React.ElementType; bg: string }> = {
-    booking: { icon: CalendarDays, bg: 'bg-[#ffb780]/20 text-[#ffb780]' },
-    payment: { icon: DollarSign, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
-    gallery_viewed: { icon: Eye, bg: 'bg-[#ffb4a5]/20 text-[#ffb4a5]' },
-    client_accepted: { icon: UserCheck, bg: 'bg-[#d9c2b4]/20 text-[#d9c2b4]' },
-    upload_complete: { icon: Cloud, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
-  }
-  const { icon: Icon, bg } = config[type]
+function NotificationIcon({ type }: { type: string }) {
+  const config = NOTIFICATION_TYPE_CONFIG[type] ?? NOTIFICATION_TYPE_CONFIG.booking
+  const { icon: Icon, bg } = config
   return (
     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${bg}`}>
       <Icon size={16} />
@@ -137,65 +57,36 @@ function NotificationIcon({ type }: { type: Notification['type'] }) {
   )
 }
 
+function timeAgo(dateStr: string): string {
+  const now = Date.now()
+  const then = new Date(dateStr).getTime()
+  const diffMs = now - then
+  const minutes = Math.floor(diffMs / 60000)
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes} min ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} hr${hours > 1 ? 's' : ''} ago`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`
+  return `${Math.floor(days / 30)} mo ago`
+}
+
 function NotificationDropdown({
   open,
   onClose,
-  onUnreadCountChange,
+  notifications,
+  unreadCount,
+  onMarkAllRead,
+  onMarkRead,
 }: {
   open: boolean
   onClose: () => void
-  onUnreadCountChange?: (count: number) => void
+  notifications: DBNotification[]
+  unreadCount: number
+  onMarkAllRead: () => void
+  onMarkRead: (id: string) => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
-  const [loaded, setLoaded] = useState(false)
-
-  // Fetch real notifications from Supabase
-  useEffect(() => {
-    if (loaded) return
-    const supabase = createClient()
-    supabase
-      .from('notifications')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(10)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          const mapped = data.map((n: Record<string, unknown>) => ({
-            id: String(n.id),
-            type: mapNotificationType(String(n.type)),
-            title: String(n.title),
-            description: String(n.body ?? ''),
-            timestamp: formatRelativeTime(String(n.created_at)),
-            read: Boolean(n.read),
-          }))
-          setNotifications(mapped)
-          onUnreadCountChange?.(mapped.filter((n) => !n.read).length)
-        } else {
-          // Keep mock data, report mock unread count
-          onUnreadCountChange?.(MOCK_NOTIFICATIONS.filter((n) => !n.read).length)
-        }
-        setLoaded(true)
-      })
-  }, [loaded, onUnreadCountChange])
-
-  // Mark all notifications as read via Supabase
-  const handleMarkAllRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-    onUnreadCountChange?.(0)
-
-    const supabase = createClient()
-    const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id)
-    if (unreadIds.length > 0) {
-      supabase
-        .from('notifications')
-        .update({ read: true })
-        .in('id', unreadIds)
-        .then(() => {
-          // silently succeed — UI already updated optimistically
-        })
-    }
-  }, [notifications, onUnreadCountChange])
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -210,8 +101,6 @@ function NotificationDropdown({
   }, [open, onClose])
 
   if (!open) return null
-
-  const unreadCount = notifications.filter((n) => !n.read).length
 
   return (
     <div
@@ -229,7 +118,7 @@ function NotificationDropdown({
           )}
         </div>
         <button
-          onClick={handleMarkAllRead}
+          onClick={onMarkAllRead}
           className="text-[11px] font-medium text-[#ffb780] hover:text-[#ffb780]/80 transition-colors"
         >
           Mark all read
@@ -238,28 +127,35 @@ function NotificationDropdown({
 
       {/* Notification list */}
       <div className="max-h-[380px] overflow-y-auto">
-        {notifications.map((notification) => (
-          <div
-            key={notification.id}
-            className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-[#252322]/60 cursor-pointer ${
-              !notification.read ? 'border-l-2 border-l-[#ffb780]' : 'border-l-2 border-l-transparent'
-            }`}
-          >
-            <NotificationIcon type={notification.type} />
-            <div className="min-w-0 flex-1">
-              <p className={`text-sm font-medium leading-snug ${!notification.read ? 'text-[#e7e1df]' : 'text-[#e7e1df]/60'}`}>
-                {notification.title}
-              </p>
-              <p className="mt-0.5 text-xs text-[#a18d80] leading-relaxed line-clamp-2">
-                {notification.description}
-              </p>
-              <p className="mt-1 text-[10px] text-[#a18d80]/60">{notification.timestamp}</p>
-            </div>
-            {!notification.read && (
-              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#ffb780]" />
-            )}
+        {notifications.length === 0 ? (
+          <div className="px-4 py-8 text-center text-sm text-[#a18d80]">
+            No notifications yet
           </div>
-        ))}
+        ) : (
+          notifications.map((notification) => (
+            <div
+              key={notification.id}
+              onClick={() => !notification.read && onMarkRead(notification.id)}
+              className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-[#252322]/60 cursor-pointer ${
+                !notification.read ? 'border-l-2 border-l-[#ffb780]' : 'border-l-2 border-l-transparent'
+              }`}
+            >
+              <NotificationIcon type={notification.type} />
+              <div className="min-w-0 flex-1">
+                <p className={`text-sm font-medium leading-snug ${!notification.read ? 'text-[#e7e1df]' : 'text-[#e7e1df]/60'}`}>
+                  {notification.title}
+                </p>
+                <p className="mt-0.5 text-xs text-[#a18d80] leading-relaxed line-clamp-2">
+                  {notification.body}
+                </p>
+                <p className="mt-1 text-[10px] text-[#a18d80]/60">{timeAgo(notification.created_at)}</p>
+              </div>
+              {!notification.read && (
+                <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#ffb780]" />
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       {/* Footer */}
@@ -356,6 +252,10 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { user, signOut } = useAuth()
+  const { profile } = useProfile()
+  const { notifications, unreadCount, markAllRead, markRead } = useNotifications()
+
   const inProject = isInsideProject(pathname)
   const inSorting = isSortingView(pathname)
   const isSchedulingActive = schedulingItems.some((item) => isActive(pathname, item.href))
@@ -368,6 +268,21 @@ export default function DashboardLayout({
   useEffect(() => {
     setMobileSidebarOpen(false)
   }, [pathname])
+
+  const userInitials = useMemo(() => {
+    if (profile?.display_name) {
+      return profile.display_name
+        .split(' ')
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    }
+    if (user?.email) {
+      return user.email.slice(0, 2).toUpperCase()
+    }
+    return '?'
+  }, [profile, user])
 
   return (
     <div className="flex min-h-screen bg-background text-on-surface">
@@ -491,8 +406,32 @@ export default function DashboardLayout({
           </div>
         </nav>
 
-        {/* Bottom section: Settings + New Shoot */}
+        {/* Bottom section: User info + Settings + New Shoot */}
         <div className="px-2 pb-5 space-y-2">
+          {/* User profile row */}
+          {(profile || user) && (
+            <div className="flex items-center gap-3 px-4 py-2 mb-1">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
+                {userInitials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-[#e7e1df] truncate">
+                  {profile?.display_name ?? user?.email ?? ''}
+                </p>
+                <p className="text-[10px] text-[#a18d80] truncate">
+                  {profile?.tier ? `${profile.tier.charAt(0).toUpperCase()}${profile.tier.slice(1)} plan` : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="shrink-0 rounded-md p-1.5 text-[#a18d80] hover:bg-[#252322] hover:text-[#e7e1df] transition-colors"
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <LogOut size={14} />
+              </button>
+            </div>
+          )}
           <Link
             href="/dashboard/settings"
             className={`flex items-center gap-3 px-4 py-3 font-body font-medium transition-colors duration-150 ${
@@ -592,20 +531,23 @@ export default function DashboardLayout({
                     aria-label="Notifications"
                   >
                     <Bell size={18} />
-                    {notificationUnreadCount > 0 && (
+                    {unreadCount > 0 && (
                       <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
-                        {notificationUnreadCount}
+                        {unreadCount}
                       </span>
                     )}
                   </button>
                   <NotificationDropdown
                     open={notificationsOpen}
                     onClose={() => setNotificationsOpen(false)}
-                    onUnreadCountChange={setNotificationUnreadCount}
+                    notifications={notifications}
+                    unreadCount={unreadCount}
+                    onMarkAllRead={markAllRead}
+                    onMarkRead={markRead}
                   />
                 </div>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
-                  KD
+                  {userInitials}
                 </div>
               </div>
             </>
@@ -670,16 +612,19 @@ export default function DashboardLayout({
                     aria-label="Notifications"
                   >
                     <Bell size={18} />
-                    {notificationUnreadCount > 0 && (
+                    {unreadCount > 0 && (
                       <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
-                        {notificationUnreadCount}
+                        {unreadCount}
                       </span>
                     )}
                   </button>
                   <NotificationDropdown
                     open={notificationsOpen}
                     onClose={() => setNotificationsOpen(false)}
-                    onUnreadCountChange={setNotificationUnreadCount}
+                    notifications={notifications}
+                    unreadCount={unreadCount}
+                    onMarkAllRead={markAllRead}
+                    onMarkRead={markRead}
                   />
                 </div>
                 <button
@@ -689,7 +634,7 @@ export default function DashboardLayout({
                   <Settings size={18} />
                 </button>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
-                  KD
+                  {userInitials}
                 </div>
               </div>
             </>
@@ -742,16 +687,19 @@ export default function DashboardLayout({
                     aria-label="Notifications"
                   >
                     <Bell size={18} />
-                    {notificationUnreadCount > 0 && (
+                    {unreadCount > 0 && (
                       <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
-                        {notificationUnreadCount}
+                        {unreadCount}
                       </span>
                     )}
                   </button>
                   <NotificationDropdown
                     open={notificationsOpen}
                     onClose={() => setNotificationsOpen(false)}
-                    onUnreadCountChange={setNotificationUnreadCount}
+                    notifications={notifications}
+                    unreadCount={unreadCount}
+                    onMarkAllRead={markAllRead}
+                    onMarkRead={markRead}
                   />
                 </div>
                 <button
@@ -765,7 +713,7 @@ export default function DashboardLayout({
                   <span className="hidden sm:inline">Upload</span>
                 </button>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
-                  KD
+                  {userInitials}
                 </div>
               </div>
             </>

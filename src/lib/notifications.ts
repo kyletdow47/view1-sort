@@ -1,73 +1,111 @@
-import { createClient } from '@/lib/supabase/server'
+/**
+ * Server-side notification creation service.
+ * Inserts rows into the notifications table for key events.
+ */
 
-type NotificationType =
-  | 'payment_received'
-  | 'gallery_invite_sent'
-  | 'project_published'
-  | 'upload_complete'
-  | 'gallery_viewed'
-  | 'booking_created'
-  | 'client_accepted'
+import { createClient } from '@supabase/supabase-js'
+
+function getServiceSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    throw new Error('Missing Supabase service role credentials')
+  }
+  return createClient(url, key)
+}
 
 interface CreateNotificationParams {
   userId: string
-  type: NotificationType
+  type: string
   title: string
   body: string
-  metadata?: Record<string, string>
+  metadata?: Record<string, unknown>
 }
 
-export async function createNotification({
-  userId,
-  type,
-  title,
-  body,
-  metadata,
-}: CreateNotificationParams) {
-  try {
-    const supabase = await createClient()
-
-    const { error } = await supabase.from('notifications').insert({
-      user_id: userId,
-      type,
-      title,
-      body,
-      metadata: metadata ?? {},
-      read: false,
-    })
-
-    if (error) {
-      console.error('[notifications] Insert failed:', error)
-    }
-  } catch (err) {
-    console.error('[notifications] Error:', err)
-  }
-}
-
-export async function getUnreadNotifications(userId: string, limit = 10) {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('notifications')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(limit)
-
+export async function createNotification(params: CreateNotificationParams): Promise<void> {
+  const supabase = getServiceSupabase()
+  const { error } = await supabase.from('notifications').insert({
+    user_id: params.userId,
+    type: params.type,
+    title: params.title,
+    body: params.body,
+    read: false,
+    metadata: params.metadata ?? null,
+  })
   if (error) {
-    console.error('[notifications] Fetch failed:', error)
-    return []
+    console.error('Failed to create notification:', error)
   }
-
-  return data ?? []
 }
 
-export async function markAllRead(userId: string) {
-  const supabase = await createClient()
+/* ── Convenience functions for specific event types ── */
 
-  await supabase
-    .from('notifications')
-    .update({ read: true })
-    .eq('user_id', userId)
-    .eq('read', false)
+export async function notifyPaymentReceived(
+  photographerId: string,
+  clientEmail: string,
+  projectName: string,
+  amount: string,
+): Promise<void> {
+  await createNotification({
+    userId: photographerId,
+    type: 'payment',
+    title: 'Payment Received',
+    body: `${amount} received from ${clientEmail} for "${projectName}".`,
+    metadata: { clientEmail, projectName, amount },
+  })
+}
+
+export async function notifyGalleryViewed(
+  photographerId: string,
+  viewerEmail: string,
+  projectName: string,
+): Promise<void> {
+  await createNotification({
+    userId: photographerId,
+    type: 'gallery_viewed',
+    title: 'Gallery Viewed',
+    body: `${viewerEmail} viewed the "${projectName}" gallery.`,
+    metadata: { viewerEmail, projectName },
+  })
+}
+
+export async function notifyClientAccepted(
+  photographerId: string,
+  clientEmail: string,
+  projectName: string,
+): Promise<void> {
+  await createNotification({
+    userId: photographerId,
+    type: 'client_accepted',
+    title: 'Client Accepted Invite',
+    body: `${clientEmail} accepted your invitation to "${projectName}".`,
+    metadata: { clientEmail, projectName },
+  })
+}
+
+export async function notifyUploadComplete(
+  userId: string,
+  projectName: string,
+  photoCount: number,
+): Promise<void> {
+  await createNotification({
+    userId,
+    type: 'upload_complete',
+    title: 'Upload Complete',
+    body: `${photoCount} photos uploaded to "${projectName}".`,
+    metadata: { projectName, photoCount },
+  })
+}
+
+export async function notifyBookingRequest(
+  photographerId: string,
+  clientName: string,
+  details: string,
+): Promise<void> {
+  await createNotification({
+    userId: photographerId,
+    type: 'booking',
+    title: 'New Booking Request',
+    body: `${clientName} ${details}`,
+    metadata: { clientName },
+  })
 }

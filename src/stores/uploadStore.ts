@@ -104,7 +104,7 @@ export const useUploadStore = create<UploadState>((set, get) => {
 
   const insertMediaRow = async (task: UploadTask): Promise<void> => {
     const supabase = createClient()
-    const { error } = await supabase.from('media').insert({
+    const { data, error } = await supabase.from('media').insert({
       project_id: task.projectId,
       storage_path: task.storagePath,
       file_name: task.file.name,
@@ -112,9 +112,29 @@ export const useUploadStore = create<UploadState>((set, get) => {
       mime_type: task.mimeType,
       file_hash: task.fileHash,
       status: 'uploaded',
-    })
+    }).select('id').single()
     if (error) {
       console.error('Failed to insert media row:', error)
+      return
+    }
+
+    // Trigger Cloudflare Images processing (fire-and-forget)
+    if (data?.id) {
+      processWithCloudflare(data.id).catch((err) => {
+        console.error('Cloudflare processing failed (non-fatal):', err)
+      })
+    }
+  }
+
+  const processWithCloudflare = async (mediaId: string): Promise<void> => {
+    const response = await fetch('/api/media/process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mediaId }),
+    })
+    if (!response.ok) {
+      const body = await response.text()
+      throw new Error(`Cloudflare process API error: ${body}`)
     }
   }
 

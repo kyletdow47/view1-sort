@@ -4,6 +4,7 @@ import { useCallback, useEffect } from 'react'
 import { clsx } from 'clsx'
 import { ChevronLeft, ChevronRight, ImageOff, X } from 'lucide-react'
 import type { MediaItem } from '@/types/media'
+import { getImageUrl } from '@/lib/cloudflare'
 
 export interface LightboxProps {
   media: MediaItem[]
@@ -77,12 +78,14 @@ export function Lightbox({ media, currentIndex, onClose, onNavigate }: LightboxP
           <ChevronLeft className="w-6 h-6" />
         </button>
 
-        {/* Image */}
+        {/* Image — use full Cloudflare URL if available, fall back to thumbnail */}
         <div className="max-w-full max-h-full flex items-center justify-center">
-          {current.thumbnail_url ? (
+          {(current.cloudflare_image_id || current.thumbnail_url) ? (
             <img
               key={current.id}
-              src={current.thumbnail_url}
+              src={current.cloudflare_image_id
+                ? getImageUrl(current.cloudflare_image_id, 'public')
+                : current.thumbnail_url!}
               alt={current.filename}
               className="max-w-full max-h-[calc(100vh-10rem)] object-contain rounded-lg shadow-2xl"
               draggable={false}
