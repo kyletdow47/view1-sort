@@ -205,44 +205,45 @@ const MARQUEE_ITEMS: { icon: React.ElementType; label: string }[] = [
    Feature tabs
 ───────────────────────────────────────────── */
 const FEATURE_TABS = [
-  { id: 'ai', label: 'AI Sort', icon: Brain },
-  { id: 'gallery', label: 'Gallery & Delivery', icon: Image },
-  { id: 'business', label: 'Business', icon: Wallet },
-  { id: 'mobile', label: 'Mobile & Analytics', icon: Smartphone },
+  { id: 'ai-story', label: 'AI Story Sorting', icon: Brain },
+  { id: 'culling', label: 'Smart Culling', icon: Scissors },
+  { id: 'vibe', label: 'Vibe Chat Presets', icon: Wand2 },
+  { id: 'lightroom', label: 'Lightroom Roundtrip', icon: RefreshCw },
 ]
 
 const FEATURES_BY_TAB: Record<string, { icon: React.ElementType; title: string; desc: string }[]> = {
-  ai: [
-    { icon: Brain, title: 'AI Story Sorting', desc: 'Sorts by narrative arc and emotional weight. Understands the context of your shoot, not just pixel quality.' },
-    { icon: Scissors, title: 'Smart Culling', desc: 'Auto-flags blurry, duplicate, closed-eye, and blown exposure shots before sorting begins. You review, you decide.' },
-    { icon: Wand2, title: 'Vibe Chat Presets', desc: 'Describe your aesthetic in plain language. The AI builds a reusable sorting preset from your conversation.' },
-    { icon: RefreshCw, title: 'Lightroom Roundtrip', desc: 'Edit in Lightroom, reopen View1, and edited files auto-sync back. Original always preserved and accessible.' },
+  'ai-story': [
+    { icon: Brain, title: 'Narrative Arc Sorting', desc: 'Sorts by emotional weight and story flow — ceremony to reception, not just sharpness scores.' },
+    { icon: Layers, title: 'Context-Aware AI', desc: 'You describe the shoot before upload. The AI knows what story it\'s looking for before it sees a single photo.' },
     { icon: Cpu, title: 'AI Style Profile', desc: 'Learns your personal aesthetic across projects. After 5 shoots, it starts sorting like you — not like everyone.' },
+    { icon: LayoutGrid, title: 'Category Folders', desc: 'Photos land in named narrative folders — not a flat dump. Every category label is editable after sort.' },
+    { icon: FolderOpen, title: 'Batch Processing', desc: 'Sort 1,200-photo wedding shoots in minutes. No manual dragging, no folders named "maybe".' },
   ],
-  gallery: [
-    { icon: LinkIcon, title: 'Magic Link Delivery', desc: 'Clients view galleries via email link — no account required. Beautiful, branded, instant.' },
-    { icon: ClipboardList, title: '3-Stage Delivery', desc: 'Preselection → client selection → finals. A structured flow that keeps both parties perfectly in sync.' },
-    { icon: MessageSquare, title: 'Photo Comments', desc: 'Clients and photographers leave threaded comments on individual photos, with revision request categories.' },
-    { icon: Palette, title: 'Watermark Studio', desc: 'Upload your logo, configure placement, size, and opacity. Applied on delivery — never burns into stored files.' },
-    { icon: Download, title: 'ZIP Export by Category', desc: 'Client downloads are organized by AI category folders — not a flat dump of 1,400 JPEGs.' },
+  culling: [
+    { icon: Scissors, title: 'Blur & Focus Detection', desc: 'Instantly flags out-of-focus and motion-blurred images before the sort even begins.' },
+    { icon: Eye, title: 'Closed Eye Detection', desc: 'Automatically catches blinked shots across all subjects in group photos.' },
+    { icon: RefreshCw, title: 'Duplicate Removal', desc: 'Finds near-identical frames and keeps only the best from each burst sequence.' },
+    { icon: Camera, title: 'Exposure Culling', desc: 'Removes blown highlights and crushed blacks automatically — configurable per shoot.' },
+    { icon: CheckCircle, title: 'Photographer Review', desc: 'Every cull suggestion is reviewable. You approve, override, or dismiss. Always in control.' },
   ],
-  business: [
-    { icon: FileText, title: 'Contract + Invoice', desc: 'Send contract, collect signature, auto-generate a Stripe invoice — all in one thread per client.' },
-    { icon: Package, title: 'Package Builder', desc: 'Create reusable packages with pricing, photo counts, extras, and licensing. Auto-populates invoices.' },
-    { icon: ClipboardList, title: 'Booking Forms', desc: 'Tailored forms for every niche. Submissions create client profiles and draft projects automatically.' },
-    { icon: Bell, title: 'Auto Email + SMS', desc: 'Trigger emails and texts at every milestone — signed, paid, gallery ready, finals delivered.' },
-    { icon: BarChart3, title: 'Business Analytics', desc: 'Revenue by period, client acquisition, package performance, repeat client rate — all from real Stripe data.' },
+  vibe: [
+    { icon: Wand2, title: 'Natural Language Presets', desc: 'Describe your aesthetic in plain English. The AI turns your conversation into a reusable sorting preset.' },
+    { icon: MessageSquare, title: 'Niche-Aware Questions', desc: 'The AI asks the right questions for your niche — real estate priorities differ from wedding priorities.' },
+    { icon: LayoutGrid, title: '6 Built-In Presets', desc: 'Wedding, Real Estate, Commercial, Fashion, Travel, and Events — ready to apply in one click.' },
+    { icon: Zap, title: 'Inline Prompt', desc: 'Refine a preset mid-project without leaving the sort view. One click to re-sort with the update.' },
+    { icon: FolderOpen, title: 'Preset Library', desc: 'All your custom presets saved and reusable across every future project.' },
   ],
-  mobile: [
-    { icon: Smartphone, title: 'On-Set Mobile Companion', desc: 'Shot list, notes, client info on set. Auto-syncs everything to the project when you reopen after the shoot.' },
-    { icon: Bell, title: 'Client Push Notifications', desc: 'PWA push notifications for clients when gallery is ready, selection is needed, or finals are delivered.' },
-    { icon: CalendarDays, title: 'Smart Calendar', desc: 'Drag-to-move events, Google + Apple sync. Shoots auto-created from booking form submissions.' },
-    { icon: TrendingUp, title: 'Revenue Dashboard', desc: 'Track earnings, active projects, and client pipeline from anywhere — fully mobile-optimized.' },
+  lightroom: [
+    { icon: RefreshCw, title: 'Two-Way Sync', desc: 'Export sorted catalog to Lightroom. Edit. Reopen View1. Edited files auto-sync back into your project.' },
+    { icon: Shield, title: 'Original Preserved', desc: 'Your original files are never modified. View1 always keeps the source safe.' },
+    { icon: Download, title: 'XMP Sidecar Support', desc: 'Lightroom edits, ratings, and flags travel back via XMP without re-importing anything.' },
+    { icon: FolderOpen, title: 'Smart Export', desc: 'Export only the AI-selected photos to Lightroom — no need to sort 1,400 images manually first.' },
+    { icon: Cpu, title: 'Edit Aware Sorting', desc: 'After roundtrip, View1 knows which photos were edited and updates delivery stage automatically.' },
   ],
 }
 
 function FeatureTabs() {
-  const [active, setActive] = useState('ai')
+  const [active, setActive] = useState('ai-story')
   const features = FEATURES_BY_TAB[active] ?? []
 
   return (
@@ -491,34 +492,16 @@ export function LandingPage() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-400">
-            View1 Sort doesn&apos;t just cull blurry photos. It understands the <em className="text-zinc-300 not-italic font-medium">narrative arc</em> of your shoot — sorting by story and emotion, not just sharpness scores. Then delivers, invoices, and runs your entire photography business.
+            Professional photographers sort faster, deliver beautifully, and run their entire business — without switching apps. Powered by AI that thinks like a photographer, not a filing cabinet.
           </p>
 
-          <div className="mt-10 flex flex-col items-center gap-4">
-            <WaitlistForm size="default" />
-            <a
-              href="https://photo-sorter-theta.vercel.app/dashboard"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-300"
-            >
-              <Monitor size={14} />
-              Already have access? Open the app
-              <ArrowRight size={13} />
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <a href="#waitlist" className="rounded-xl bg-indigo-500 px-7 py-3.5 text-base font-semibold text-white transition-all hover:bg-indigo-400 shadow-lg shadow-indigo-500/25">
+              Get Early Access
             </a>
-          </div>
-
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm text-zinc-500">
-            {[
-              { n: '40%', label: 'Less time sorting' },
-              { n: '3×', label: 'Faster delivery' },
-              { n: '100%', label: 'Client workflow covered' },
-            ].map(s => (
-              <div key={s.label} className="flex items-center gap-2">
-                <span className="text-xl font-bold text-zinc-100">{s.n}</span>
-                <span>{s.label}</span>
-              </div>
-            ))}
+            <a href="#how-it-works" className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/60 px-7 py-3.5 text-base font-semibold text-zinc-200 transition-all hover:border-zinc-600 hover:bg-zinc-800">
+              See How It Works <ArrowRight size={15} />
+            </a>
           </div>
 
           <div className="relative mt-16">
@@ -551,16 +534,16 @@ export function LandingPage() {
           <div className="text-center mb-16">
             <SectionLabel>The Problem</SectionLabel>
             <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-              You became a photographer to shoot,<br />not to manage files.
+              You shoot photography, not file folders,<br />not to manage files.
             </h2>
             <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">After every shoot, the real work begins — and it takes forever.</p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
-              { icon: Clock, title: '6–12 hours', sub: 'Average time spent culling and sorting a single wedding shoot', color: 'text-red-400', border: 'border-red-500/20', bg: 'bg-red-500/5' },
-              { icon: Mail, title: '20+ emails', sub: 'Back-and-forth with clients before finals are delivered', color: 'text-orange-400', border: 'border-orange-500/20', bg: 'bg-orange-500/5' },
-              { icon: Package, title: '4 tools', sub: 'Average number of apps to run one photography project end-to-end', color: 'text-amber-400', border: 'border-amber-500/20', bg: 'bg-amber-500/5' },
+              { icon: Clock, title: '4–12 mins', sub: 'Average time AI needs to sort and cull an entire wedding shoot', color: 'text-red-400', border: 'border-red-500/20', bg: 'bg-red-500/5' },
+              { icon: Mail, title: '25+ credits', sub: 'Saved per project by eliminating manual folder management and email back-and-forth', color: 'text-orange-400', border: 'border-orange-500/20', bg: 'bg-orange-500/5' },
+              { icon: Package, title: '6 tools', sub: 'Replaced by one platform — sort, deliver, contract, invoice, analytics, and bookings', color: 'text-amber-400', border: 'border-amber-500/20', bg: 'bg-amber-500/5' },
             ].map(p => (
               <div key={p.title} className={`rounded-2xl border p-6 ${p.border} ${p.bg}`}>
                 <p.icon size={24} className={p.color} />
@@ -646,8 +629,9 @@ export function LandingPage() {
           <div className="text-center mb-16">
             <SectionLabel>How It Works</SectionLabel>
             <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-              From memory card to paid invoice<br />in one platform.
+              Sort by step. Tuned to your needs.
             </h2>
+            <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">A structured workflow from upload to delivery — powered by AI at every stage.</p>
           </div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -710,7 +694,7 @@ export function LandingPage() {
             <div>
               <SectionLabel><Wand2 size={12} /> Vibe Preset Builder</SectionLabel>
               <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-                Build your AI preset<br />by just describing it.
+                Build your AI Moment<br />by just a simple text.
               </h2>
               <p className="mt-4 text-zinc-400 leading-relaxed">
                 Chat with the AI to build a sorting preset that matches your exact aesthetic. It asks about your niche, priorities, what mood you&apos;re going for, and what you always reject. The result? A personal preset that sorts like <em className="text-zinc-200 not-italic font-medium">you</em>.
@@ -758,7 +742,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <SectionLabel><Image size={12} /> Gallery & Delivery</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">Three stages. Zero confusion.</h2>
+            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">From Memory Card to pixel-perfect<br />gallery workflow.</h2>
             <p className="mt-4 text-zinc-400 max-w-xl mx-auto">A structured delivery flow that keeps photographer and client perfectly in sync — from first look to final download.</p>
           </div>
 
@@ -837,7 +821,7 @@ export function LandingPage() {
           <div className="text-center mb-16">
             <SectionLabel><Users size={12} /> Client Experience</SectionLabel>
             <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-              Your clients get<br />a beautiful home too.
+              Your clients see magic.<br />You see efficiency.
             </h2>
             <p className="mt-4 text-zinc-400 max-w-xl mx-auto">
               Send a magic link and your client is viewing their gallery in seconds. No download, no account, no friction.
@@ -960,7 +944,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-5xl">
           <div className="text-center mb-16">
             <SectionLabel>Pricing</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">Simple pricing.<br />No surprises.</h2>
+            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">Free as in go.<br />Zero confusion.</h2>
             <p className="mt-3 text-zinc-400">Waitlist members get early access + a lifetime discount on any plan.</p>
           </div>
 
@@ -973,13 +957,13 @@ export function LandingPage() {
                 cta: 'Start Free', highlight: false,
               },
               {
-                name: 'Pro', price: '$29', period: 'per month',
+                name: 'Pro', price: '$19', period: 'per month',
                 desc: 'Everything a working photographer needs.',
                 features: ['Unlimited projects', 'AI Sort + Vibe Chat presets', 'AI Style Profile', 'Lightroom roundtrip', '3-stage delivery flow', 'Contract + invoice', 'Booking forms', 'Analytics dashboard', '100 GB storage'],
                 cta: 'Join Waitlist', highlight: true,
               },
               {
-                name: 'Business', price: '$79', period: 'per month',
+                name: 'Business', price: '$49', period: 'per month',
                 desc: 'For studios and high-volume shooters.',
                 features: ['Everything in Pro', 'Team accounts (5 seats)', 'Custom gallery branding', 'Priority AI processing', 'SMS notifications', 'Advanced analytics', 'Unlimited storage', 'Dedicated support'],
                 cta: 'Join Waitlist', highlight: false,
@@ -1026,9 +1010,7 @@ export function LandingPage() {
             </div>
           </div>
           <h2 className="text-5xl font-extrabold tracking-tight text-zinc-50 lg:text-6xl">
-            Stop sorting.
-            <br />
-            <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Start shooting.</span>
+            Ready to sort smarter?
           </h2>
           <p className="mt-6 text-xl text-zinc-400 leading-relaxed">
             Join the waitlist for early access. Waitlist members get a <strong className="text-zinc-200 font-semibold">lifetime discount</strong> and are first to try every new feature.
