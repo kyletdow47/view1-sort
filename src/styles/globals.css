@@ -2,27 +2,109 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Theme Tokens — CSS Custom Properties
+   Values are space-separated RGB integers (no #, no commas) so Tailwind's
+   `bg-token/opacity` syntax works: rgb(var(--t-bg) / 0.9)
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Zinc / Cool (default) ── */
+:root,
+[data-theme="zinc"] {
+  --t-bg:                    9   9  11;   /* #09090b */
+  --t-surface:              24  24  27;   /* #18181b */
+  --t-surface-low:          12  12  14;   /* #0c0c0e */
+  --t-surface-container:    30  30  35;   /* #1e1e23 */
+  --t-surface-high:         39  39  46;   /* #27272e */
+  --t-surface-highest:      63  63  70;   /* #3f3f46 */
+  --t-on-surface:          244 244 245;   /* #f4f4f5 */
+  --t-on-surface-variant:  161 161 170;   /* #a1a1aa */
+  --t-outline:              82  82  91;   /* #52525b */
+  --t-outline-variant:      39  39  42;   /* #27272a */
+  --t-primary:              99 102 241;   /* #6366f1 indigo-500 */
+  --t-primary-dim:          67  56 202;   /* #4338ca indigo-700 */
+  --t-on-primary:          255 255 255;
+}
+
+/* ── Stone / Warm ── */
+[data-theme="stone"] {
+  --t-bg:                   12  10   9;   /* #0c0a09 */
+  --t-surface:              28  25  23;   /* #1c1917 */
+  --t-surface-low:          16  14  13;   /* #100e0d */
+  --t-surface-container:    33  31  30;   /* #211f1e */
+  --t-surface-high:         44  41  40;   /* #2c2928 */
+  --t-surface-highest:      55  52  51;   /* #373433 */
+  --t-on-surface:          231 225 223;   /* #e7e1df */
+  --t-on-surface-variant:  161 141 128;   /* #a18d80 */
+  --t-outline:             161 141 128;   /* #a18d80 */
+  --t-outline-variant:      83  68  57;   /* #534439 */
+  --t-primary:             217 119   6;   /* #d97706 amber-600 */
+  --t-primary-dim:         180  83   9;   /* #b45309 amber-700 */
+  --t-on-primary:           28  15   0;   /* #1c0f00 */
+}
+
+/* ── Monochrome ── */
+[data-theme="mono"] {
+  --t-bg:                    0   0   0;
+  --t-surface:              17  17  17;
+  --t-surface-low:           8   8   8;
+  --t-surface-container:    26  26  26;
+  --t-surface-high:         34  34  34;
+  --t-surface-highest:      42  42  42;
+  --t-on-surface:          255 255 255;
+  --t-on-surface-variant:  160 160 160;
+  --t-outline:              85  85  85;
+  --t-outline-variant:      51  51  51;
+  --t-primary:             255 255 255;
+  --t-primary-dim:         200 200 200;
+  --t-on-primary:            0   0   0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Utilities
+───────────────────────────────────────────────────────────────────────────── */
 @layer utilities {
-  .primary-gradient {
-    background: linear-gradient(135deg, #ffb780 0%, #d48441 100%);
-  }
+  /* Glass */
   .glass-effect {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
   .glass-panel {
-    background: rgba(55, 52, 51, 0.4);
+    background: rgb(var(--t-surface-container) / 0.4);
     backdrop-filter: blur(20px);
+  }
+
+  /* Motion — micro (gallery photos) */
+  .motion-micro {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .motion-micro:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Motion — medium (project cards) */
+  .motion-medium {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .motion-medium:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgb(0 0 0 / 0.3);
+  }
+
+  /* Selection ring — accent color border, no fill */
+  .ring-selected {
+    outline: 2px solid rgb(var(--t-primary));
+    outline-offset: 2px;
   }
 }
 
-/* Custom scrollbar */
+/* ─────────────────────────────────────────────────────────────────────────────
+   Scrollbar
+───────────────────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #151312; }
-::-webkit-scrollbar-thumb { background: #373433; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #ffb780; }
-
-/* Material icons support */
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+::-webkit-scrollbar-track { background: rgb(var(--t-bg)); }
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--t-outline-variant));
+  border-radius: 10px;
 }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--t-primary)); }
