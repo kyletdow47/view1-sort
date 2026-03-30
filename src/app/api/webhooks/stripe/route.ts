@@ -57,7 +57,7 @@ async function handleCheckoutSessionCompleted(
     await supabase
       .from('profiles')
       .update({
-        subscription_tier: tier,
+        tier,
         subscription_status: subscription.status,
         stripe_subscription_id: subscription.id,
       })
@@ -65,29 +65,40 @@ async function handleCheckoutSessionCompleted(
   }
 
   if (session.mode === 'payment' && session.metadata?.projectId) {
+    const projectId = session.metadata.projectId
+    const clientEmail = session.customer_email
+
     await supabase.from('gallery_payments').insert({
-      project_id: session.metadata.projectId,
+      project_id: projectId,
       stripe_session_id: session.id,
       amount: session.amount_total,
       currency: session.currency,
       status: 'paid',
-      client_email: session.customer_email,
+      client_email: clientEmail,
       paid_at: new Date().toISOString(),
     })
 
+    // Upgrade client access to 'full' after payment
+    if (clientEmail) {
+      await supabase
+        .from('gallery_access')
+        .update({ access_type: 'full' })
+        .eq('project_id', projectId)
+        .eq('email', clientEmail.toLowerCase())
+    }
+
     // Send payment emails + notification (non-blocking)
     const amountStr = `$${((session.amount_total ?? 0) / 100).toFixed(2)}`
-    const clientEmail = session.customer_email ?? ''
 
     // Fetch project info for email context
     const { data: project } = await supabase
       .from('projects')
       .select('name, workspace_id')
-      .eq('id', session.metadata.projectId)
+      .eq('id', projectId)
       .single()
 
     const projectName = (project as { name: string } | null)?.name ?? 'Gallery'
-    const galleryUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/gallery/${session.metadata.projectId}`
+    const galleryUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/gallery/${projectId}`
 
     // Send confirmation to client
     if (clientEmail) {
@@ -118,11 +129,11 @@ async function handleCheckoutSessionCompleted(
         if (ownerEmail) {
           const displayName = (ownerProfile as { display_name: string | null } | null)?.display_name ?? 'Photographer'
           sendPaymentReceivedEmail(
-            ownerEmail, displayName, clientEmail, projectName, amountStr,
+            ownerEmail, displayName, clientEmail ?? 'Unknown', projectName, amountStr,
           ).catch((e) => console.error('Payment received email failed:', e))
         }
 
-        notifyPaymentReceived(ownerId, clientEmail, projectName, amountStr)
+        notifyPaymentReceived(ownerId, clientEmail ?? 'Unknown', projectName, amountStr)
           .catch((e) => console.error('Payment notification failed:', e))
       }
     }
@@ -139,7 +150,7 @@ async function handleSubscriptionUpdated(
   await supabase
     .from('profiles')
     .update({
-      subscription_tier: tier,
+      tier,
       subscription_status: subscription.status,
     })
     .eq('stripe_subscription_id', subscription.id)
@@ -152,7 +163,7 @@ async function handleSubscriptionDeleted(
   await supabase
     .from('profiles')
     .update({
-      subscription_tier: 'free',
+      tier: 'free',
       subscription_status: 'canceled',
       stripe_subscription_id: null,
     })
@@ -187,14 +198,13 @@ async function handleAccountUpdated(
   await supabase
     .from('profiles')
     .update({ stripe_connect_enabled: account.charges_enabled })
-    .eq('stripe_connect_account_id', account.id)
+    .eq('stripe_account_id', account.id)
 }
 
 async function handlePaymentIntentSucceeded(
   supabase: ReturnType<typeof getServiceSupabase>,
   paymentIntent: Stripe.PaymentIntent
 ): Promise<void> {
-  if (!paymentIntent.invoice) return
   await supabase
     .from('invoices')
     .update({
@@ -202,7 +212,7 @@ async function handlePaymentIntentSucceeded(
       paid_at: new Date().toISOString(),
       stripe_payment_intent_id: paymentIntent.id,
     })
-    .eq('stripe_invoice_id', paymentIntent.invoice as string)
+    .eq('stripe_payment_intent_id', paymentIntent.id)
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

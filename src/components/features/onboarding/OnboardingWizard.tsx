@@ -138,12 +138,14 @@ export function OnboardingWizard() {
 
       if (profileError) throw profileError
 
-      // 2. Create workspace
-      const slug = data.welcome.businessName
+      // 2. Create workspace — append a random suffix to guarantee slug uniqueness
+      const baseSlug = data.welcome.businessName
         .trim()
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '')
+      const randomSuffix = Math.random().toString(36).slice(2, 6)
+      const slug = (baseSlug || user.id.slice(0, 8)) + '-' + randomSuffix
 
       const { data: workspace, error: workspaceError } = await supabase
         .from('workspaces')
@@ -151,7 +153,12 @@ export function OnboardingWizard() {
         .select('id')
         .single()
 
-      if (workspaceError) throw workspaceError
+      if (workspaceError) {
+        if (workspaceError.code === '23505') {
+          throw new Error('That workspace name is already taken. Please try a different name.')
+        }
+        throw workspaceError
+      }
 
       // 3. Create workspace membership (owner)
       await supabase.from('workspace_members').insert({
@@ -176,7 +183,13 @@ export function OnboardingWizard() {
 
       router.push('/dashboard')
     } catch (err) {
-      toastError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      const msg =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err !== null && 'message' in err
+          ? String((err as { message: unknown }).message)
+          : 'Something went wrong. Please try again.'
+      toastError(msg)
     } finally {
       setSubmitting(false)
     }

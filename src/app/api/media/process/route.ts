@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { uploadFromUrl, getThumbnailUrl, getPreviewUrl } from '@/lib/cloudflare'
+import { getImageUrl } from '@/lib/cloudflare'
 
 /**
  * POST /api/media/process
  *
  * Called after a photo is uploaded to Supabase Storage.
- * Pushes the image to Cloudflare Images for CDN transforms,
- * then updates the media row with cloudflare_image_id and thumbnail_url.
+ * Generates public URLs and updates the media row.
  *
  * Body: { mediaId: string }
  */
@@ -35,7 +34,7 @@ export async function POST(request: Request) {
     // 1. Fetch media row
     const { data: media, error: mediaError } = await supabase
       .from('media')
-      .select('id, storage_path, file_name, project_id, cloudflare_image_id')
+      .select('id, storage_path, file_name, project_id, thumbnail_url')
       .eq('id', mediaId)
       .single()
 
@@ -47,43 +46,23 @@ export async function POST(request: Request) {
     }
 
     // Skip if already processed
-    if (media.cloudflare_image_id) {
+    if (media.thumbnail_url) {
       return NextResponse.json({
-        imageId: media.cloudflare_image_id,
-        thumbnailUrl: getThumbnailUrl(media.cloudflare_image_id),
+        imageId: media.storage_path,
+        thumbnailUrl: media.thumbnail_url,
         skipped: true,
       })
     }
 
-    // 2. Generate signed URL for the file in Supabase Storage
-    const { data: signedData, error: signedError } = await supabase.storage
-      .from('photos')
-      .createSignedUrl(media.storage_path, 300) // 5 min expiry
+    // 2. Build public URLs from Supabase Storage path
+    const publicUrl = getImageUrl(media.storage_path)
 
-    if (signedError || !signedData?.signedUrl) {
-      return NextResponse.json(
-        { error: `Failed to create signed URL: ${signedError?.message ?? 'unknown'}` },
-        { status: 500 },
-      )
-    }
-
-    // 3. Upload to Cloudflare Images from the signed URL
-    const result = await uploadFromUrl(signedData.signedUrl, {
-      mediaId: media.id,
-      projectId: media.project_id,
-      fileName: media.file_name,
-    })
-
-    const thumbnailUrl = getThumbnailUrl(result.imageId)
-    const watermarkedUrl = getPreviewUrl(result.imageId)
-
-    // 4. Update media row with Cloudflare data
+    // 3. Update media row
     const { error: updateError } = await supabase
       .from('media')
       .update({
-        cloudflare_image_id: result.imageId,
-        thumbnail_url: thumbnailUrl,
-        watermarked_url: watermarkedUrl,
+        thumbnail_url: publicUrl,
+        watermarked_url: publicUrl,
         status: 'processed',
       })
       .eq('id', media.id)
@@ -96,10 +75,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      imageId: result.imageId,
-      thumbnailUrl,
-      watermarkedUrl,
-      variants: result.variants,
+      imageId: media.storage_path,
+      thumbnailUrl: publicUrl,
+      watermarkedUrl: publicUrl,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'

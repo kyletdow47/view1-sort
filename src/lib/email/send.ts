@@ -29,13 +29,14 @@ const FROM_ADDRESS = process.env.EMAIL_FROM ?? 'View1 Sort <noreply@view1.studio
 export interface SendEmailOptions {
   to: string
   subject: string
-  template: string
-  react: React.ReactElement
+  template?: string
+  react?: React.ReactElement
+  html?: string
   userId?: string
 }
 
-export async function sendEmail(options: SendEmailOptions): Promise<{ id: string }> {
-  const { to, subject, template, react, userId } = options
+export async function sendEmail(options: SendEmailOptions): Promise<{ id: string; success: boolean }> {
+  const { to, subject, template, react, html, userId } = options
   const resend = getResend()
 
   let status: EmailStatus = 'sent'
@@ -43,12 +44,11 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ id: string
   let errorMessage: string | null = null
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_ADDRESS,
-      to,
-      subject,
-      react,
-    })
+    const sendPayload = react
+      ? { from: FROM_ADDRESS, to, subject, react }
+      : { from: FROM_ADDRESS, to, subject, html: html ?? '' }
+
+    const { data, error } = await resend.emails.send(sendPayload)
 
     if (error) {
       status = 'failed'
@@ -59,7 +59,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ id: string
     resendId = data?.id ?? null
     status = 'sent'
 
-    return { id: resendId ?? '' }
+    return { id: resendId ?? '', success: true }
   } catch (err) {
     if (status !== 'failed') {
       status = 'failed'
@@ -68,7 +68,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ id: string
     throw err
   } finally {
     // Log email to database (non-blocking)
-    logEmail({ to, subject, template, status, resendId, userId, errorMessage }).catch(
+    logEmail({ to, subject, template: template ?? 'unknown', status, resendId, userId, errorMessage }).catch(
       (logErr) => console.error('Failed to log email:', logErr)
     )
   }

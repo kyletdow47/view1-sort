@@ -11,16 +11,16 @@ async function validateAccess(
   supabase: Awaited<ReturnType<typeof createClient>>,
   projectId: string,
   token?: string
-): Promise<boolean> {
+): Promise<{ allowed: boolean; email: string }> {
   const { data: project } = await supabase
     .from('projects')
     .select('gallery_public')
     .eq('id', projectId)
     .single()
 
-  if (!project) return false
-  if (project.gallery_public) return true
-  if (!token) return false
+  if (!project) return { allowed: false, email: 'anonymous' }
+  if (project.gallery_public && !token) return { allowed: true, email: 'anonymous' }
+  if (!token) return { allowed: false, email: 'anonymous' }
 
   const { data: access } = await supabase
     .from('gallery_access')
@@ -29,10 +29,16 @@ async function validateAccess(
     .eq('token', token)
     .single()
 
-  if (!access) return false
-  if (access.expires_at && new Date(access.expires_at) < new Date()) return false
+  if (!access) return { allowed: false, email: 'anonymous' }
+  if (access.expires_at && new Date(access.expires_at) < new Date()) return { allowed: false, email: 'anonymous' }
 
-  return true
+  // Update accessed_at timestamp (fire and forget)
+  void supabase
+    .from('gallery_access')
+    .update({ accessed_at: new Date().toISOString() })
+    .eq('id', access.id)
+
+  return { allowed: true, email: access.email ?? 'anonymous' }
 }
 
 async function logDownload(
@@ -60,8 +66,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
   const supabase = await createClient()
 
-  const hasAccess = await validateAccess(supabase, projectId, token)
-  if (!hasAccess) {
+  const { allowed, email: accessEmail } = await validateAccess(supabase, projectId, token)
+  if (!allowed) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -81,7 +87,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const typedMedia = media as Media
 
     // Log the download (fire and forget)
-    logDownload(supabase, projectId, 'anonymous', 'single', mediaId).catch(() => {})
+    logDownload(supabase, projectId, accessEmail, 'single', mediaId).catch(() => {})
 
     // Redirect to Cloudflare URL if available, otherwise stream from Supabase storage
     if (typedMedia.cloudflare_image_id) {
@@ -134,7 +140,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const zipBuffer = await zip.generateAsync({ type: 'uint8array' })
 
-    logDownload(supabase, projectId, 'anonymous', 'zip').catch(() => {})
+    logDownload(supabase, projectId, accessEmail, 'zip').catch(() => {})
 
     return new NextResponse(zipBuffer as unknown as BodyInit, {
       headers: {

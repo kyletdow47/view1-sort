@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { clsx } from 'clsx'
 import { ImageOff } from 'lucide-react'
 import { MediaCard } from './MediaCard'
@@ -41,7 +42,7 @@ function SkeletonRow() {
   )
 }
 
-function ListRow({
+const ListRow = memo(function ListRow({
   media,
   selected,
   onSelect,
@@ -130,7 +131,7 @@ function ListRow({
       </div>
     </div>
   )
-}
+})
 
 export function PhotoGrid({
   media,

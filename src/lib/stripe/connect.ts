@@ -26,7 +26,7 @@ export async function createConnectAccount(userId: string): Promise<string> {
   const supabase = getServiceSupabase()
   const { error } = await supabase
     .from('profiles')
-    .update({ stripe_connect_account_id: account.id, stripe_connect_enabled: false })
+    .update({ stripe_account_id: account.id })
     .eq('id', userId)
 
   if (error) {

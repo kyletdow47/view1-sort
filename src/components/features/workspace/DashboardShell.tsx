@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { FolderPlus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { FolderPlus, Lock } from 'lucide-react'
 import { Button } from '@/components/common'
 import { ProjectCard } from './ProjectCard'
 import { NewProjectModal } from './NewProjectModal'
@@ -22,7 +23,11 @@ export function DashboardShell({
   activeProjectCount,
   tier,
 }: DashboardShellProps) {
+  const router = useRouter()
   const [modalOpen, setModalOpen] = useState(false)
+
+  const FREE_TIER_LIMIT = 3
+  const isAtLimit = tier === 'free' && activeProjectCount >= FREE_TIER_LIMIT
 
   return (
     <main className="min-h-screen bg-background text-white">
@@ -33,12 +38,28 @@ export function DashboardShell({
             <h1 className="text-xl font-semibold text-white">Projects</h1>
             <p className="text-sm text-white/40 mt-0.5">
               {projects.length} {projects.length === 1 ? 'project' : 'projects'}
+              {tier === 'free' && (
+                <span className="ml-2 text-white/30">
+                  ({activeProjectCount}/{FREE_TIER_LIMIT} free)
+                </span>
+              )}
             </p>
           </div>
-          <Button onClick={() => setModalOpen(true)} className="gap-2">
-            <FolderPlus className="w-4 h-4" />
-            New Project
-          </Button>
+          {isAtLimit ? (
+            <Button
+              onClick={() => router.push('/dashboard/billing')}
+              variant="secondary"
+              className="gap-2"
+            >
+              <Lock className="w-4 h-4" />
+              Upgrade to Pro for unlimited projects
+            </Button>
+          ) : (
+            <Button onClick={() => setModalOpen(true)} className="gap-2">
+              <FolderPlus className="w-4 h-4" />
+              New Project
+            </Button>
+          )}
         </div>
       </div>
 
@@ -51,10 +72,21 @@ export function DashboardShell({
             <p className="text-white/30 text-sm mb-6 max-w-xs">
               Create your first project to start sorting and delivering photos.
             </p>
-            <Button onClick={() => setModalOpen(true)} className="gap-2">
-              <FolderPlus className="w-4 h-4" />
-              New Project
-            </Button>
+            {isAtLimit ? (
+              <Button
+                onClick={() => router.push('/dashboard/billing')}
+                variant="secondary"
+                className="gap-2"
+              >
+                <Lock className="w-4 h-4" />
+                Upgrade to Pro for unlimited projects
+              </Button>
+            ) : (
+              <Button onClick={() => setModalOpen(true)} className="gap-2">
+                <FolderPlus className="w-4 h-4" />
+                New Project
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

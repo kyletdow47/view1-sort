@@ -284,6 +284,7 @@ export default function PublishPage() {
                 </div>
               </button>
             ))}
+
           </div>
         </Card>
       )}
@@ -343,6 +344,10 @@ export default function PublishPage() {
             {inviteSent ? 'Sent!' : 'Send Magic Link'}
           </button>
         </div>
+
+        {inviteSent && (
+          <p className="text-sm text-green-400 mt-2">Magic link sent successfully!</p>
+        )}
       </Card>
 
       {/* Publish Button */}

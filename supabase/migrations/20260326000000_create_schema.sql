@@ -62,15 +62,7 @@ CREATE TABLE workspaces (
 
 ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "workspaces_select_members"
-  ON workspaces FOR SELECT
-  USING (
-    owner_id = auth.uid()
-    OR EXISTS (
-      SELECT 1 FROM workspace_members wm
-      WHERE wm.workspace_id = id AND wm.user_id = auth.uid()
-    )
-  );
+-- NOTE: workspaces_select_members policy is created AFTER workspace_members table below
 
 CREATE POLICY "workspaces_update_owner"
   ON workspaces FOR UPDATE
@@ -98,6 +90,17 @@ CREATE TABLE workspace_members (
 );
 
 ALTER TABLE workspace_members ENABLE ROW LEVEL SECURITY;
+
+-- Now that workspace_members exists, create the workspaces select policy
+CREATE POLICY "workspaces_select_members"
+  ON workspaces FOR SELECT
+  USING (
+    owner_id = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM workspace_members wm
+      WHERE wm.workspace_id = id AND wm.user_id = auth.uid()
+    )
+  );
 
 CREATE POLICY "workspace_members_select_own"
   ON workspace_members FOR SELECT

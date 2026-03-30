@@ -1,7 +1,8 @@
-import { createServerClient } from '@supabase/ssr'
-import type { CookieOptions } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+
+const DEMO_BYPASS_KEY = 'view1-preview-2026'
 
 export async function middleware(request: NextRequest) {
   // Pass through immediately if Supabase env vars are not configured
@@ -12,9 +13,9 @@ export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl
   let response = NextResponse.next({ request })
 
-  // Demo bypass — add ?demo=true to any URL to skip auth
-  if (searchParams.get('demo') === 'true') {
-    // Set a cookie so subsequent navigations also bypass
+  // Demo bypass — allows browsing all pages without auth/onboarding.
+  // Activate with ?demo=view1-preview-2026
+  if (searchParams.get('demo') === DEMO_BYPASS_KEY) {
     response.cookies.set('demo_mode', 'true', { path: '/', maxAge: 60 * 60 * 24 })
     return response
   }
@@ -69,7 +70,7 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (profile && !(profile as { onboarded: boolean }).onboarded) {
+    if (profile && !profile.onboarded) {
       const onboardingUrl = request.nextUrl.clone()
       onboardingUrl.pathname = '/onboarding'
       return NextResponse.redirect(onboardingUrl)
