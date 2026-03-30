@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Download } from 'lucide-react'
+import { Download, RotateCcw } from 'lucide-react'
 import { GalleryLightbox } from './GalleryLightbox'
 import { GalleryPaywall } from './GalleryPaywall'
 import darkStyles from './themes/dark.module.css'
@@ -35,7 +35,26 @@ export function GalleryView({
   photographerName,
 }: GalleryViewProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  // Track which photos are showing their original (pre-edit) version
+  const [showingOriginal, setShowingOriginal] = useState<Set<string>>(new Set())
   const styles = themeMap[theme] ?? darkStyles
+
+  function getDisplayUrl(item: Media): string {
+    const isViewingOriginal = showingOriginal.has(item.id)
+    if (!isViewingOriginal && item.edited_thumbnail_url) {
+      return item.edited_thumbnail_url
+    }
+    return item.watermarked_url ?? item.thumbnail_url ?? item.storage_path
+  }
+
+  function toggleOriginal(id: string) {
+    setShowingOriginal((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const grouped = useMemo(() => {
     const map = new Map<string, Media[]>()
@@ -98,17 +117,62 @@ export function GalleryView({
             <div className={styles.grid}>
               {photos.map((item, idx) => {
                 const globalIdx = media.indexOf(item)
+                const hasEdit = !!item.edited_thumbnail_url
+                const isViewingOriginal = showingOriginal.has(item.id)
                 return (
-                  <div key={item.id} className={styles.photoCard}>
+                  <div key={item.id} className={styles.photoCard} style={{ position: 'relative' }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={item.watermarked_url ?? item.thumbnail_url ?? item.storage_path}
+                      src={getDisplayUrl(item)}
                       alt={item.filename}
                       className={styles.photo}
                       loading="lazy"
                       onClick={() => setLightboxIndex(globalIdx)}
                     />
+                    {/* Edited badge */}
+                    {hasEdit && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '0.375rem',
+                          left: '0.375rem',
+                          fontSize: '0.625rem',
+                          fontWeight: 700,
+                          letterSpacing: '0.04em',
+                          textTransform: 'uppercase',
+                          background: isViewingOriginal ? 'rgba(0,0,0,0.55)' : '#ffb780',
+                          color: isViewingOriginal ? '#f0f0f0' : '#4e2600',
+                          borderRadius: '0.25rem',
+                          padding: '2px 5px',
+                          pointerEvents: 'none',
+                          userSelect: 'none',
+                        }}
+                      >
+                        {isViewingOriginal ? 'Original' : 'Edited'}
+                      </span>
+                    )}
                     <div className={styles.photoOverlay}>
+                      {hasEdit && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleOriginal(item.id) }}
+                          aria-label={isViewingOriginal ? `Show edited version of ${item.filename}` : `View original ${item.filename}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            fontSize: '0.6875rem',
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '0.25rem',
+                            border: 'none',
+                            cursor: 'pointer',
+                            background: 'rgba(255,255,255,0.15)',
+                            color: '#f0f0f0',
+                          }}
+                        >
+                          <RotateCcw size={11} />
+                          {isViewingOriginal ? 'View Edited' : 'View Original'}
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDownloadPhoto(item)}
                         className={styles.downloadBtn}
@@ -146,6 +210,8 @@ export function GalleryView({
           onClose={() => setLightboxIndex(null)}
           onDownload={handleDownloadPhoto}
           theme={theme}
+          showingOriginal={showingOriginal}
+          onToggleOriginal={toggleOriginal}
         />
       )}
     </div>

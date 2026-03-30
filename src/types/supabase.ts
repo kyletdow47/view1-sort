@@ -88,6 +88,11 @@ export interface Media {
   ai_labels: Record<string, unknown> | null
   sort_order: number
   created_at: string
+  // Lightroom Roundtrip Sync (optional — not present until first scan)
+  edited_storage_path?: string | null
+  edited_thumbnail_url?: string | null
+  edited_at?: string | null
+  file_checksum?: string | null
 }
 
 export interface Category {

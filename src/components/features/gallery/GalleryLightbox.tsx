@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useCallback, useState, useRef } from 'react'
-import { X, ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, Download, RotateCcw } from 'lucide-react'
 import type { Media, GalleryTheme } from '@/types/supabase'
 
 interface GalleryLightboxProps {
@@ -10,6 +10,8 @@ interface GalleryLightboxProps {
   onClose: () => void
   onDownload: (item: Media) => void
   theme: GalleryTheme
+  showingOriginal?: Set<string>
+  onToggleOriginal?: (id: string) => void
 }
 
 export function GalleryLightbox({
@@ -18,12 +20,23 @@ export function GalleryLightbox({
   onClose,
   onDownload,
   theme,
+  showingOriginal,
+  onToggleOriginal,
 }: GalleryLightboxProps) {
   const [index, setIndex] = useState(initialIndex)
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
 
   const current = media[index]
+
+  const isViewingOriginal = current ? (showingOriginal?.has(current.id) ?? false) : false
+  const hasEdit = current ? !!current.edited_thumbnail_url : false
+
+  function getLightboxUrl(item: Media): string {
+    const viewOriginal = showingOriginal?.has(item.id) ?? false
+    if (!viewOriginal && item.edited_thumbnail_url) return item.edited_thumbnail_url
+    return item.watermarked_url ?? item.thumbnail_url ?? item.storage_path
+  }
 
   const prev = useCallback(() => {
     setIndex((i) => (i > 0 ? i - 1 : media.length - 1))
@@ -122,6 +135,30 @@ export function GalleryLightbox({
           )}
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {/* View Original / View Edited toggle */}
+          {hasEdit && onToggleOriginal && (
+            <button
+              onClick={() => onToggleOriginal(current.id)}
+              aria-label={isViewingOriginal ? 'Switch to edited version' : 'View original photo'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+                backgroundColor: isViewingOriginal ? 'rgba(255,183,128,0.18)' : btnBg,
+                color: isViewingOriginal ? '#ffb780' : textColor,
+                border: isViewingOriginal ? '1px solid rgba(255,183,128,0.4)' : '1px solid transparent',
+                borderRadius: '0.375rem',
+                padding: '0.5rem 0.75rem',
+                fontSize: '0.8125rem',
+                cursor: 'pointer',
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.opacity = '0.8')}
+              onMouseOut={(e) => (e.currentTarget.style.opacity = '1')}
+            >
+              <RotateCcw size={13} />
+              <span>{isViewingOriginal ? 'View Edited' : 'View Original'}</span>
+            </button>
+          )}
           <button
             onClick={() => onDownload(current)}
             aria-label="Download photo"
@@ -180,7 +217,7 @@ export function GalleryLightbox({
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={current.watermarked_url ?? current.thumbnail_url ?? current.storage_path}
+          src={getLightboxUrl(current)}
           alt={current.filename}
           style={{
             maxWidth: '100%',
@@ -250,17 +287,37 @@ export function GalleryLightbox({
         )}
       </div>
 
-      {/* Counter */}
+      {/* Counter + edit status */}
       <div
         style={{
           padding: '1rem',
           textAlign: 'center',
           flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.75rem',
         }}
       >
         <span style={{ fontSize: '0.75rem', color: mutedColor }}>
           {index + 1} / {media.length}
         </span>
+        {hasEdit && (
+          <span
+            style={{
+              fontSize: '0.6875rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              background: isViewingOriginal ? 'rgba(255,255,255,0.1)' : 'rgba(255,183,128,0.2)',
+              color: isViewingOriginal ? mutedColor : '#ffb780',
+              borderRadius: '0.25rem',
+              padding: '2px 6px',
+            }}
+          >
+            {isViewingOriginal ? 'Original' : 'Edited'}
+          </span>
+        )}
       </div>
     </div>
   )
