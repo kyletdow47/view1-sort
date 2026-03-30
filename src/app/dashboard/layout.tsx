@@ -32,6 +32,7 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { useProfile } from '@/hooks/useProfile'
 import { useNotifications } from '@/hooks/useNotifications'
+import { ThemeSwitcher } from '@/components/common/ThemeSwitcher'
 
 /* ------------------------------------------------------------------ */
 /*  Notification types & helpers                                       */
@@ -445,7 +446,7 @@ export default function DashboardLayout({
           </Link>
           <Link
             href="/dashboard/project/new"
-            className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3 font-headline font-bold text-[#4e2600] transition-opacity hover:opacity-90"
+            className="flex items-center justify-center gap-2 w-full rounded-lg primary-gradient py-3 font-sans font-bold text-on-primary shadow-elev-1 hover:shadow-elev-2 hover:-translate-y-px transition-all"
           >
             <Plus size={18} className="shrink-0" />
             + New Shoot
@@ -680,6 +681,9 @@ export default function DashboardLayout({
 
               {/* Right actions */}
               <div className="flex items-center gap-2 md:gap-3 shrink-0">
+                {/* Theme switcher — 3 dots */}
+                <ThemeSwitcher className="hidden md:flex" />
+
                 <div className="relative">
                   <button
                     onClick={() => setNotificationsOpen(!notificationsOpen)}
@@ -688,7 +692,7 @@ export default function DashboardLayout({
                   >
                     <Bell size={18} />
                     {unreadCount > 0 && (
-                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary-container px-1 text-[9px] font-bold text-on-primary">
                         {unreadCount}
                       </span>
                     )}
@@ -708,7 +712,7 @@ export default function DashboardLayout({
                 >
                   <Settings size={18} />
                 </button>
-                <button className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441] px-3 md:px-4 py-2 text-xs md:text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
+                <button className="flex items-center gap-2 rounded-lg primary-gradient px-3 md:px-4 py-2 text-xs md:text-sm font-bold text-on-primary shadow-elev-1 hover:shadow-elev-2 hover:-translate-y-px transition-all">
                   <Upload size={14} />
                   <span className="hidden sm:inline">Upload</span>
                 </button>

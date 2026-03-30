@@ -27,3 +27,6 @@ export type { SpinnerProps } from './Spinner'
 
 export { toast, toastError, toastInfo, toastSuccess, toastWarning } from './Toast'
 export type { ExternalToast } from './Toast'
+
+export { ThemeSwitcher } from './ThemeSwitcher'
+export type { AppTheme } from './ThemeSwitcher'

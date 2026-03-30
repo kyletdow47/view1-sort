@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
-import { Inter, Manrope, Space_Grotesk, Playfair_Display } from 'next/font/google'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import { Toaster } from 'sonner'
 import '@/styles/globals.css'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
-const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' })
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk' })
-const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta-sans',
+  weight: ['300', '400', '500', '600', '700', '800'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'View1 Sort — AI Photo Sorting for Professional Photographers',
@@ -19,16 +21,25 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} ${manrope.variable} ${spaceGrotesk.variable} ${playfair.variable} font-body bg-background text-on-surface selection:bg-primary/30 antialiased`}>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        {/* Prevent flash of wrong theme */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('v1-theme');if(t&&t!=='warm')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`,
+          }}
+        />
+      </head>
+      <body className={`${plusJakartaSans.variable} font-sans bg-background text-on-surface selection:bg-primary/20 antialiased`}>
         {children}
         <Toaster
           position="top-right"
           toastOptions={{
             style: {
-              background: '#211f1e',
-              border: '1px solid #534439',
-              color: '#e7e1df',
+              background: 'var(--toast-bg, #211f1e)',
+              border: '1px solid var(--toast-border, #534439)',
+              color: 'var(--toast-text, #e7e1df)',
+              fontFamily: 'var(--font-plus-jakarta-sans), system-ui, sans-serif',
             },
           }}
         />
