@@ -86,10 +86,10 @@ const PROJECTS = [
 ]
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; icon: React.ElementType }> = {
-  published: { label: 'Published', bg: 'bg-[#0c5252]/30', text: 'text-[#95d1d1]', icon: CheckCircle },
-  draft: { label: 'Draft', bg: 'bg-[#373433]', text: 'text-[#d9c2b4]', icon: Clock },
-  active: { label: 'Active', bg: 'bg-[#ffb780]/15', text: 'text-[#ffb780]', icon: CheckCircle },
-  completed: { label: 'Completed', bg: 'bg-[#e7765f]/15', text: 'text-[#ffb4a5]', icon: Archive },
+  published: { label: 'Published', bg: 'bg-[#0c5252]/30', text: 'text-emerald-400', icon: CheckCircle },
+  draft: { label: 'Draft', bg: 'bg-surface-highest', text: 'text-on-surface-variant', icon: Clock },
+  active: { label: 'Active', bg: 'bg-primary/15', text: 'text-primary', icon: CheckCircle },
+  completed: { label: 'Completed', bg: 'bg-[#e7765f]/15', text: 'text-rose-400', icon: Archive },
 }
 
 export default function ProjectsPage() {
@@ -98,27 +98,27 @@ export default function ProjectsPage() {
       {/* Header */}
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold font-headline tracking-tight text-[#e7e1df] mb-1">
+          <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface mb-1">
             All Projects
           </h1>
-          <p className="text-[#d9c2b4] text-sm">
+          <p className="text-on-surface-variant text-sm">
             {PROJECTS.length} projects &middot; {PROJECTS.reduce((s, p) => s + p.photos, 0).toLocaleString()} total photos
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a18d80]" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
             <input
               type="text"
               placeholder="Search projects..."
-              className="bg-[#100e0d] border-none rounded-lg pl-9 pr-4 py-2 text-sm text-[#e7e1df] placeholder-[#534439] focus:ring-1 focus:ring-[#ffb780]/20 w-56"
+              className="bg-[#100e0d] border-none rounded-lg pl-9 pr-4 py-2 text-sm text-on-surface placeholder-[#534439] focus:ring-1 focus:ring-[#ffb780]/20 w-56"
             />
           </div>
-          <button className="flex items-center gap-2 px-3 py-2 bg-[#2c2928] rounded-lg text-sm text-[#d9c2b4] hover:bg-[#373433] transition-colors">
+          <button className="flex items-center gap-2 px-3 py-2 bg-surface-container rounded-lg text-sm text-on-surface-variant hover:bg-surface-highest transition-colors">
             <Filter size={14} />
             Filter
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600] font-bold text-sm rounded-lg">
+          <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary font-bold text-sm rounded-lg">
             <Plus size={14} />
             New Project
           </button>
@@ -135,7 +135,7 @@ export default function ProjectsPage() {
             <Link
               key={project.id}
               href={`/dashboard/project/${project.id}`}
-              className="group relative bg-[#1d1b1a] rounded-xl overflow-hidden hover:bg-[#2c2928] transition-all duration-300"
+              className="group relative bg-surface rounded-xl overflow-hidden hover:bg-surface-container transition-all duration-300"
             >
               {/* Cover */}
               <div
@@ -153,7 +153,7 @@ export default function ProjectsPage() {
                 </div>
                 <button
                   onClick={(e) => e.preventDefault()}
-                  className="absolute top-4 right-4 text-[#a18d80] hover:text-[#e7e1df] opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <MoreVertical size={16} />
                 </button>
@@ -161,24 +161,24 @@ export default function ProjectsPage() {
 
               {/* Info */}
               <div className="p-5">
-                <h3 className="font-headline font-bold text-[#e7e1df] mb-1 group-hover:text-[#ffb780] transition-colors">
+                <h3 className="font-headline font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
                   {project.name}
                 </h3>
                 <div className="flex items-center gap-2 mb-4">
-                  <TypeIcon size={12} className="text-[#a18d80]" />
-                  <span className="text-xs text-[#a18d80]">{project.type}</span>
+                  <TypeIcon size={12} className="text-on-surface-variant" />
+                  <span className="text-xs text-on-surface-variant">{project.type}</span>
                   <span className="text-[#534439]">&middot;</span>
-                  <span className="text-xs text-[#a18d80]">{project.date}</span>
+                  <span className="text-xs text-on-surface-variant">{project.date}</span>
                 </div>
-                <div className="flex items-center justify-between pt-3 border-t border-[#534439]/20">
+                <div className="flex items-center justify-between pt-3 border-t border-outline-variant/20">
                   <div className="flex items-center gap-4">
                     <div>
-                      <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80] block">Photos</span>
-                      <span className="font-label text-sm text-[#ffb780] font-bold">{project.photos.toLocaleString()}</span>
+                      <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block">Photos</span>
+                      <span className="font-label text-sm text-primary font-bold">{project.photos.toLocaleString()}</span>
                     </div>
                     <div>
-                      <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80] block">Size</span>
-                      <span className="font-label text-sm text-[#e7e1df]">{project.storage}</span>
+                      <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block">Size</span>
+                      <span className="font-label text-sm text-on-surface">{project.storage}</span>
                     </div>
                   </div>
                 </div>
@@ -188,7 +188,7 @@ export default function ProjectsPage() {
         })}
 
         {/* Create New */}
-        <div className="border-2 border-dashed border-[#534439]/30 rounded-xl flex flex-col items-center justify-center py-16 text-[#a18d80] hover:border-[#ffb780]/40 hover:text-[#ffb780] transition-all cursor-pointer">
+        <div className="border-2 border-dashed border-outline-variant/30 rounded-xl flex flex-col items-center justify-center py-16 text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all cursor-pointer">
           <Plus size={32} className="mb-3" />
           <span className="font-headline font-bold text-sm">Create New Project</span>
         </div>

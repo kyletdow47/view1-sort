@@ -70,11 +70,11 @@ const CLIENTS: Client[] = [
 
 const TIER_STYLES: Record<string, string> = {
   Enterprise:
-    'bg-[#ffb780]/10 text-[#ffb780] border border-[#ffb780]/20',
+    'bg-primary/10 text-primary border border-primary/20',
   Editorial:
-    'bg-[#95d1d1]/10 text-[#95d1d1] border border-[#95d1d1]/20',
+    'bg-emerald-400/10 text-emerald-400 border border-[#95d1d1]/20',
   Boutique:
-    'bg-[#ffb4a5]/10 text-[#ffb4a5] border border-[#ffb4a5]/20',
+    'bg-[#ffb4a5]/10 text-rose-400 border border-[#ffb4a5]/20',
 }
 
 /* ── Stat Card ── */
@@ -88,8 +88,8 @@ function StatCard({
   accent: string
 }) {
   return (
-    <div className="flex-1 min-w-[140px] bg-[#1d1b1a] rounded-xl border border-[#534439]/40 p-4">
-      <p className="text-[10px] uppercase tracking-widest font-medium text-[#a18d80] mb-1">
+    <div className="flex-1 min-w-[140px] bg-surface rounded-xl border border-outline-variant/40 p-4">
+      <p className="text-[10px] uppercase tracking-widest font-medium text-on-surface-variant mb-1">
         {label}
       </p>
       <p className="text-2xl font-bold" style={{ color: accent }}>
@@ -103,22 +103,22 @@ export default function ClientsPage() {
   const [activePage] = useState(1)
 
   return (
-    <div className="min-h-screen bg-[#151312] text-[#e7e1df]">
+    <div className="min-h-screen bg-background text-on-surface">
       <div className="max-w-[1200px] mx-auto px-6 py-8 space-y-8">
         {/* ── Header ── */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white">Client Profiles</h1>
-            <p className="text-sm text-[#a18d80] mt-1">
+            <p className="text-sm text-on-surface-variant mt-1">
               Manage your client network and booking history
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#534439] text-sm font-medium text-[#d9c2b4] hover:bg-[#2c2928] transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-outline-variant text-sm font-medium text-on-surface-variant hover:bg-surface-container transition-colors">
               <UserPlus size={15} />
               Invite Client
             </button>
-            <button className="flex items-center gap-2 bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600] font-semibold text-sm px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
+            <button className="flex items-center gap-2 bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary font-semibold text-sm px-4 py-2 rounded-lg hover:opacity-90 transition-opacity">
               <CalendarPlus size={15} />
               New Booking
             </button>
@@ -133,23 +133,23 @@ export default function ClientsPage() {
 
           {/* Filter dropdowns */}
           <div className="flex items-center gap-2 ml-auto">
-            <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#2c2928] text-sm text-[#d9c2b4] hover:bg-[#373433] transition-colors">
+            <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container text-sm text-on-surface-variant hover:bg-surface-highest transition-colors">
               All Tiers
-              <ChevronDown size={14} className="text-[#a18d80]" />
+              <ChevronDown size={14} className="text-on-surface-variant" />
             </button>
-            <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#2c2928] text-sm text-[#d9c2b4] hover:bg-[#373433] transition-colors">
+            <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-container text-sm text-on-surface-variant hover:bg-surface-highest transition-colors">
               Last 30 Days
-              <ChevronDown size={14} className="text-[#a18d80]" />
+              <ChevronDown size={14} className="text-on-surface-variant" />
             </button>
           </div>
         </div>
 
         {/* ── Client Table ── */}
-        <section className="bg-[#1d1b1a] rounded-xl border border-[#534439]/40 overflow-hidden">
+        <section className="bg-surface rounded-xl border border-outline-variant/40 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#534439]/40">
+                <tr className="border-b border-outline-variant/40">
                   {[
                     'Client Name',
                     'Contact Details',
@@ -160,7 +160,7 @@ export default function ClientsPage() {
                   ].map((col) => (
                     <th
                       key={col}
-                      className="text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-medium text-[#a18d80]"
+                      className="text-left px-5 py-3.5 text-[10px] uppercase tracking-widest font-medium text-on-surface-variant"
                     >
                       {col}
                     </th>
@@ -171,25 +171,25 @@ export default function ClientsPage() {
                 {CLIENTS.map((client) => (
                   <tr
                     key={client.name}
-                    className="border-b border-[#534439]/20 hover:bg-[#211f1e] transition-colors"
+                    className="border-b border-outline-variant/20 hover:bg-surface-container transition-colors"
                   >
                     {/* Name + Avatar */}
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-9 h-9 rounded-full bg-gradient-to-br ${client.avatarGradient} flex items-center justify-center text-xs font-bold text-[#4e2600]`}
+                          className={`w-9 h-9 rounded-full bg-gradient-to-br ${client.avatarGradient} flex items-center justify-center text-xs font-bold text-on-primary`}
                         >
                           {client.initials}
                         </div>
-                        <span className="text-sm font-medium text-[#e7e1df]">
+                        <span className="text-sm font-medium text-on-surface">
                           {client.name}
                         </span>
                       </div>
                     </td>
                     {/* Contact */}
                     <td className="px-5 py-4">
-                      <p className="text-sm text-[#d9c2b4]">{client.email}</p>
-                      <p className="text-xs text-[#a18d80] mt-0.5">
+                      <p className="text-sm text-on-surface-variant">{client.email}</p>
+                      <p className="text-xs text-on-surface-variant mt-0.5">
                         {client.phone}
                       </p>
                     </td>
@@ -204,16 +204,16 @@ export default function ClientsPage() {
                       </span>
                     </td>
                     {/* Last Shoot */}
-                    <td className="px-5 py-4 text-sm text-[#d9c2b4]">
+                    <td className="px-5 py-4 text-sm text-on-surface-variant">
                       {client.lastShoot}
                     </td>
                     {/* LTV */}
-                    <td className="px-5 py-4 text-sm font-medium text-[#ffb780]">
+                    <td className="px-5 py-4 text-sm font-medium text-primary">
                       ${client.ltv.toLocaleString()}
                     </td>
                     {/* Actions */}
                     <td className="px-5 py-4">
-                      <button className="p-2 rounded-lg hover:bg-[#2c2928] transition-colors text-[#a18d80] hover:text-[#d9c2b4]">
+                      <button className="p-2 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant hover:text-on-surface-variant">
                         <MoreHorizontal size={16} />
                       </button>
                     </td>
@@ -224,12 +224,12 @@ export default function ClientsPage() {
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-t border-[#534439]/40">
-            <p className="text-xs text-[#a18d80]">
+          <div className="flex items-center justify-between px-5 py-3.5 border-t border-outline-variant/40">
+            <p className="text-xs text-on-surface-variant">
               Showing 1-10 of 142 clients
             </p>
             <div className="flex items-center gap-1">
-              <button className="p-1.5 rounded-lg text-[#a18d80] hover:bg-[#2c2928] transition-colors">
+              <button className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors">
                 <ChevronLeft size={16} />
               </button>
               {[1, 2, 3, '...', 15].map((p, i) => (
@@ -237,14 +237,14 @@ export default function ClientsPage() {
                   key={i}
                   className={`min-w-[32px] h-8 rounded-lg text-sm font-medium transition-colors ${
                     p === activePage
-                      ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600]'
-                      : 'text-[#a18d80] hover:bg-[#2c2928]'
+                      ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary'
+                      : 'text-on-surface-variant hover:bg-surface-container'
                   }`}
                 >
                   {p}
                 </button>
               ))}
-              <button className="p-1.5 rounded-lg text-[#a18d80] hover:bg-[#2c2928] transition-colors">
+              <button className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors">
                 <ChevronRight size={16} />
               </button>
             </div>
@@ -254,24 +254,24 @@ export default function ClientsPage() {
         {/* ── Bottom Insights ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Projected Revenue */}
-          <div className="bg-[#1d1b1a] rounded-xl border border-[#534439]/40 p-5">
+          <div className="bg-surface rounded-xl border border-outline-variant/40 p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-[10px] uppercase tracking-widest font-medium text-[#a18d80]">
+                <p className="text-[10px] uppercase tracking-widest font-medium text-on-surface-variant">
                   Projected Revenue
                 </p>
                 <p className="text-xl font-bold text-white mt-1">$124,800</p>
               </div>
-              <div className="p-2 rounded-lg bg-[#ffb780]/10">
-                <TrendingUp size={18} className="text-[#ffb780]" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <TrendingUp size={18} className="text-primary" />
               </div>
             </div>
             <div className="space-y-2">
-              <div className="flex justify-between text-xs text-[#a18d80]">
+              <div className="flex justify-between text-xs text-on-surface-variant">
                 <span>Q1 Target</span>
-                <span className="text-[#ffb780]">78%</span>
+                <span className="text-primary">78%</span>
               </div>
-              <div className="h-2 rounded-full bg-[#2c2928] overflow-hidden">
+              <div className="h-2 rounded-full bg-surface-container overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-[#ffb780] to-[#d48441]"
                   style={{ width: '78%' }}
@@ -281,18 +281,18 @@ export default function ClientsPage() {
           </div>
 
           {/* Network Expansion */}
-          <div className="bg-[#1d1b1a] rounded-xl border border-[#534439]/40 p-5">
+          <div className="bg-surface rounded-xl border border-outline-variant/40 p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-[10px] uppercase tracking-widest font-medium text-[#a18d80]">
+                <p className="text-[10px] uppercase tracking-widest font-medium text-on-surface-variant">
                   Network Expansion
                 </p>
                 <p className="text-xl font-bold text-white mt-1">
                   +12 this month
                 </p>
               </div>
-              <div className="p-2 rounded-lg bg-[#95d1d1]/10">
-                <Users size={18} className="text-[#95d1d1]" />
+              <div className="p-2 rounded-lg bg-emerald-400/10">
+                <Users size={18} className="text-emerald-400" />
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -306,11 +306,11 @@ export default function ClientsPage() {
                     />
                   )
                 )}
-                <div className="w-8 h-8 rounded-full border-2 border-[#1d1b1a] bg-[#2c2928] flex items-center justify-center text-[10px] font-bold text-[#a18d80] z-0">
+                <div className="w-8 h-8 rounded-full border-2 border-[#1d1b1a] bg-surface-container flex items-center justify-center text-[10px] font-bold text-on-surface-variant z-0">
                   +7
                 </div>
               </div>
-              <span className="text-xs text-[#a18d80]">
+              <span className="text-xs text-on-surface-variant">
                 New clients this month
               </span>
             </div>

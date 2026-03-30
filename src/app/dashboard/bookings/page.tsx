@@ -46,8 +46,8 @@ const mockBookings: Booking[] = [
 ]
 
 const statusConfig: Record<BookingStatus, { label: string; color: string; icon: React.ElementType; bg: string }> = {
-  pending: { label: 'Pending', color: 'text-[#ffb780]', icon: AlertCircle, bg: 'bg-[#ffb780]/15' },
-  confirmed: { label: 'Confirmed', color: 'text-[#95d1d1]', icon: CheckCircle2, bg: 'bg-[#95d1d1]/15' },
+  pending: { label: 'Pending', color: 'text-primary', icon: AlertCircle, bg: 'bg-primary/15' },
+  confirmed: { label: 'Confirmed', color: 'text-emerald-400', icon: CheckCircle2, bg: 'bg-emerald-400/15' },
   completed: { label: 'Completed', color: 'text-emerald-400', icon: CheckCircle2, bg: 'bg-emerald-500/15' },
   cancelled: { label: 'Cancelled', color: 'text-[#e7765f]', icon: XCircle, bg: 'bg-[#e7765f]/15' },
 }
@@ -163,11 +163,11 @@ function MiniCalendar() {
               key={`d-${i}`}
               className={`flex h-8 items-center justify-center rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                 isToday
-                  ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600] font-bold'
+                  ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary font-bold'
                   : isBooked
-                  ? 'bg-[#95d1d1]/15 text-[#95d1d1]'
+                  ? 'bg-emerald-400/15 text-emerald-400'
                   : isPending
-                  ? 'bg-[#ffb780]/10 text-[#ffb780]'
+                  ? 'bg-primary/10 text-primary'
                   : 'text-on-surface-variant/60 hover:bg-surface-container'
               }`}
             >
@@ -183,11 +183,11 @@ function MiniCalendar() {
           <span className="text-[10px] text-on-surface-variant/50">Today</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-full bg-[#95d1d1]" />
+          <div className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
           <span className="text-[10px] text-on-surface-variant/50">Confirmed</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-full bg-[#ffb780]/50" />
+          <div className="h-2.5 w-2.5 rounded-full bg-primary/50" />
           <span className="text-[10px] text-on-surface-variant/50">Pending</span>
         </div>
       </div>
@@ -211,7 +211,7 @@ export default function BookingsPage() {
         <div>
           <h1 className="font-headline text-3xl italic font-extrabold text-on-surface flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441]">
-              <CalendarDays size={20} className="text-[#4e2600]" />
+              <CalendarDays size={20} className="text-on-primary" />
             </div>
             Bookings
           </h1>
@@ -219,7 +219,7 @@ export default function BookingsPage() {
             Manage your booking pipeline and schedule
           </p>
         </div>
-        <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2.5 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
+        <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
           <Plus size={16} />
           New Booking
         </button>
@@ -227,8 +227,8 @@ export default function BookingsPage() {
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Upcoming" value={upcoming} icon={CalendarDays} color="bg-[#95d1d1]/15 text-[#95d1d1]" />
-        <StatCard label="Pending" value={pending} icon={Clock} color="bg-[#ffb780]/15 text-[#ffb780]" />
+        <StatCard label="Upcoming" value={upcoming} icon={CalendarDays} color="bg-emerald-400/15 text-emerald-400" />
+        <StatCard label="Pending" value={pending} icon={Clock} color="bg-primary/15 text-primary" />
         <StatCard label="Completed" value={completed} icon={CheckCircle2} color="bg-emerald-500/15 text-emerald-400" />
       </div>
 

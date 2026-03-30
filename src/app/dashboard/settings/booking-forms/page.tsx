@@ -240,9 +240,9 @@ export default function BookingFormsPage() {
 
           {/* Phone mockup — compact */}
           <div className="mx-auto w-[280px]">
-            <div className="rounded-[2rem] border-[3px] border-[#373433] bg-[#151312] p-1.5 shadow-2xl">
+            <div className="rounded-[2rem] border-[3px] border-[#373433] bg-background p-1.5 shadow-2xl">
               {/* Notch */}
-              <div className="mx-auto mb-1.5 h-4 w-24 rounded-full bg-[#151312] border border-outline-variant/20" />
+              <div className="mx-auto mb-1.5 h-4 w-24 rounded-full bg-background border border-outline-variant/20" />
 
               {/* Screen */}
               <div className="rounded-[1.5rem] bg-white overflow-hidden" style={{ height: 440 }}>
@@ -331,7 +331,7 @@ export default function BookingFormsPage() {
                   </div>
 
                   {/* CTA */}
-                  <button className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3 text-[12px] font-bold text-[#4e2600]">
+                  <button className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3 text-[12px] font-bold text-on-primary">
                     Continue to Step 2
                   </button>
                 </div>
@@ -471,7 +471,7 @@ export default function BookingFormsPage() {
             <Link2 size={14} />
             Preview Link
           </button>
-          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2 text-xs font-bold text-[#4e2600] transition-opacity hover:opacity-90">
+          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2 text-xs font-bold text-on-primary transition-opacity hover:opacity-90">
             <Rocket size={14} />
             Publish Changes
           </button>

@@ -86,15 +86,15 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
       <div>
         <Link
           href={`/dashboard/project/${id}`}
-          className="inline-flex items-center gap-1.5 text-sm text-[#a18d80] hover:text-[#ffb780] transition-colors mb-4"
+          className="inline-flex items-center gap-1.5 text-sm text-on-surface-variant hover:text-primary transition-colors mb-4"
         >
           <ArrowLeft size={16} />
           <span>Back to project</span>
         </Link>
-        <h1 className="font-headline text-3xl italic font-extrabold text-[#e7e1df]">
+        <h1 className="font-headline text-3xl italic font-extrabold text-on-surface">
           Batch Rename
         </h1>
-        <p className="mt-1 text-sm text-[#d9c2b4]">
+        <p className="mt-1 text-sm text-on-surface-variant">
           Build a naming template and preview how your files will be renamed
         </p>
       </div>
@@ -103,17 +103,17 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
         {/* Left column: Template builder + Options */}
         <div className="col-span-12 lg:col-span-7 space-y-6">
           {/* Template Builder */}
-          <div className="rounded-2xl border border-[#534439]/30 bg-[#1d1b1a] p-6">
+          <div className="rounded-2xl border border-outline-variant/30 bg-surface p-6">
             <div className="flex items-center gap-2 mb-5">
-              <Type size={18} className="text-[#ffb780]" />
-              <h2 className="font-headline font-bold text-lg text-[#e7e1df]">
+              <Type size={18} className="text-primary" />
+              <h2 className="font-headline font-bold text-lg text-on-surface">
                 Template Builder
               </h2>
             </div>
 
             {/* Token pills */}
             <div className="mb-4">
-              <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]/60 block mb-2">
+              <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60 block mb-2">
                 Available Tokens
               </span>
               <div className="flex flex-wrap gap-2">
@@ -121,11 +121,11 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                   <button
                     key={token.value}
                     onClick={() => insertToken(token.value)}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#2c2928] px-3 py-1.5 text-xs font-medium text-[#ffb780] ring-1 ring-[#534439]/40 transition-all hover:bg-[#373433] hover:ring-[#ffb780]/30 active:scale-95"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-surface-container px-3 py-1.5 text-xs font-medium text-primary ring-1 ring-[#534439]/40 transition-all hover:bg-surface-highest hover:ring-[#ffb780]/30 active:scale-95"
                   >
                     {token.icon}
                     <span>{token.label}</span>
-                    <span className="text-[#a18d80] font-mono text-[10px]">{token.value}</span>
+                    <span className="text-on-surface-variant font-mono text-[10px]">{token.value}</span>
                   </button>
                 ))}
               </div>
@@ -133,7 +133,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
 
             {/* Template input */}
             <div className="space-y-1.5">
-              <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]/60">
+              <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
                 Naming Pattern
               </span>
               <input
@@ -141,25 +141,25 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                 type="text"
                 value={template}
                 onChange={(e) => setTemplate(e.target.value)}
-                className="w-full rounded-xl bg-[#151312] px-5 py-4 text-lg font-mono text-[#e7e1df] outline-none ring-1 ring-[#534439]/40 focus:ring-[#ffb780]/50 transition-shadow"
+                className="w-full rounded-xl bg-background px-5 py-4 text-lg font-mono text-on-surface outline-none ring-1 ring-[#534439]/40 focus:ring-[#ffb780]/50 transition-shadow"
                 placeholder="Enter naming pattern..."
               />
-              <p className="text-[11px] text-[#a18d80]">
+              <p className="text-[11px] text-on-surface-variant">
                 Use tokens above or type directly. Example: ProjectName_{'{category}'}_{'{n}'}
               </p>
             </div>
           </div>
 
           {/* Options */}
-          <div className="rounded-2xl border border-[#534439]/30 bg-[#1d1b1a] p-6">
-            <h2 className="font-headline font-bold text-lg text-[#e7e1df] mb-5">
+          <div className="rounded-2xl border border-outline-variant/30 bg-surface p-6">
+            <h2 className="font-headline font-bold text-lg text-on-surface mb-5">
               Options
             </h2>
 
             <div className="grid grid-cols-2 gap-5">
               {/* Start number */}
               <div className="space-y-1.5">
-                <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]/60">
+                <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
                   Start Number
                 </span>
                 <div className="flex items-center gap-2">
@@ -168,18 +168,18 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                     value={startNumber}
                     onChange={(e) => setStartNumber(Number(e.target.value))}
                     min={0}
-                    className="w-full rounded-lg bg-[#151312] px-4 py-2.5 text-sm text-[#e7e1df] outline-none ring-1 ring-[#534439]/40 focus:ring-[#ffb780]/50"
+                    className="w-full rounded-lg bg-background px-4 py-2.5 text-sm text-on-surface outline-none ring-1 ring-[#534439]/40 focus:ring-[#ffb780]/50"
                   />
                   <div className="flex flex-col">
                     <button
                       onClick={() => setStartNumber((n) => n + 1)}
-                      className="text-[#a18d80] hover:text-[#ffb780] transition-colors"
+                      className="text-on-surface-variant hover:text-primary transition-colors"
                     >
                       <ChevronUp size={14} />
                     </button>
                     <button
                       onClick={() => setStartNumber((n) => Math.max(0, n - 1))}
-                      className="text-[#a18d80] hover:text-[#ffb780] transition-colors"
+                      className="text-on-surface-variant hover:text-primary transition-colors"
                     >
                       <ChevronDown size={14} />
                     </button>
@@ -189,7 +189,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
 
               {/* Padding */}
               <div className="space-y-1.5">
-                <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]/60">
+                <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
                   Number Padding
                 </span>
                 <div className="flex gap-2">
@@ -199,8 +199,8 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                       onClick={() => setPadding(p)}
                       className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                         padding === p
-                          ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600]'
-                          : 'bg-[#151312] text-[#d9c2b4] ring-1 ring-[#534439]/40 hover:ring-[#ffb780]/30'
+                          ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary'
+                          : 'bg-background text-on-surface-variant ring-1 ring-[#534439]/40 hover:ring-[#ffb780]/30'
                       }`}
                     >
                       {p} digits
@@ -211,7 +211,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
 
               {/* Case option */}
               <div className="space-y-1.5">
-                <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]/60">
+                <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
                   Case
                 </span>
                 <div className="flex gap-2">
@@ -221,8 +221,8 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                       onClick={() => setCaseOption(opt)}
                       className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                         caseOption === opt
-                          ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600]'
-                          : 'bg-[#151312] text-[#d9c2b4] ring-1 ring-[#534439]/40 hover:ring-[#ffb780]/30'
+                          ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary'
+                          : 'bg-background text-on-surface-variant ring-1 ring-[#534439]/40 hover:ring-[#ffb780]/30'
                       }`}
                     >
                       {opt}
@@ -233,14 +233,14 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
 
               {/* Include extension toggle */}
               <div className="space-y-1.5">
-                <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]/60">
+                <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
                   Include Extension
                 </span>
                 <div className="flex items-center gap-3 pt-1">
                   <button
                     onClick={() => setIncludeExtension(!includeExtension)}
                     className={`relative h-6 w-11 rounded-full transition-colors ${
-                      includeExtension ? 'bg-[#ffb780]' : 'bg-[#373433]'
+                      includeExtension ? 'bg-primary' : 'bg-surface-highest'
                     }`}
                   >
                     <span
@@ -249,7 +249,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                       }`}
                     />
                   </button>
-                  <span className="text-sm text-[#d9c2b4]">
+                  <span className="text-sm text-on-surface-variant">
                     {includeExtension ? 'Appending .jpg' : 'No extension'}
                   </span>
                 </div>
@@ -258,24 +258,24 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
           </div>
 
           {/* Stats + Actions */}
-          <div className="rounded-2xl border border-[#534439]/30 bg-[#1d1b1a] p-6">
+          <div className="rounded-2xl border border-outline-variant/30 bg-surface p-6">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <RotateCcw size={16} className="text-[#95d1d1]" />
-                <span className="text-sm text-[#e7e1df]">
-                  Renaming <span className="font-bold text-[#ffb780]">248</span> files across{' '}
-                  <span className="font-bold text-[#ffb780]">6</span> categories
+                <RotateCcw size={16} className="text-emerald-400" />
+                <span className="text-sm text-on-surface">
+                  Renaming <span className="font-bold text-primary">248</span> files across{' '}
+                  <span className="font-bold text-primary">6</span> categories
                 </span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <button className="rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-8 py-3 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
+              <button className="rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-8 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
                 Apply Rename
               </button>
               <Link
                 href={`/dashboard/project/${id}`}
-                className="rounded-xl border border-[#534439]/40 px-8 py-3 text-sm font-medium text-[#d9c2b4] transition-colors hover:border-[#ffb780]/30 hover:text-[#ffb780]"
+                className="rounded-xl border border-outline-variant/40 px-8 py-3 text-sm font-medium text-on-surface-variant transition-colors hover:border-primary/30 hover:text-primary"
               >
                 Cancel
               </Link>
@@ -285,21 +285,21 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
 
         {/* Right column: Live Preview */}
         <div className="col-span-12 lg:col-span-5">
-          <div className="rounded-2xl border border-[#534439]/30 bg-[#1d1b1a] p-6 sticky top-6">
-            <h2 className="font-headline font-bold text-lg text-[#e7e1df] mb-1">
+          <div className="rounded-2xl border border-outline-variant/30 bg-surface p-6 sticky top-6">
+            <h2 className="font-headline font-bold text-lg text-on-surface mb-1">
               Live Preview
             </h2>
-            <p className="text-xs text-[#a18d80] mb-5">
+            <p className="text-xs text-on-surface-variant mb-5">
               Showing how your files will be renamed
             </p>
 
             <div className="space-y-0">
               {/* Column headers */}
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]/60">
+                <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
                   Before
                 </span>
-                <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]/60">
+                <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
                   After
                 </span>
               </div>
@@ -309,18 +309,18 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                 <div
                   key={idx}
                   className={`grid grid-cols-2 gap-3 py-2.5 ${
-                    idx !== MOCK_FILES.length - 1 ? 'border-b border-[#534439]/20' : ''
+                    idx !== MOCK_FILES.length - 1 ? 'border-b border-outline-variant/20' : ''
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#a18d80]/40 shrink-0" />
-                    <span className="text-xs font-mono text-[#a18d80] truncate">
+                    <span className="text-xs font-mono text-on-surface-variant truncate">
                       {file.before}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#95d1d1] shrink-0" />
-                    <span className="text-xs font-mono text-[#e7e1df] truncate">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                    <span className="text-xs font-mono text-on-surface truncate">
                       {file.after}
                     </span>
                   </div>
@@ -329,8 +329,8 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
             </div>
 
             {/* Category breakdown */}
-            <div className="mt-5 pt-4 border-t border-[#534439]/30">
-              <span className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]/60 block mb-3">
+            <div className="mt-5 pt-4 border-t border-outline-variant/30">
+              <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60 block mb-3">
                 Category Breakdown
               </span>
               <div className="flex flex-wrap gap-2">
@@ -344,10 +344,10 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                 ].map((cat) => (
                   <span
                     key={cat.name}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-[#2c2928] px-2.5 py-1 text-[11px]"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-surface-container px-2.5 py-1 text-[11px]"
                   >
-                    <span className="text-[#d9c2b4]">{cat.name}</span>
-                    <span className="text-[#a18d80]">{cat.count}</span>
+                    <span className="text-on-surface-variant">{cat.name}</span>
+                    <span className="text-on-surface-variant">{cat.count}</span>
                   </span>
                 ))}
               </div>

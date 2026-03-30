@@ -29,16 +29,16 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
   const balanceDue = fullTotal - depositAmount
 
   return (
-    <div className="min-h-screen bg-[#151312] text-[#e7e1df]">
+    <div className="min-h-screen bg-background text-on-surface">
       {/* ============================================================ */}
       {/*  TOP NAV                                                     */}
       {/* ============================================================ */}
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#534439]/30 bg-[#151312]/90 px-6 backdrop-blur-md">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-outline-variant/30 bg-background/90 px-6 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441]">
-            <Camera size={15} className="text-[#4e2600]" />
+            <Camera size={15} className="text-on-primary" />
           </div>
-          <span className="font-headline font-black text-lg tracking-tighter text-[#ffb780]">
+          <span className="font-headline font-black text-lg tracking-tighter text-primary">
             View1 Sort
           </span>
         </div>
@@ -46,7 +46,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
           {['Overview', 'Sorting', 'Selection', 'Delivery'].map((tab) => (
             <span
               key={tab}
-              className="cursor-default px-3 py-1.5 text-sm font-medium text-[#a18d80]/50"
+              className="cursor-default px-3 py-1.5 text-sm font-medium text-on-surface-variant/50"
             >
               {tab}
             </span>
@@ -61,8 +61,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
       <main className="mx-auto max-w-2xl px-6 py-10">
         {/* Project header */}
         <div className="mb-8 text-center">
-          <h1 className="font-headline text-2xl font-bold text-[#e7e1df]">Johnson Wedding</h1>
-          <p className="mt-1 text-sm text-[#a18d80]">by Alex Rivera Photography</p>
+          <h1 className="font-headline text-2xl font-bold text-on-surface">Johnson Wedding</h1>
+          <p className="mt-1 text-sm text-on-surface-variant">by Alex Rivera Photography</p>
         </div>
 
         {/* Payment type selector */}
@@ -71,8 +71,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             onClick={() => setPaymentType('full')}
             className={`flex-1 rounded-xl border py-3 text-sm font-semibold transition-all ${
               paymentType === 'full'
-                ? 'border-[#ffb780] bg-[#ffb780]/10 text-[#ffb780]'
-                : 'border-[#534439]/50 bg-[#1d1b1a] text-[#a18d80] hover:border-[#534439]'
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-outline-variant/50 bg-surface text-on-surface-variant hover:border-outline-variant'
             }`}
           >
             <div className="flex items-center justify-center gap-2">
@@ -84,8 +84,8 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             onClick={() => setPaymentType('deposit')}
             className={`flex-1 rounded-xl border py-3 text-sm font-semibold transition-all ${
               paymentType === 'deposit'
-                ? 'border-[#ffb780] bg-[#ffb780]/10 text-[#ffb780]'
-                : 'border-[#534439]/50 bg-[#1d1b1a] text-[#a18d80] hover:border-[#534439]'
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-outline-variant/50 bg-surface text-on-surface-variant hover:border-outline-variant'
             }`}
           >
             <div className="flex items-center justify-center gap-2">
@@ -96,37 +96,37 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         </div>
 
         {/* Order summary card */}
-        <div className="mb-6 rounded-xl border border-[#534439]/40 bg-[#1d1b1a] p-5">
-          <h2 className="font-label text-[10px] uppercase tracking-widest text-[#a18d80] mb-4">
+        <div className="mb-6 rounded-xl border border-outline-variant/40 bg-surface p-5">
+          <h2 className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-4">
             Order Summary
           </h2>
-          <p className="text-sm text-[#d9c2b4] mb-4">
+          <p className="text-sm text-on-surface-variant mb-4">
             Full access to the Johnson Wedding gallery — 428 curated photos with download rights and print licensing.
           </p>
-          <div className="space-y-3 border-t border-[#534439]/30 pt-4">
+          <div className="space-y-3 border-t border-outline-variant/30 pt-4">
             <div className="flex justify-between text-sm">
-              <span className="text-[#a18d80]">Gallery Fee</span>
-              <span className="text-[#e7e1df]">${galleryFee.toLocaleString()}</span>
+              <span className="text-on-surface-variant">Gallery Fee</span>
+              <span className="text-on-surface">${galleryFee.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-[#a18d80]">Platform Fee</span>
-              <span className="text-[#e7e1df]">${platformFee}</span>
+              <span className="text-on-surface-variant">Platform Fee</span>
+              <span className="text-on-surface">${platformFee}</span>
             </div>
-            <div className="border-t border-[#534439]/30 pt-3">
+            <div className="border-t border-outline-variant/30 pt-3">
               {paymentType === 'full' ? (
                 <div className="flex justify-between text-base font-bold">
-                  <span className="text-[#e7e1df]">Total</span>
-                  <span className="text-[#ffb780]">${fullTotal.toLocaleString()}</span>
+                  <span className="text-on-surface">Total</span>
+                  <span className="text-primary">${fullTotal.toLocaleString()}</span>
                 </div>
               ) : (
                 <>
                   <div className="flex justify-between text-base font-bold">
-                    <span className="text-[#e7e1df]">Deposit Due Now</span>
-                    <span className="text-[#ffb780]">${depositAmount.toLocaleString()}</span>
+                    <span className="text-on-surface">Deposit Due Now</span>
+                    <span className="text-primary">${depositAmount.toLocaleString()}</span>
                   </div>
                   <div className="mt-2 flex justify-between text-sm">
-                    <span className="text-[#a18d80]">Balance due on delivery</span>
-                    <span className="text-[#a18d80]">${balanceDue.toLocaleString()}</span>
+                    <span className="text-on-surface-variant">Balance due on delivery</span>
+                    <span className="text-on-surface-variant">${balanceDue.toLocaleString()}</span>
                   </div>
                 </>
               )}
@@ -135,12 +135,12 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         </div>
 
         {/* Payment form */}
-        <div className="mb-6 rounded-xl border border-[#534439]/40 bg-[#1d1b1a] p-5">
+        <div className="mb-6 rounded-xl border border-outline-variant/40 bg-surface p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]">
+            <h2 className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">
               Payment Details
             </h2>
-            <div className="flex items-center gap-1.5 text-[#a18d80]/60">
+            <div className="flex items-center gap-1.5 text-on-surface-variant/60">
               <Shield size={12} />
               <span className="text-[10px]">Powered by Stripe</span>
             </div>
@@ -149,18 +149,18 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
           <div className="space-y-4">
             {/* Card number */}
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-[#d9c2b4]">
+              <label className="mb-1.5 block text-xs font-medium text-on-surface-variant">
                 Card Number
               </label>
               <div className="relative">
                 <CreditCard
                   size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a18d80]/50"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50"
                 />
                 <input
                   type="text"
                   placeholder="4242 4242 4242 4242"
-                  className="h-11 w-full rounded-lg border border-[#534439]/50 bg-[#211f1e] pl-10 pr-3 text-sm text-[#e7e1df] placeholder-[#a18d80]/40 outline-none transition-colors focus:border-[#ffb780]/50 focus:ring-1 focus:ring-[#ffb780]/20"
+                  className="h-11 w-full rounded-lg border border-outline-variant/50 bg-surface-container pl-10 pr-3 text-sm text-on-surface placeholder-[#a18d80]/40 outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-[#ffb780]/20"
                 />
               </div>
             </div>
@@ -168,36 +168,36 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
             {/* Expiry + CVC row */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#d9c2b4]">
+                <label className="mb-1.5 block text-xs font-medium text-on-surface-variant">
                   Expiry Date
                 </label>
                 <input
                   type="text"
                   placeholder="MM / YY"
-                  className="h-11 w-full rounded-lg border border-[#534439]/50 bg-[#211f1e] px-3 text-sm text-[#e7e1df] placeholder-[#a18d80]/40 outline-none transition-colors focus:border-[#ffb780]/50 focus:ring-1 focus:ring-[#ffb780]/20"
+                  className="h-11 w-full rounded-lg border border-outline-variant/50 bg-surface-container px-3 text-sm text-on-surface placeholder-[#a18d80]/40 outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-[#ffb780]/20"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#d9c2b4]">
+                <label className="mb-1.5 block text-xs font-medium text-on-surface-variant">
                   CVC
                 </label>
                 <input
                   type="text"
                   placeholder="123"
-                  className="h-11 w-full rounded-lg border border-[#534439]/50 bg-[#211f1e] px-3 text-sm text-[#e7e1df] placeholder-[#a18d80]/40 outline-none transition-colors focus:border-[#ffb780]/50 focus:ring-1 focus:ring-[#ffb780]/20"
+                  className="h-11 w-full rounded-lg border border-outline-variant/50 bg-surface-container px-3 text-sm text-on-surface placeholder-[#a18d80]/40 outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-[#ffb780]/20"
                 />
               </div>
             </div>
 
             {/* Name */}
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-[#d9c2b4]">
+              <label className="mb-1.5 block text-xs font-medium text-on-surface-variant">
                 Name on Card
               </label>
               <input
                 type="text"
                 placeholder="Sarah Johnson"
-                className="h-11 w-full rounded-lg border border-[#534439]/50 bg-[#211f1e] px-3 text-sm text-[#e7e1df] placeholder-[#a18d80]/40 outline-none transition-colors focus:border-[#ffb780]/50 focus:ring-1 focus:ring-[#ffb780]/20"
+                className="h-11 w-full rounded-lg border border-outline-variant/50 bg-surface-container px-3 text-sm text-on-surface placeholder-[#a18d80]/40 outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-[#ffb780]/20"
               />
             </div>
           </div>
@@ -212,18 +212,18 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
               onChange={(e) => setTermsAccepted(e.target.checked)}
               className="peer sr-only"
             />
-            <div className="h-4 w-4 rounded border border-[#534439] bg-[#211f1e] transition-colors peer-checked:border-[#ffb780] peer-checked:bg-[#ffb780]" />
+            <div className="h-4 w-4 rounded border border-outline-variant bg-surface-container transition-colors peer-checked:border-primary peer-checked:bg-primary" />
             {termsAccepted && (
-              <Check size={10} className="absolute inset-0 m-auto text-[#4e2600]" />
+              <Check size={10} className="absolute inset-0 m-auto text-on-primary" />
             )}
           </div>
-          <span className="text-xs leading-relaxed text-[#a18d80]">
+          <span className="text-xs leading-relaxed text-on-surface-variant">
             I agree to the{' '}
-            <Link href="#" className="text-[#ffb780] underline underline-offset-2">
+            <Link href="#" className="text-primary underline underline-offset-2">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link href="#" className="text-[#ffb780] underline underline-offset-2">
+            <Link href="#" className="text-primary underline underline-offset-2">
               Privacy Policy
             </Link>
             .
@@ -233,7 +233,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         {/* Submit button */}
         <button
           disabled={!termsAccepted}
-          className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3.5 font-headline font-bold text-[#4e2600] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3.5 font-headline font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Complete Payment{' '}
           {paymentType === 'full'
@@ -242,7 +242,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
         </button>
 
         {/* Security notice */}
-        <div className="mt-4 flex items-center justify-center gap-2 text-[#a18d80]/60">
+        <div className="mt-4 flex items-center justify-center gap-2 text-on-surface-variant/60">
           <Lock size={12} />
           <span className="text-[11px]">256-bit encryption &middot; Your payment is secure</span>
         </div>

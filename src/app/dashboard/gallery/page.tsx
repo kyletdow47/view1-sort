@@ -49,36 +49,36 @@ export default function GalleryPage() {
       {/* Header */}
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold font-headline tracking-tight text-[#e7e1df] mb-1">
+          <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface mb-1">
             Gallery
           </h1>
-          <p className="text-sm text-[#d9c2b4]">
+          <p className="text-sm text-on-surface-variant">
             428 photos sorted across 6 categories &middot; Johnson Wedding
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a18d80]" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
             <input
               type="text"
               placeholder="Search photos..."
-              className="bg-[#100e0d] border-none rounded-lg pl-9 pr-4 py-2 text-sm text-[#e7e1df] placeholder-[#534439] focus:ring-1 focus:ring-[#ffb780]/20 w-56"
+              className="bg-[#100e0d] border-none rounded-lg pl-9 pr-4 py-2 text-sm text-on-surface placeholder-[#534439] focus:ring-1 focus:ring-[#ffb780]/20 w-56"
             />
           </div>
-          <button className="flex items-center gap-2 px-3 py-2 bg-[#2c2928] rounded-lg text-sm text-[#d9c2b4] hover:bg-[#373433] transition-colors">
+          <button className="flex items-center gap-2 px-3 py-2 bg-surface-container rounded-lg text-sm text-on-surface-variant hover:bg-surface-highest transition-colors">
             <Filter size={14} />
             Filter
           </button>
           <div className="flex bg-[#100e0d] rounded-lg p-0.5">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-[#2c2928] text-[#ffb780]' : 'text-[#a18d80]'}`}
+              className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-surface-container text-primary' : 'text-on-surface-variant'}`}
             >
               <Grid3X3 size={14} />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-[#2c2928] text-[#ffb780]' : 'text-[#a18d80]'}`}
+              className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-surface-container text-primary' : 'text-on-surface-variant'}`}
             >
               <List size={14} />
             </button>
@@ -94,12 +94,12 @@ export default function GalleryPage() {
             onClick={() => setActiveCategory(cat.label)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
               activeCategory === cat.label
-                ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600]'
-                : 'bg-[#2c2928] text-[#d9c2b4] hover:bg-[#373433]'
+                ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary'
+                : 'bg-surface-container text-on-surface-variant hover:bg-surface-highest'
             }`}
           >
             {cat.label}
-            <span className={`text-xs ${activeCategory === cat.label ? 'text-[#4e2600]/70' : 'text-[#a18d80]'}`}>
+            <span className={`text-xs ${activeCategory === cat.label ? 'text-on-primary/70' : 'text-on-surface-variant'}`}>
               {cat.count}
             </span>
           </button>
@@ -107,23 +107,23 @@ export default function GalleryPage() {
       </div>
 
       {/* Stats Bar */}
-      <div className="flex items-center gap-6 py-3 border-y border-[#534439]/20">
+      <div className="flex items-center gap-6 py-3 border-y border-outline-variant/20">
         <div className="flex items-center gap-2">
-          <Eye size={14} className="text-[#a18d80]" />
-          <span className="text-xs text-[#a18d80]">127 gallery views</span>
+          <Eye size={14} className="text-on-surface-variant" />
+          <span className="text-xs text-on-surface-variant">127 gallery views</span>
         </div>
         <div className="flex items-center gap-2">
-          <Download size={14} className="text-[#a18d80]" />
-          <span className="text-xs text-[#a18d80]">34 downloads</span>
+          <Download size={14} className="text-on-surface-variant" />
+          <span className="text-xs text-on-surface-variant">34 downloads</span>
         </div>
         <div className="flex items-center gap-2">
-          <Star size={14} className="text-[#a18d80]" />
-          <span className="text-xs text-[#a18d80]">18 starred by client</span>
+          <Star size={14} className="text-on-surface-variant" />
+          <span className="text-xs text-on-surface-variant">18 starred by client</span>
         </div>
         <div className="ml-auto">
           <Link
             href="/gallery/demo-1"
-            className="text-xs font-medium text-[#ffb780] hover:underline"
+            className="text-xs font-medium text-primary hover:underline"
           >
             Open Client Gallery View →
           </Link>
@@ -147,11 +147,11 @@ export default function GalleryPage() {
               {/* Badges */}
               <div className="absolute top-3 left-3 flex gap-1.5">
                 {photo.edited ? (
-                  <span className="bg-[#0c5252]/80 backdrop-blur-sm text-[#95d1d1] text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="bg-[#0c5252]/80 backdrop-blur-sm text-emerald-400 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                     Edited
                   </span>
                 ) : (
-                  <span className="bg-[#373433]/80 backdrop-blur-sm text-[#a18d80] text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="bg-surface-highest/80 backdrop-blur-sm text-on-surface-variant text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                     Raw
                   </span>
                 )}
@@ -159,7 +159,7 @@ export default function GalleryPage() {
               {/* Star */}
               {photo.starred && (
                 <div className="absolute top-3 right-3">
-                  <Star size={14} className="text-[#ffb780]" fill="#ffb780" />
+                  <Star size={14} className="text-primary" fill="#ffb780" />
                 </div>
               )}
               {/* Hover overlay */}
@@ -170,8 +170,8 @@ export default function GalleryPage() {
               </div>
             </div>
             <div className="mt-2 px-0.5">
-              <p className="font-label text-xs text-[#e7e1df] truncate">{photo.name}</p>
-              <p className="font-label text-[10px] text-[#a18d80]">{photo.exif}</p>
+              <p className="font-label text-xs text-on-surface truncate">{photo.name}</p>
+              <p className="font-label text-[10px] text-on-surface-variant">{photo.exif}</p>
             </div>
           </Link>
         ))}

@@ -51,14 +51,14 @@ const MOCK_EDIT_REQUESTS: EditRequest[] = [
 function StatusBadge({ status }: { status: EditRequest['status'] }) {
   if (status === 'delivered') {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#95d1d1]/15 px-3 py-1 text-[11px] font-semibold text-[#95d1d1]">
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/15 px-3 py-1 text-[11px] font-semibold text-emerald-400">
         <CheckCircle2 size={12} />
         Delivered
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#ffb780]/15 px-3 py-1 text-[11px] font-semibold text-[#ffb780]">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-[11px] font-semibold text-primary">
       In Progress
     </span>
   )
@@ -70,15 +70,15 @@ export default function EditsPage({ params }: EditsPageProps) {
   const hasEdits = MOCK_EDIT_REQUESTS.length > 0
 
   return (
-    <div className="min-h-screen bg-[#151312]">
+    <div className="min-h-screen bg-background">
       {/* Top Nav */}
-      <nav className="border-b border-[#534439]/30 bg-[#1d1b1a]">
+      <nav className="border-b border-outline-variant/30 bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441]">
-              <Camera size={16} className="text-[#4e2600]" />
+              <Camera size={16} className="text-on-primary" />
             </div>
-            <span className="text-sm font-bold text-[#e7e1df]">PhotoSorter</span>
+            <span className="text-sm font-bold text-on-surface">PhotoSorter</span>
           </div>
           <div className="flex items-center gap-1">
             {NAV_TABS.map((tab) => (
@@ -86,8 +86,8 @@ export default function EditsPage({ params }: EditsPageProps) {
                 key={tab}
                 className={`rounded-lg px-4 py-2 text-xs font-medium transition-colors ${
                   tab === activeTab
-                    ? 'bg-[#ffb780]/15 text-[#ffb780]'
-                    : 'text-[#d9c2b4]/60 hover:text-[#d9c2b4]'
+                    ? 'bg-primary/15 text-primary'
+                    : 'text-on-surface-variant/60 hover:text-on-surface-variant'
                 }`}
               >
                 {tab}
@@ -101,11 +101,11 @@ export default function EditsPage({ params }: EditsPageProps) {
       <div className="mx-auto max-w-4xl px-6 py-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-headline text-3xl font-extrabold italic text-[#e7e1df]">
+          <h1 className="font-headline text-3xl font-extrabold italic text-on-surface">
             Edited Photos
           </h1>
-          <p className="mt-1 text-sm text-[#d9c2b4]/70">Johnson Wedding</p>
-          <p className="mt-2 text-xs text-[#d9c2b4]/50">
+          <p className="mt-1 text-sm text-on-surface-variant/70">Johnson Wedding</p>
+          <p className="mt-2 text-xs text-on-surface-variant/50">
             {MOCK_EDIT_REQUESTS.filter((r) => r.status === 'delivered').length} edit
             requests delivered
           </p>
@@ -118,12 +118,12 @@ export default function EditsPage({ params }: EditsPageProps) {
               {MOCK_EDIT_REQUESTS.map((request) => (
                 <div
                   key={request.id}
-                  className="rounded-2xl border border-[#534439]/30 bg-[#1d1b1a] p-6"
+                  className="rounded-2xl border border-outline-variant/30 bg-surface p-6"
                 >
                   {/* Card Header */}
                   <div className="mb-5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-base font-bold text-[#e7e1df]">
+                      <h3 className="text-base font-bold text-on-surface">
                         {request.title}
                       </h3>
                       <StatusBadge status={request.status} />
@@ -133,13 +133,13 @@ export default function EditsPage({ params }: EditsPageProps) {
                   {/* Before / After Comparison */}
                   <div className="flex items-stretch gap-0">
                     {/* Original */}
-                    <div className="flex-1 rounded-l-xl border border-[#534439]/20 bg-[#211f1e] p-1">
-                      <div className="flex aspect-[4/3] flex-col items-center justify-center rounded-lg bg-[#2c2928]">
-                        <ImageIcon size={32} className="text-[#a18d80]/40" />
-                        <span className="mt-2 text-[11px] font-medium text-[#a18d80]/60">
+                    <div className="flex-1 rounded-l-xl border border-outline-variant/20 bg-surface-container p-1">
+                      <div className="flex aspect-[4/3] flex-col items-center justify-center rounded-lg bg-surface-container">
+                        <ImageIcon size={32} className="text-on-surface-variant/40" />
+                        <span className="mt-2 text-[11px] font-medium text-on-surface-variant/60">
                           Original
                         </span>
-                        <span className="mt-0.5 text-[10px] text-[#a18d80]/40">
+                        <span className="mt-0.5 text-[10px] text-on-surface-variant/40">
                           {request.originalLabel}
                         </span>
                       </div>
@@ -148,19 +148,19 @@ export default function EditsPage({ params }: EditsPageProps) {
                     {/* Slider Divider */}
                     <div className="relative z-10 flex w-8 flex-col items-center justify-center">
                       <div className="h-full w-px bg-[#534439]/50" />
-                      <div className="absolute flex h-8 w-8 items-center justify-center rounded-full border border-[#534439]/50 bg-[#2c2928]">
-                        <GripVertical size={14} className="text-[#a18d80]/60" />
+                      <div className="absolute flex h-8 w-8 items-center justify-center rounded-full border border-outline-variant/50 bg-surface-container">
+                        <GripVertical size={14} className="text-on-surface-variant/60" />
                       </div>
                     </div>
 
                     {/* Edited */}
-                    <div className="flex-1 rounded-r-xl border border-[#534439]/20 bg-[#211f1e] p-1">
-                      <div className="flex aspect-[4/3] flex-col items-center justify-center rounded-lg bg-[#2c2928]">
-                        <ImageIcon size={32} className="text-[#ffb780]/40" />
-                        <span className="mt-2 text-[11px] font-medium text-[#ffb780]/60">
+                    <div className="flex-1 rounded-r-xl border border-outline-variant/20 bg-surface-container p-1">
+                      <div className="flex aspect-[4/3] flex-col items-center justify-center rounded-lg bg-surface-container">
+                        <ImageIcon size={32} className="text-primary/40" />
+                        <span className="mt-2 text-[11px] font-medium text-primary/60">
                           Edited
                         </span>
-                        <span className="mt-0.5 text-[10px] text-[#ffb780]/40">
+                        <span className="mt-0.5 text-[10px] text-primary/40">
                           {request.editedLabel}
                         </span>
                       </div>
@@ -169,7 +169,7 @@ export default function EditsPage({ params }: EditsPageProps) {
 
                   {/* Download Button */}
                   <div className="mt-4 flex justify-end">
-                    <button className="flex items-center gap-2 rounded-lg border border-[#534439]/30 bg-[#2c2928] px-4 py-2 text-xs font-medium text-[#d9c2b4] transition-colors hover:border-[#ffb780]/30 hover:text-[#ffb780]">
+                    <button className="flex items-center gap-2 rounded-lg border border-outline-variant/30 bg-surface-container px-4 py-2 text-xs font-medium text-on-surface-variant transition-colors hover:border-primary/30 hover:text-primary">
                       <Download size={14} />
                       Download Edit
                     </button>
@@ -180,13 +180,13 @@ export default function EditsPage({ params }: EditsPageProps) {
 
             {/* Bottom Actions */}
             <div className="mt-10 flex flex-col items-center gap-4">
-              <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-8 py-3 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
+              <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-8 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
                 <Download size={16} />
                 Download All Edits
               </button>
               <a
                 href={`/gallery/${id}`}
-                className="flex items-center gap-1.5 text-xs text-[#d9c2b4]/60 transition-colors hover:text-[#ffb780]"
+                className="flex items-center gap-1.5 text-xs text-on-surface-variant/60 transition-colors hover:text-primary"
               >
                 <ArrowLeft size={14} />
                 Back to Gallery
@@ -195,12 +195,12 @@ export default function EditsPage({ params }: EditsPageProps) {
           </>
         ) : (
           /* Empty State */
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-[#534439]/20 bg-[#1d1b1a] py-20">
-            <ImageIcon size={48} className="text-[#a18d80]/30" />
-            <p className="mt-4 text-sm font-medium text-[#d9c2b4]/50">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-outline-variant/20 bg-surface py-20">
+            <ImageIcon size={48} className="text-on-surface-variant/30" />
+            <p className="mt-4 text-sm font-medium text-on-surface-variant/50">
               No edited photos yet
             </p>
-            <p className="mt-1 text-xs text-[#d9c2b4]/30">
+            <p className="mt-1 text-xs text-on-surface-variant/30">
               Edit requests will appear here once delivered
             </p>
           </div>

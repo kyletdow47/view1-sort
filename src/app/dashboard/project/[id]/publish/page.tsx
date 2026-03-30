@@ -184,7 +184,7 @@ export default function PublishPage() {
       <div>
         <h1 className="font-headline text-3xl italic font-extrabold text-on-surface flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441]">
-            <Send size={20} className="text-[#4e2600]" />
+            <Send size={20} className="text-on-primary" />
           </div>
           {published ? 'Gallery Published' : 'Publish Gallery'}
         </h1>
@@ -350,7 +350,7 @@ export default function PublishPage() {
         <button
           onClick={handlePublish}
           disabled={publishing || mediaCount === 0}
-          className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-4 font-headline font-bold text-lg text-[#4e2600] transition-opacity hover:opacity-90 shadow-lg shadow-[#d48441]/20 disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-4 font-headline font-bold text-lg text-on-primary transition-opacity hover:opacity-90 shadow-lg shadow-[#d48441]/20 disabled:opacity-50"
         >
           {publishing ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
           {publishing ? 'Publishing...' : 'Publish Gallery'}

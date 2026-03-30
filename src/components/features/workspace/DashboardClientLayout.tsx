@@ -31,6 +31,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useProfile } from '@/hooks/useProfile'
 import { useNotifications } from '@/hooks/useNotifications'
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher'
+import { useStorageQuota } from '@/hooks/useStorageQuota'
 
 import type { Notification as DBNotification } from '@/types/supabase'
 
@@ -310,6 +311,7 @@ export function DashboardClientLayout({
   const { user, signOut } = useAuth()
   const { profile } = useProfile()
   const { notifications, unreadCount, markAllRead, markRead } = useNotifications()
+  const quota = useStorageQuota(user?.id, profile?.tier ?? 'free')
 
   const inProject = isInsideProject(pathname)
   const inSorting = isSortingView(pathname)
@@ -433,6 +435,27 @@ export function DashboardClientLayout({
             </div>
           </div>
         </nav>
+
+        {/* Storage meter */}
+        {quota && (
+          <div className="mx-4 mb-3 space-y-1.5">
+            <div className="flex items-center justify-between text-[10px] text-on-surface-variant">
+              <span>Storage</span>
+              <span>{quota.usedFormatted} / {quota.totalFormatted}</span>
+            </div>
+            <div className="h-1 w-full overflow-hidden rounded-full bg-surface-high">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  quota.percent >= 90 ? 'bg-error' : quota.percent >= 70 ? 'bg-warning' : 'bg-primary'
+                }`}
+                style={{ width: `${quota.percent}%` }}
+              />
+            </div>
+            {quota.exceeded && (
+              <p className="text-[10px] text-error">Storage full — upgrade to continue uploading.</p>
+            )}
+          </div>
+        )}
 
         {/* Bottom: User + Settings + New Shoot */}
         <div className="px-2 pb-5 space-y-2">

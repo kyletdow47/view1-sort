@@ -207,7 +207,7 @@ export default function SettingsPage() {
                       onClick={() => setCurrency(c)}
                       className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
                         currency === c
-                          ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600]'
+                          ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary'
                           : 'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/20 hover:ring-primary/30'
                       }`}
                     >
@@ -311,7 +311,7 @@ export default function SettingsPage() {
               </ul>
 
               <div className="mt-6 space-y-2">
-                <button className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-2.5 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
+                <button className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
                   Manage Subscription
                 </button>
                 <button className="w-full rounded-xl border border-outline-variant/30 py-2.5 text-sm font-medium text-on-surface-variant transition-colors hover:border-primary/30 hover:text-primary">

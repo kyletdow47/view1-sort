@@ -102,14 +102,14 @@ function Card({
 
 const projectStatusColors: Record<string, string> = {
   completed: 'bg-emerald-500/15 text-emerald-400',
-  in_progress: 'bg-[#ffb780]/15 text-[#ffb780]',
-  delivered: 'bg-[#95d1d1]/15 text-[#95d1d1]',
+  in_progress: 'bg-primary/15 text-primary',
+  delivered: 'bg-emerald-400/15 text-emerald-400',
 }
 
 const paymentStatusColors: Record<string, string> = {
   paid: 'text-emerald-400',
-  pending: 'text-[#ffb780]',
-  refunded: 'text-[#ffb4a5]',
+  pending: 'text-primary',
+  refunded: 'text-rose-400',
 }
 
 /* ------------------------------------------------------------------ */
@@ -134,7 +134,7 @@ export default function ClientProfilePage() {
       <Card>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffb780] to-[#d48441] text-xl font-bold text-[#4e2600]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffb780] to-[#d48441] text-xl font-bold text-on-primary">
               {client.initials}
             </div>
             <div>
@@ -142,7 +142,7 @@ export default function ClientProfilePage() {
                 <h1 className="font-headline text-2xl font-extrabold text-on-surface">
                   {client.name}
                 </h1>
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#ffb780]/15 px-3 py-1 text-xs font-bold text-[#ffb780]">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary">
                   <Crown size={12} />
                   {client.tier}
                 </span>

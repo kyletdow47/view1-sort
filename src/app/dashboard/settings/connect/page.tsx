@@ -176,7 +176,7 @@ export default function StripeConnectPage() {
                 />
               </div>
 
-              <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-8 py-3 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
+              <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-8 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
                 <CreditCard size={16} />
                 Connect with Stripe
                 <ChevronRight size={16} />
@@ -222,7 +222,7 @@ export default function StripeConnectPage() {
                     onClick={() => setPayoutFreq(f)}
                     className={`flex-1 rounded-lg py-2 text-xs font-medium transition-colors ${
                       payoutFreq === f
-                        ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600]'
+                        ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary'
                         : 'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/20 hover:ring-primary/30'
                     }`}
                   >
