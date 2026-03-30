@@ -1,6 +1,6 @@
 # View1 Sort — Product Plan v2.0
 
-> Updated: 2026-03-30
+> Updated: 2026-03-30 (design review notes incorporated)
 > Status: Active
 > Vision: The AI-powered photographer OS — sort, deliver, and run your entire business in one place.
 
@@ -69,6 +69,22 @@ Upload → Smart Cull → AI Sort by Story → Vibe Preset → Lightroom Roundtr
 5. **Lightroom Roundtrip** — close app → edit → reopen → auto-sync. Edited version shown, original preserved.
 6. **AI Style Profile** — learns your taste across projects. Gets smarter over time.
 
+### Project Card Design
+Each project card shows:
+- Project name (large)
+- **Sub-tag line:** `{# sorted} · {filetype} · {client name}` — small, muted, below the project name
+- Status badge
+- Thumbnail strip or cover photo
+
+### Clients Module
+- Clicking a client opens their **full profile page** (not a drawer or modal)
+- **Client profile stats are activity-focused, not financial:**
+  - Active tasks
+  - Outreach history
+  - Upcoming shoots
+  - Pending actions
+  - No revenue/invoice data shown on the profile itself (that lives in Analytics/Invoices)
+
 ### Project Status Pipeline
 ```
 Draft
@@ -128,37 +144,45 @@ Photographer controls which stages apply per project (configured at offer setup)
 
 - Smart culling engine UI (review flagged photos before sort)
 - AI sort with shoot context (description + tags fed to classifier)
+- **Import button spans full width of the import box** — prominent, unmissable CTA
+- **Processing queue displays as photo thumbnails**, not a text list — photographer sees what's being processed in real time
 - Vibe preset builder — dedicated /dashboard/presets page with chat interface
 - 6 built-in niche presets (Wedding, Real Estate, Commercial, Fashion, Travel, Event)
-- Lightroom roundtrip sync (watch folder + auto-detect on app open)
+- **Lightroom roundtrip:** export with the same filename → View1 auto-detects the edited version on reopen, swaps it into the gallery, and re-optimizes category organization based on the edits
 - AI Style Profile (learns taste across projects, unlocks Personalized Mode)
 
-**Definition of done:** Photographer can describe a shoot, run AI sort with a preset, review culled photos, and see sorted categories in the gallery.
+**Definition of done:** Photographer can describe a shoot, run AI sort with a preset, review culled photos, see sorted categories in the gallery, export to Lightroom, and have edits automatically sync back.
 
 ---
 
 ### Phase 4 — Gallery & Delivery
 **Goal:** The most beautiful, functional gallery delivery experience in the industry.
 
-- Gallery — Netflix/Finder hybrid layout (horizontal rows that expand to collapsible sections)
+- **Gallery layout:** Sleek toggle-folder scroll layout — collapsible sections per category, smooth expand/collapse, not a flat grid
+- **Sorting & tags are editable in the gallery** — photographer can reassign photos to different categories, add/remove tags after sorting
 - 3-stage delivery flow (Preselection → Client Selection → Finals)
 - Photo comment system (threaded, with revision request categories)
 - Watermark configurator (logo upload, placement, size, opacity, live preview)
 - Download & payment gate (per-photo pricing, ZIP by category, Cloudflare delivery)
 
-**Definition of done:** Full end-to-end delivery flow works — photographer publishes, client selects, photographer re-uploads finals, client downloads ZIP.
+**Definition of done:** Full end-to-end delivery flow works — photographer publishes, client selects, photographer re-uploads finals, client downloads ZIP. Gallery categories are editable post-sort.
 
 ---
 
 ### Phase 5 — Client Experience
 **Goal:** Clients feel like they have a beautiful, dedicated space for their photos.
 
-- Client dashboard (/client — all projects, status tracking, pending actions)
 - Magic link + account flow (no-account gallery view, optional account for dashboard)
+- **Client dashboard layout:**
+  - **Interactive map** showing locations of all their shoots
+  - **Recent projects** in block list view
+  - **Pending tasks / notifications** panel on the right side
+  - **Gallery tab** — all delivered photos across projects in one place
+- **Client profile stats = activity-focused, not financial:** active tasks, outreach status, upcoming shoots, pending actions — no financial data shown to clients
 - Client mobile experience (full-featured mobile gallery + dashboard)
 - Project status visibility everywhere (timeline of stage completions)
 
-**Definition of done:** Client can receive magic link, view gallery, select photos, track status, and download finals — all on mobile.
+**Definition of done:** Client can receive magic link, view gallery, select photos, see an interactive map of shoot locations, track status, and download finals — all on mobile.
 
 ---
 
@@ -167,22 +191,33 @@ Photographer controls which stages apply per project (configured at offer setup)
 
 - Offer setup in profile creation (questions define default project workflow)
 - Contract + invoice flow (sign → auto-invoice → Stripe payment → project unlocks)
-- Package & product builder (session fees, photo counts, extras, licenses)
-- Booking forms by type (Wedding, Real Estate, Commercial, Portrait, Event)
+- **Photographer-defined products** — photographers create their own monetization:
+  - Pay per download (individual photo pricing)
+  - Pay to book (session/booking fees)
+  - Packages (bundled sessions, photo counts, extras)
+  - Monthly payment plans
+- **Invoices generated from Stripe** — automatically trigger email + SMS notifications to the client's profile on creation, payment, and overdue
+- **Booking forms are shoot-type specific** — separate forms for: Wedding, Architecture, Commercial, Portrait, Event (Wedding and Architecture are distinct, not combined under "Real Estate")
 - Automated email + SMS notifications (Resend + Twilio at key workflow moments)
 
-**Definition of done:** Photographer can send a contract, collect a signature, auto-generate an invoice, get paid, and have the project workflow begin — without leaving View1.
+**Definition of done:** Photographer can send a contract, collect a signature, auto-generate a Stripe invoice, get paid, and have the project workflow begin — without leaving View1. Clients receive automatic email + SMS at every billing touchpoint.
 
 ---
 
-### Phase 7 — Analytics & Finances
+### Phase 7 — Analytics
 **Goal:** Photographers understand their business performance at a glance.
 
-- Analytics dashboard (revenue, active projects, client acquisition, conversion rates)
-- Calendar rebuild (drag-to-move events, click-to-edit, Google/Apple Calendar sync)
-- Package analytics (which packages sell, average project value, repeat client rate)
+> **Note:** This section is "Analytics" only — not "Analytics & Finances." Financial tools (invoices, products, payments) live in Phase 6 Business Workflow. Analytics is for insight, not management.
 
-**Definition of done:** Photographer can see revenue by month, upcoming shoots on a calendar, and which packages perform best.
+- Analytics dashboard (revenue trends, active projects, client acquisition, conversion rates)
+- Package analytics (which packages sell, average project value, repeat client rate)
+- **Calendar rebuild:**
+  - **Drag-to-move events** — rescheduling is a single drag operation
+  - **Click-to-edit** — click any event to open a full edit panel inline
+  - **Calendar sync** — connect Google Calendar and/or Apple Calendar (two-way)
+  - **Calendar-specific settings** — working hours, buffer time between shoots, default event colors per shoot type
+
+**Definition of done:** Photographer can see revenue by month, drag events on a synced calendar, and understand which packages perform best.
 
 ---
 
