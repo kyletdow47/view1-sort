@@ -461,9 +461,9 @@ export function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/auth/login" className="hidden text-sm font-medium text-zinc-400 transition-colors hover:text-zinc-100 md:block">Sign In</Link>
-            <Link href="/dashboard?demo=true" className="hidden items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800/60 px-4 py-2 text-sm font-medium text-zinc-200 transition-all hover:border-zinc-600 hover:bg-zinc-800 md:flex">
+            <a href="https://photo-sorter-theta.vercel.app/dashboard" target="_blank" rel="noopener noreferrer" className="hidden items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800/60 px-4 py-2 text-sm font-medium text-zinc-200 transition-all hover:border-zinc-600 hover:bg-zinc-800 md:flex">
               Open App <ArrowRight size={13} />
-            </Link>
+            </a>
             <a href="#waitlist" className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-indigo-400">Get Early Access</a>
           </div>
         </div>
@@ -496,14 +496,16 @@ export function LandingPage() {
 
           <div className="mt-10 flex flex-col items-center gap-4">
             <WaitlistForm size="default" />
-            <Link
-              href="/dashboard?demo=true"
+            <a
+              href="https://photo-sorter-theta.vercel.app/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-300"
             >
               <Monitor size={14} />
               Already have access? Open the app
               <ArrowRight size={13} />
-            </Link>
+            </a>
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm text-zinc-500">
