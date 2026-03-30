@@ -461,6 +461,9 @@ export function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/auth/login" className="hidden text-sm font-medium text-zinc-400 transition-colors hover:text-zinc-100 md:block">Sign In</Link>
+            <Link href="/dashboard?demo=true" className="hidden items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800/60 px-4 py-2 text-sm font-medium text-zinc-200 transition-all hover:border-zinc-600 hover:bg-zinc-800 md:flex">
+              Open App <ArrowRight size={13} />
+            </Link>
             <a href="#waitlist" className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-indigo-400">Get Early Access</a>
           </div>
         </div>
@@ -491,8 +494,16 @@ export function LandingPage() {
             View1 Sort doesn&apos;t just cull blurry photos. It understands the <em className="text-zinc-300 not-italic font-medium">narrative arc</em> of your shoot — sorting by story and emotion, not just sharpness scores. Then delivers, invoices, and runs your entire photography business.
           </p>
 
-          <div className="mt-10 flex justify-center">
+          <div className="mt-10 flex flex-col items-center gap-4">
             <WaitlistForm size="default" />
+            <Link
+              href="/dashboard?demo=true"
+              className="flex items-center gap-1.5 text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-300"
+            >
+              <Monitor size={14} />
+              Already have access? Open the app
+              <ArrowRight size={13} />
+            </Link>
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-8 text-sm text-zinc-500">
