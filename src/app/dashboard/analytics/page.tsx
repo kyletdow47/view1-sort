@@ -1,21 +1,28 @@
 'use client'
 
+import React, { useState } from 'react'
 import {
+  DollarSign,
+  FolderOpen,
   Eye,
-  Download,
-  Clock,
-  Users,
-  TrendingUp,
+  ImageIcon,
   ArrowUpRight,
   ArrowDownRight,
   FileDown,
-  Globe,
+  TrendingUp,
+  Download,
+  MessageSquare,
+  CreditCard,
+  FileText,
+  Share2,
+  Camera,
   BarChart3,
-  Image,
+  Zap,
+  Clock,
 } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
-/*  Mock data                                                          */
+/*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
 interface KPI {
@@ -24,111 +31,144 @@ interface KPI {
   change: string
   positive: boolean
   icon: React.ElementType
-  color: string
+  sparkline: number[]
 }
+
+interface Project {
+  name: string
+  client: string
+  views: number
+  downloads: number
+}
+
+interface Activity {
+  icon: React.ElementType
+  iconColor: string
+  description: string
+  time: string
+}
+
+interface Category {
+  name: string
+  count: number
+  pct: number
+}
+
+/* ------------------------------------------------------------------ */
+/*  Mock data                                                          */
+/* ------------------------------------------------------------------ */
 
 const kpis: KPI[] = [
   {
-    label: 'Gallery Views',
-    value: '8.2k',
-    change: '+12.3%',
+    label: 'Revenue This Month',
+    value: '$12,480',
+    change: '+18.4%',
+    positive: true,
+    icon: DollarSign,
+    sparkline: [40, 55, 48, 62, 58, 74, 80, 76, 88, 92, 85, 100],
+  },
+  {
+    label: 'Active Projects',
+    value: '14',
+    change: '+3',
+    positive: true,
+    icon: FolderOpen,
+    sparkline: [6, 7, 8, 7, 9, 10, 11, 10, 12, 13, 13, 14],
+  },
+  {
+    label: 'Gallery Views (30d)',
+    value: '9,340',
+    change: '+22.1%',
     positive: true,
     icon: Eye,
-    color: 'text-primary',
+    sparkline: [30, 42, 38, 50, 55, 48, 62, 70, 65, 80, 75, 92],
   },
   {
-    label: 'Download Rate',
-    value: '34%',
-    change: '+2.1%',
-    positive: true,
-    icon: Download,
-    color: 'text-secondary',
-  },
-  {
-    label: 'Avg Session Duration',
-    value: '4m 12s',
-    change: '-0.8%',
+    label: 'Photos Delivered (30d)',
+    value: '2,814',
+    change: '-4.2%',
     positive: false,
-    icon: Clock,
-    color: 'text-tertiary',
-  },
-  {
-    label: 'Client Retention',
-    value: '84%',
-    change: '+5.2%',
-    positive: true,
-    icon: Users,
-    color: 'text-primary',
+    icon: ImageIcon,
+    sparkline: [90, 85, 88, 80, 76, 82, 78, 72, 70, 68, 65, 62],
   },
 ]
 
-const topProjects = [
-  { name: 'Johnson Wedding', category: 'Wedding', views: 2847, trend: 'up' },
-  { name: 'Meridian Hotel Brand', category: 'Commercial', views: 1923, trend: 'up' },
-  { name: 'Torres Portrait Session', category: 'Portrait', views: 1204, trend: 'down' },
-  { name: 'Neon Editorial Spread', category: 'Editorial', views: 982, trend: 'up' },
-  { name: 'Coastal Real Estate', category: 'Real Estate', views: 756, trend: 'up' },
+const monthlyRevenue = [
+  { month: 'Oct', value: 7200 },
+  { month: 'Nov', value: 8900 },
+  { month: 'Dec', value: 11400 },
+  { month: 'Jan', value: 9600 },
+  { month: 'Feb', value: 10500 },
+  { month: 'Mar', value: 12480 },
 ]
 
-const engagementCategories = [
-  { name: 'Weddings', pct: 38, color: 'bg-primary' },
-  { name: 'Commercial', pct: 26, color: 'bg-secondary' },
-  { name: 'Portraits', pct: 18, color: 'bg-tertiary' },
-  { name: 'Editorial', pct: 12, color: 'bg-[#a18d80]' },
-  { name: 'Other', pct: 6, color: 'bg-surface-container-highest' },
+const maxRevenue = Math.max(...monthlyRevenue.map((m) => m.value))
+
+const topProjects: Project[] = [
+  { name: 'Johnson Wedding', client: 'Emily & Ryan Johnson', views: 3241, downloads: 182 },
+  { name: 'Nike Spring Campaign', client: 'Nike — Brand Studio', views: 2817, downloads: 94 },
+  { name: 'Smith Family Portraits', client: 'David Smith', views: 1654, downloads: 211 },
+  { name: 'Meridian Hotel Rebrand', client: 'Meridian Hotels Group', views: 1309, downloads: 47 },
+  { name: 'Coastal Real Estate', client: 'Pacific Properties LLC', views: 987, downloads: 65 },
 ]
 
-const geoData = [
-  { region: 'United States', pct: 42 },
-  { region: 'United Kingdom', pct: 18 },
-  { region: 'Canada', pct: 14 },
-  { region: 'Australia', pct: 9 },
-  { region: 'Germany', pct: 7 },
-  { region: 'Other', pct: 10 },
+const maxViews = Math.max(...topProjects.map((p) => p.views))
+
+const recentActivity: Activity[] = [
+  { icon: Share2, iconColor: 'text-primary', description: 'Gallery shared — Johnson Wedding', time: '2m ago' },
+  { icon: Download, iconColor: 'text-primary', description: 'Emily Johnson downloaded 24 photos', time: '14m ago' },
+  { icon: CreditCard, iconColor: 'text-primary', description: 'Payment received — $3,200 (Nike Campaign)', time: '1h ago' },
+  { icon: MessageSquare, iconColor: 'text-on-surface-variant', description: 'Comment added on Smith Family Portraits', time: '2h ago' },
+  { icon: FileText, iconColor: 'text-on-surface-variant', description: 'Contract signed — Coastal Real Estate', time: '3h ago' },
+  { icon: Eye, iconColor: 'text-on-surface-variant', description: 'Gallery viewed — Meridian Hotel Rebrand', time: '4h ago' },
+  { icon: Download, iconColor: 'text-primary', description: 'Nike Brand Studio downloaded selects pack', time: '5h ago' },
+  { icon: Share2, iconColor: 'text-primary', description: 'Gallery shared — Coastal Real Estate', time: '7h ago' },
+  { icon: CreditCard, iconColor: 'text-primary', description: 'Payment received — $1,800 (Smith Portraits)', time: '9h ago' },
+  { icon: Camera, iconColor: 'text-on-surface-variant', description: 'New project created — Torres Engagement', time: '11h ago' },
 ]
 
-// SVG chart data points for the line chart
-const chartPoints = [
-  { x: 0, y: 65 },
-  { x: 1, y: 58 },
-  { x: 2, y: 72 },
-  { x: 3, y: 68 },
-  { x: 4, y: 80 },
-  { x: 5, y: 75 },
-  { x: 6, y: 85 },
-  { x: 7, y: 78 },
-  { x: 8, y: 92 },
-  { x: 9, y: 88 },
-  { x: 10, y: 95 },
-  { x: 11, y: 100 },
+const aiCategories: Category[] = [
+  { name: 'Portraits', count: 14820, pct: 34 },
+  { name: 'Ceremony', count: 9640, pct: 22 },
+  { name: 'Reception', count: 7810, pct: 18 },
+  { name: 'Detail Shots', count: 5230, pct: 12 },
+  { name: 'Landscapes', count: 3490, pct: 8 },
+  { name: 'Editorial', count: 2610, pct: 6 },
 ]
-
-const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar']
 
 /* ------------------------------------------------------------------ */
 /*  Sub-components                                                     */
 /* ------------------------------------------------------------------ */
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
+    <div className={`rounded-2xl border border-outline-variant bg-surface-container-low p-6 ${className}`}>
       {children}
-    </span>
+    </div>
   )
 }
 
-function Card({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
+function SectionHeading({ icon: Icon, label }: { icon: React.ElementType; label: string }) {
   return (
-    <div
-      className={`rounded-2xl border border-outline-variant/30 bg-surface-container-low p-6 ${className}`}
-    >
-      {children}
+    <div className="flex items-center gap-2 mb-5">
+      <Icon size={16} className="text-primary" />
+      <h2 className="font-headline font-bold text-on-surface">{label}</h2>
+    </div>
+  )
+}
+
+function Sparkline({ data, positive }: { data: number[]; positive: boolean }) {
+  const max = Math.max(...data)
+  const color = positive ? 'bg-primary' : 'bg-on-surface-variant'
+  return (
+    <div className="flex items-end gap-0.5 h-8">
+      {data.map((v, i) => (
+        <div
+          key={i}
+          className={`flex-1 rounded-sm opacity-70 ${color}`}
+          style={{ height: `${(v / max) * 100}%` }}
+        />
+      ))}
     </div>
   )
 }
@@ -138,246 +178,145 @@ function Card({
 /* ------------------------------------------------------------------ */
 
 export default function AnalyticsPage() {
-  // Build SVG path
-  const svgW = 800
-  const svgH = 200
-  const padX = 40
-  const padY = 20
-  const plotW = svgW - padX * 2
-  const plotH = svgH - padY * 2
-
-  const points = chartPoints.map((p, i) => ({
-    cx: padX + (i / (chartPoints.length - 1)) * plotW,
-    cy: padY + plotH - (p.y / 100) * plotH,
-  }))
-
-  const linePath = points
-    .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.cx},${p.cy}`)
-    .join(' ')
-
-  const areaPath = `${linePath} L${points[points.length - 1].cx},${padY + plotH} L${points[0].cx},${padY + plotH} Z`
+  const [activeRange, setActiveRange] = useState('30D')
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* ── Header ── */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-headline text-3xl italic font-extrabold text-on-surface">
+          <h1 className="font-headline text-3xl font-extrabold italic text-on-surface">
             Analytics & Insights
           </h1>
-          <p className="mt-1 text-sm text-on-surface-variant">
+          <p className="mt-1 font-body text-sm text-on-surface-variant">
             Performance metrics across all galleries and projects
           </p>
         </div>
-        <button className="flex items-center gap-2 rounded-xl border border-outline-variant/30 px-5 py-2.5 text-sm font-medium text-on-surface-variant transition-colors hover:border-primary/30 hover:text-primary">
+        <button className="flex items-center gap-2 rounded-xl border border-outline-variant px-5 py-2.5 font-body text-sm font-medium text-on-surface-variant transition-colors hover:border-primary hover:text-primary">
           <FileDown size={16} />
-          Export Report
+          Export CSV
         </button>
       </div>
 
-      {/* KPI Cards */}
+      {/* ── KPI Row ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi) => {
           const Icon = kpi.icon
           return (
-            <Card key={kpi.label} className="!p-5">
-              <div className="flex items-center justify-between mb-3">
-                <SectionLabel>{kpi.label}</SectionLabel>
-                <Icon size={18} className={kpi.color} />
+            <Card key={kpi.label} className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-on-surface-variant">
+                  {kpi.label}
+                </span>
+                <Icon size={16} className="text-primary" />
               </div>
-              <p className="font-headline text-3xl font-extrabold text-on-surface">
+              <p className="font-headline text-3xl font-extrabold text-on-surface leading-none">
                 {kpi.value}
               </p>
-              <div className="mt-1.5 flex items-center gap-1">
-                {kpi.positive ? (
-                  <ArrowUpRight size={14} className="text-green-400" />
-                ) : (
-                  <ArrowDownRight size={14} className="text-red-400" />
-                )}
-                <span
-                  className={`text-xs font-medium ${kpi.positive ? 'text-green-400' : 'text-red-400'}`}
-                >
-                  {kpi.change}
-                </span>
-                <span className="text-xs text-on-surface-variant/40">
-                  vs last month
-                </span>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1">
+                  {kpi.positive ? (
+                    <ArrowUpRight size={13} className="text-primary" />
+                  ) : (
+                    <ArrowDownRight size={13} className="text-on-surface-variant" />
+                  )}
+                  <span className={`font-mono text-xs font-medium ${kpi.positive ? 'text-primary' : 'text-on-surface-variant'}`}>
+                    {kpi.change}
+                  </span>
+                  <span className="font-mono text-[10px] text-on-surface-variant">vs last mo</span>
+                </div>
               </div>
+              <Sparkline data={kpi.sparkline} positive={kpi.positive} />
             </Card>
           )
         })}
       </div>
 
-      {/* Views Over Time chart */}
+      {/* ── Revenue Bar Chart ── */}
       <Card>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp size={18} className="text-primary" />
-            <h2 className="font-headline font-bold text-on-surface">
-              Views Over Time
-            </h2>
-          </div>
-          <div className="flex items-center gap-3">
-            {['7D', '30D', '12M'].map((range) => (
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <SectionHeading icon={TrendingUp} label="Monthly Revenue" />
+          <div className="flex items-center gap-1 rounded-xl border border-outline-variant p-1">
+            {['7D', '30D', '12M'].map((r) => (
               <button
-                key={range}
-                className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
-                  range === '12M'
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-on-surface-variant/50 hover:text-on-surface-variant'
+                key={r}
+                onClick={() => setActiveRange(r)}
+                className={`rounded-lg px-3 py-1 font-mono text-xs font-bold transition-colors ${
+                  activeRange === r
+                    ? 'bg-primary text-on-primary'
+                    : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
-                {range}
+                {r}
               </button>
             ))}
           </div>
         </div>
 
-        <svg
-          viewBox={`0 0 ${svgW} ${svgH}`}
-          className="w-full h-auto"
-          preserveAspectRatio="xMidYMid meet"
-        >
-          <defs>
-            <linearGradient
-              id="areaGrad"
-              x1="0%"
-              y1="0%"
-              x2="0%"
-              y2="100%"
-            >
-              <stop offset="0%" stopColor="#ffb780" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#ffb780" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#ffb780" />
-              <stop offset="100%" stopColor="#d48441" />
-            </linearGradient>
-          </defs>
+        <div className="flex items-end gap-3 h-40">
+          {monthlyRevenue.map((m) => {
+            const heightPct = (m.value / maxRevenue) * 100
+            const isLatest = m.month === 'Mar'
+            return (
+              <div key={m.month} className="flex flex-1 flex-col items-center gap-2">
+                <span className="font-mono text-[10px] text-on-surface-variant">
+                  ${(m.value / 1000).toFixed(1)}k
+                </span>
+                <div className="w-full flex items-end" style={{ height: '96px' }}>
+                  <div
+                    className={`w-full rounded-t-lg transition-all ${isLatest ? 'bg-primary' : 'bg-surface-container-highest'}`}
+                    style={{ height: `${heightPct}%` }}
+                  />
+                </div>
+                <span className={`font-mono text-[10px] ${isLatest ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
+                  {m.month}
+                </span>
+              </div>
+            )
+          })}
+        </div>
 
-          {/* Grid lines */}
-          {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
-            <line
-              key={pct}
-              x1={padX}
-              y1={padY + plotH * pct}
-              x2={padX + plotW}
-              y2={padY + plotH * pct}
-              stroke="#534439"
-              strokeOpacity={0.2}
-              strokeDasharray="4 4"
-            />
-          ))}
-
-          {/* Area fill */}
-          <path d={areaPath} fill="url(#areaGrad)" />
-
-          {/* Line */}
-          <path
-            d={linePath}
-            fill="none"
-            stroke="url(#lineGrad)"
-            strokeWidth={2.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* Points */}
-          {points.map((p, i) => (
-            <circle
-              key={i}
-              cx={p.cx}
-              cy={p.cy}
-              r={3}
-              fill="#151312"
-              stroke="#ffb780"
-              strokeWidth={2}
-            />
-          ))}
-
-          {/* X-axis labels */}
-          {months.map((m, i) => (
-            <text
-              key={m}
-              x={padX + (i / (months.length - 1)) * plotW}
-              y={svgH - 2}
-              textAnchor="middle"
-              fill="#a18d80"
-              fontSize={10}
-              fontFamily="var(--font-space-grotesk), monospace"
-            >
-              {m}
-            </text>
-          ))}
-        </svg>
+        <div className="mt-4 pt-4 border-t border-outline-variant flex items-center justify-between">
+          <span className="font-mono text-xs text-on-surface-variant">6-month total</span>
+          <span className="font-headline font-bold text-on-surface">
+            ${monthlyRevenue.reduce((acc, m) => acc + m.value, 0).toLocaleString()}
+          </span>
+        </div>
       </Card>
 
-      {/* Bottom grid */}
-      <div className="grid grid-cols-12 gap-6">
-        {/* Top Performing Projects */}
-        <Card className="col-span-12 lg:col-span-5">
-          <div className="flex items-center gap-2 mb-5">
-            <Image size={16} className="text-primary" />
-            <h2 className="font-headline font-bold text-on-surface">
-              Top Performing Projects
-            </h2>
-          </div>
-
-          <div className="space-y-1">
+      {/* ── Two Column: Top Projects + Recent Activity ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Projects */}
+        <Card>
+          <SectionHeading icon={BarChart3} label="Top Projects by Views" />
+          <div className="space-y-3">
             {topProjects.map((project, i) => (
-              <div
-                key={project.name}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-surface-container"
-              >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-surface-container-high text-[10px] font-bold text-on-surface-variant">
-                  {i + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-on-surface truncate">
-                    {project.name}
-                  </p>
-                  <p className="text-[11px] text-on-surface-variant/50">
-                    {project.category}
-                  </p>
+              <div key={project.name} className="group">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-container-high font-mono text-[10px] font-bold text-on-surface-variant">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-body text-sm font-medium text-on-surface truncate">{project.name}</p>
+                      <p className="font-mono text-[10px] text-on-surface-variant truncate">{project.client}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0 ml-2">
+                    <div className="flex items-center gap-1 text-on-surface-variant">
+                      <Eye size={11} />
+                      <span className="font-mono text-xs">{project.views.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-on-surface-variant">
+                      <Download size={11} />
+                      <span className="font-mono text-xs">{project.downloads}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-medium text-on-surface">
-                    {project.views.toLocaleString()}
-                  </span>
-                  {project.trend === 'up' ? (
-                    <ArrowUpRight size={12} className="text-green-400" />
-                  ) : (
-                    <ArrowDownRight size={12} className="text-red-400" />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Client Engagement */}
-        <Card className="col-span-12 lg:col-span-4">
-          <div className="flex items-center gap-2 mb-5">
-            <BarChart3 size={16} className="text-secondary" />
-            <h2 className="font-headline font-bold text-on-surface">
-              Client Engagement
-            </h2>
-          </div>
-          <SectionLabel>By Category</SectionLabel>
-
-          <div className="mt-4 space-y-3">
-            {engagementCategories.map((cat) => (
-              <div key={cat.name} className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-on-surface">{cat.name}</span>
-                  <span className="text-xs font-medium text-on-surface-variant">
-                    {cat.pct}%
-                  </span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-surface-container-highest">
+                <div className="h-1 w-full rounded-full bg-surface-container-highest">
                   <div
-                    className={`h-full rounded-full ${cat.color} transition-all`}
-                    style={{ width: `${cat.pct}%` }}
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${(project.views / maxViews) * 100}%` }}
                   />
                 </div>
               </div>
@@ -385,38 +324,78 @@ export default function AnalyticsPage() {
           </div>
         </Card>
 
-        {/* Geographic Distribution */}
-        <Card className="col-span-12 lg:col-span-3">
-          <div className="flex items-center gap-2 mb-5">
-            <Globe size={16} className="text-tertiary" />
-            <h2 className="font-headline font-bold text-on-surface">
-              Geography
-            </h2>
+        {/* Recent Activity */}
+        <Card>
+          <SectionHeading icon={Clock} label="Recent Activity" />
+          <div className="space-y-0">
+            {recentActivity.map((item, i) => {
+              const Icon = item.icon
+              return (
+                <div key={i} className="flex items-start gap-3 py-2.5 border-b border-outline-variant last:border-0">
+                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-container-high">
+                    <Icon size={13} className={item.iconColor} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-body text-xs text-on-surface leading-snug">{item.description}</p>
+                  </div>
+                  <span className="font-mono text-[10px] text-on-surface-variant shrink-0 mt-0.5">{item.time}</span>
+                </div>
+              )
+            })}
           </div>
+        </Card>
+      </div>
 
-          <div className="space-y-2.5">
-            {geoData.map((g) => (
-              <div key={g.region} className="flex items-center justify-between">
-                <span className="text-sm text-on-surface-variant">
-                  {g.region}
+      {/* ── AI Sort Stats ── */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <Zap size={16} className="text-primary" />
+          <h2 className="font-headline font-bold text-on-surface">AI Sort Stats</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <Card className="flex flex-col gap-1">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-on-surface-variant">Total Sorted (all time)</span>
+            <p className="font-headline text-2xl font-extrabold text-on-surface">43,600</p>
+            <p className="font-mono text-[10px] text-on-surface-variant">photos processed</p>
+          </Card>
+          <Card className="flex flex-col gap-1">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-on-surface-variant">Avg Sort Time</span>
+            <p className="font-headline text-2xl font-extrabold text-on-surface">1.2s</p>
+            <p className="font-mono text-[10px] text-on-surface-variant">per photo</p>
+          </Card>
+          <Card className="flex flex-col gap-1">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-on-surface-variant">Cull Rate</span>
+            <p className="font-headline text-2xl font-extrabold text-on-surface">38%</p>
+            <p className="font-mono text-[10px] text-on-surface-variant">avg rejected per shoot</p>
+          </Card>
+          <Card className="flex flex-col gap-1">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-on-surface-variant">Accuracy</span>
+            <p className="font-headline text-2xl font-extrabold text-on-surface">96.4%</p>
+            <p className="font-mono text-[10px] text-on-surface-variant">classification confidence</p>
+          </Card>
+        </div>
+
+        <Card>
+          <div className="flex items-center gap-2 mb-5">
+            <BarChart3 size={14} className="text-primary" />
+            <span className="font-headline font-bold text-on-surface text-sm">Top Categories Sorted</span>
+          </div>
+          <div className="space-y-3">
+            {aiCategories.map((cat) => (
+              <div key={cat.name} className="flex items-center gap-4">
+                <span className="font-body text-sm text-on-surface w-28 shrink-0">{cat.name}</span>
+                <div className="flex-1 h-2 rounded-full bg-surface-container-highest">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${cat.pct}%` }}
+                  />
+                </div>
+                <span className="font-mono text-xs text-on-surface-variant w-16 text-right shrink-0">
+                  {cat.count.toLocaleString()}
                 </span>
-                <span className="text-sm font-medium text-on-surface">
-                  {g.pct}%
-                </span>
+                <span className="font-mono text-xs text-on-surface-variant w-8 shrink-0">{cat.pct}%</span>
               </div>
             ))}
-          </div>
-
-          <div className="mt-5 flex items-center justify-center rounded-xl bg-surface-container p-6">
-            <div className="text-center space-y-1">
-              <Globe size={32} className="mx-auto text-on-surface-variant/20" />
-              <p className="text-[10px] text-on-surface-variant/30 uppercase tracking-wider">
-                Map visualization
-              </p>
-              <p className="text-[10px] text-on-surface-variant/20">
-                Coming in v2
-              </p>
-            </div>
           </div>
         </Card>
       </div>

@@ -1,348 +1,845 @@
-'use client';
+'use client'
 
-import React, { useState, useRef } from 'react';
-import Link from 'next/link';
+import React, { useState, useRef, useCallback, useEffect } from 'react'
+import Link from 'next/link'
 import {
   UploadCloud,
-  FileType,
   CheckCircle2,
   Loader2,
   Sparkles,
   X,
-  Image as ImageIcon,
-  Layers,
   ChevronRight,
-} from 'lucide-react';
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  Copy,
+  ZoomIn,
+  Tag,
+  Settings2,
+  FolderOpen,
+  ImageIcon,
+} from 'lucide-react'
+import { analyzeFile, type CullResult } from '@/lib/ai/culling'
+import { getAllPresets, type SortPreset } from '@/lib/ai/presets'
+import type { WorkerResponse } from '@/lib/ai/worker'
 
-/* ---------- types & constants ---------- */
+/* ─── Types ─────────────────────────────────────────────────────────────── */
 
-interface FileWithStatus {
-  file: { name: string; size: number };
-  id: string;
-  status: 'pending' | 'sorting' | 'completed';
-  category?: string;
+type Phase = 'upload' | 'cull' | 'context' | 'sort' | 'results'
+
+interface SortableFile {
+  file: File
+  id: string
+  cullResult?: CullResult
+  hash?: string
+  category?: string
+  score?: number
+  keep: boolean
 }
 
-const CATEGORIES = ['Portraits', 'Ceremony', 'Reception', 'Details', 'Family', 'Candid'];
+/* ─── Helpers ────────────────────────────────────────────────────────────── */
 
-/* ---------- mock seed data (shown on first load so the page isn't empty) ---------- */
-const MOCK_FILES: FileWithStatus[] = [
-  { file: { name: 'DSC_4821.NEF', size: 28_340_000 }, id: 'mock1', status: 'pending' },
-  { file: { name: 'DSC_4822.NEF', size: 27_120_000 }, id: 'mock2', status: 'pending' },
-  { file: { name: 'IMG_0091.CR2', size: 31_500_000 }, id: 'mock3', status: 'pending' },
-  { file: { name: 'IMG_0092.CR2', size: 29_800_000 }, id: 'mock4', status: 'pending' },
-  { file: { name: 'ceremony_wide.jpg', size: 8_420_000 }, id: 'mock5', status: 'pending' },
-];
+function uid() {
+  return Math.random().toString(36).substring(2, 11)
+}
 
-/* ---------- component ---------- */
+function readAsDataURL(file: File): Promise<string> {
+  return new Promise((res, rej) => {
+    const reader = new FileReader()
+    reader.onload = () => res(reader.result as string)
+    reader.onerror = rej
+    reader.readAsDataURL(file)
+  })
+}
+
+/* ─── Sub-components ────────────────────────────────────────────────────── */
+
+function StepIndicator({ phase }: { phase: Phase }) {
+  const steps: { id: Phase; label: string }[] = [
+    { id: 'upload', label: 'Upload' },
+    { id: 'cull', label: 'Cull' },
+    { id: 'context', label: 'Context' },
+    { id: 'sort', label: 'Sort' },
+    { id: 'results', label: 'Results' },
+  ]
+  const idx = steps.findIndex((s) => s.id === phase)
+
+  return (
+    <div className="flex items-center gap-0">
+      {steps.map((step, i) => (
+        <React.Fragment key={step.id}>
+          <div className="flex flex-col items-center gap-1">
+            <div
+              className={[
+                'w-7 h-7 rounded-full flex items-center justify-center text-xs font-mono font-bold transition-all',
+                i < idx
+                  ? 'bg-primary text-on-primary'
+                  : i === idx
+                    ? 'bg-primary/20 text-primary ring-2 ring-primary/40'
+                    : 'bg-surface-container text-on-surface-variant/40',
+              ].join(' ')}
+            >
+              {i < idx ? <CheckCircle2 className="w-3.5 h-3.5" /> : i + 1}
+            </div>
+            <span
+              className={[
+                'text-[10px] font-mono uppercase tracking-widest',
+                i === idx ? 'text-primary font-bold' : 'text-on-surface-variant/40',
+              ].join(' ')}
+            >
+              {step.label}
+            </span>
+          </div>
+          {i < steps.length - 1 && (
+            <div className={['flex-1 h-px mx-2 mb-4 transition-colors', i < idx ? 'bg-primary/40' : 'bg-outline-variant/20'].join(' ')} />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  )
+}
+
+function CullFlagBadge({ type }: { type: string }) {
+  const map: Record<string, { label: string; color: string }> = {
+    blurry: { label: 'Blurry', color: 'bg-amber-500/20 text-amber-400' },
+    duplicate: { label: 'Dupe', color: 'bg-violet-500/20 text-violet-400' },
+    overexposed: { label: 'Over', color: 'bg-orange-500/20 text-orange-400' },
+    underexposed: { label: 'Under', color: 'bg-sky-500/20 text-sky-400' },
+  }
+  const cfg = map[type] ?? { label: type, color: 'bg-surface-container text-on-surface-variant' }
+  return (
+    <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-widest ${cfg.color}`}>
+      {cfg.label}
+    </span>
+  )
+}
+
+/* ─── Phase: Upload ─────────────────────────────────────────────────────── */
+
+function UploadPhase({
+  onFiles,
+}: {
+  onFiles: (files: File[]) => void
+}) {
+  const [dragging, setDragging] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return
+    onFiles(Array.from(files).filter((f) => /\.(jpe?g|png|webp|raw|cr2|nef|arw|dng)$/i.test(f.name)))
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
+      <div className="text-center space-y-2">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-primary font-bold">Step 1 of 4</p>
+        <h2 className="text-4xl font-headline font-extrabold tracking-tighter text-on-surface italic">
+          Upload your shoot
+        </h2>
+        <p className="text-on-surface-variant/60 max-w-md">
+          Drop your RAW or JPEG files. We&apos;ll analyse quality and sort everything automatically.
+        </p>
+      </div>
+
+      <div
+        onClick={() => inputRef.current?.click()}
+        onDrop={(e) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files) }}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+        onDragLeave={() => setDragging(false)}
+        className={[
+          'w-full max-w-2xl border-2 border-dashed rounded-3xl p-16 flex flex-col items-center gap-5 cursor-pointer transition-all',
+          dragging
+            ? 'border-primary bg-primary/10 scale-[1.01]'
+            : 'border-outline-variant/20 hover:border-primary/40 hover:bg-primary/5',
+        ].join(' ')}
+      >
+        <div className={['w-20 h-20 rounded-3xl flex items-center justify-center transition-all', dragging ? 'bg-primary/20' : 'bg-surface-container-high'].join(' ')}>
+          <UploadCloud className={['w-10 h-10 transition-colors', dragging ? 'text-primary' : 'text-on-surface-variant/40'].join(' ')} />
+        </div>
+        <div className="text-center">
+          <p className="text-xl font-headline font-bold text-on-surface">
+            {dragging ? 'Drop to upload' : 'Drop files or click to browse'}
+          </p>
+          <p className="text-sm text-on-surface-variant/50 mt-1">JPEG, PNG, RAW (CR2, NEF, ARW, DNG)</p>
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          accept=".jpg,.jpeg,.png,.webp,.raw,.cr2,.nef,.arw,.dng"
+          className="hidden"
+          onChange={(e) => handleFiles(e.target.files)}
+        />
+      </div>
+    </div>
+  )
+}
+
+/* ─── Phase: Cull ───────────────────────────────────────────────────────── */
+
+function CullPhase({
+  files,
+  onContinue,
+}: {
+  files: SortableFile[]
+  onContinue: (updated: SortableFile[]) => void
+}) {
+  const [items, setItems] = useState<SortableFile[]>(files)
+  const [analysing, setAnalysing] = useState(true)
+  const [progress, setProgress] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    const hashMap = new Map<string, string>()
+
+    async function run() {
+      const updated = [...items]
+      for (let i = 0; i < updated.length; i++) {
+        if (cancelled) return
+        const item = updated[i]
+        try {
+          const { result, hash } = await analyzeFile(item.file, item.id, hashMap)
+          if (hash) hashMap.set(item.id, hash)
+          updated[i] = {
+            ...item,
+            cullResult: result,
+            hash,
+            keep: result.flags.length === 0,
+          }
+        } catch {
+          // keep as-is
+        }
+        setProgress(Math.round(((i + 1) / updated.length) * 100))
+        setItems([...updated])
+      }
+      if (!cancelled) setAnalysing(false)
+    }
+
+    void run()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const flagged = items.filter((f) => f.cullResult && f.cullResult.flags.length > 0)
+  const kept = items.filter((f) => f.keep)
+
+  const toggle = (id: string) => {
+    setItems((prev) => prev.map((f) => (f.id === id ? { ...f, keep: !f.keep } : f)))
+  }
+
+  const rejectAll = () => {
+    setItems((prev) =>
+      prev.map((f) =>
+        f.cullResult && f.cullResult.flags.length > 0 ? { ...f, keep: false } : f,
+      ),
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-primary font-bold mb-1">Step 2 of 4</p>
+          <h2 className="text-3xl font-headline font-extrabold tracking-tighter text-on-surface italic">
+            Smart Cull
+          </h2>
+          <p className="text-on-surface-variant/60 text-sm mt-1">
+            {analysing
+              ? `Analysing quality… ${progress}%`
+              : `${flagged.length} issues found across ${items.length} photos`}
+          </p>
+        </div>
+        <div className="flex gap-3">
+          {!analysing && flagged.length > 0 && (
+            <button
+              onClick={rejectAll}
+              className="px-4 py-2 rounded-xl bg-surface-container border border-outline-variant/20 text-sm font-headline font-bold text-on-surface-variant hover:text-on-surface transition-colors"
+            >
+              Reject All Flagged
+            </button>
+          )}
+          <button
+            onClick={() => onContinue(items)}
+            disabled={analysing}
+            className="px-5 py-2 rounded-xl bg-primary text-on-primary text-sm font-headline font-bold flex items-center gap-2 disabled:opacity-40 transition-opacity"
+          >
+            Continue with {kept.length} photos
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Progress bar while analysing */}
+      {analysing && (
+        <div className="h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+          <div
+            className="h-full bg-primary rounded-full transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
+
+      {/* Stats */}
+      {!analysing && (
+        <div className="grid grid-cols-4 gap-3">
+          {[
+            { label: 'Total', value: items.length, color: 'text-on-surface' },
+            { label: 'Flagged', value: flagged.length, color: 'text-amber-400' },
+            { label: 'Keeping', value: kept.length, color: 'text-emerald-400' },
+            { label: 'Rejecting', value: items.length - kept.length, color: 'text-red-400' },
+          ].map((s) => (
+            <div key={s.label} className="bg-surface-container rounded-2xl p-4 text-center">
+              <p className={`text-2xl font-mono font-bold ${s.color}`}>{s.value}</p>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-on-surface-variant/50 mt-1">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Photo grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        {items.map((item) => {
+          const flags = item.cullResult?.flags ?? []
+          const preview = item.cullResult?.preview
+
+          return (
+            <div
+              key={item.id}
+              className={[
+                'relative rounded-2xl overflow-hidden border-2 transition-all group',
+                item.keep
+                  ? flags.length > 0
+                    ? 'border-amber-500/40'
+                    : 'border-emerald-500/20'
+                  : 'border-red-500/40 opacity-50',
+              ].join(' ')}
+            >
+              {/* Thumbnail */}
+              <div className="aspect-square bg-surface-container-high flex items-center justify-center overflow-hidden">
+                {preview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={preview} alt={item.file.name} className="w-full h-full object-cover" />
+                ) : (
+                  <ImageIcon className="w-8 h-8 text-on-surface-variant/20" />
+                )}
+              </div>
+
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2 gap-1">
+                <p className="text-[9px] font-mono text-white/70 truncate">{item.file.name}</p>
+                <div className="flex flex-wrap gap-1">
+                  {flags.map((f, i) => (
+                    <CullFlagBadge key={i} type={f.type} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Toggle keep/reject */}
+              <button
+                onClick={() => toggle(item.id)}
+                className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all hover:scale-110"
+                title={item.keep ? 'Click to reject' : 'Click to keep'}
+              >
+                {item.keep ? (
+                  <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <EyeOff className="w-3.5 h-3.5 text-red-400" />
+                )}
+              </button>
+
+              {/* Flag icon */}
+              {flags.length > 0 && item.keep && (
+                <div className="absolute top-2 left-2 w-5 h-5 rounded-full bg-amber-500/80 flex items-center justify-center">
+                  <AlertTriangle className="w-3 h-3 text-black" />
+                </div>
+              )}
+
+              {/* Duplicate badge */}
+              {flags.some((f) => f.type === 'duplicate') && (
+                <div className="absolute bottom-2 left-2 w-5 h-5 rounded-full bg-violet-500/80 flex items-center justify-center">
+                  <Copy className="w-3 h-3 text-white" />
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ─── Phase: Context ────────────────────────────────────────────────────── */
+
+function ContextPhase({
+  onContinue,
+}: {
+  onContinue: (presetId: string, description: string) => void
+}) {
+  const presets = getAllPresets()
+  const [selectedPreset, setSelectedPreset] = useState(presets[0]?.id ?? 'wedding')
+  const [description, setDescription] = useState('')
+
+  const preset = presets.find((p) => p.id === selectedPreset)
+
+  return (
+    <div className="space-y-8 max-w-3xl mx-auto">
+      <div className="text-center space-y-2">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-primary font-bold">Step 3 of 4</p>
+        <h2 className="text-3xl font-headline font-extrabold tracking-tighter text-on-surface italic">
+          Shoot context
+        </h2>
+        <p className="text-on-surface-variant/60">
+          Tell the AI what kind of shoot this is to improve accuracy.
+        </p>
+      </div>
+
+      {/* Preset grid */}
+      <div>
+        <p className="text-xs font-mono uppercase tracking-widest text-on-surface-variant/50 mb-3">Sort preset</p>
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {presets.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setSelectedPreset(p.id)}
+              className={[
+                'flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all',
+                selectedPreset === p.id
+                  ? 'border-primary bg-primary/10'
+                  : 'border-outline-variant/20 hover:border-outline-variant/40',
+              ].join(' ')}
+            >
+              <span className="text-2xl">{p.icon}</span>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-on-surface-variant">
+                {p.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Categories preview */}
+      {preset && (
+        <div className="bg-surface-container rounded-2xl p-4 space-y-2">
+          <p className="text-xs font-mono uppercase tracking-widest text-on-surface-variant/50">
+            Categories in this preset
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {preset.categories.map((c) => (
+              <span
+                key={c.name}
+                className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-mono rounded-lg"
+              >
+                {c.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Description */}
+      <div className="space-y-2">
+        <p className="text-xs font-mono uppercase tracking-widest text-on-surface-variant/50">
+          Shoot description <span className="normal-case text-on-surface-variant/30">(optional but improves accuracy)</span>
+        </p>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+          placeholder={`e.g. "Sarah & Mike's outdoor ceremony at Malibu beach, golden hour portraits, reception at The Fig House"`}
+          className="w-full bg-surface-container border border-outline-variant/20 rounded-2xl p-4 text-sm text-on-surface placeholder:text-on-surface-variant/30 resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+        />
+        <p className="text-[10px] text-on-surface-variant/40 font-mono">
+          Location, subjects, mood, and key moments help the AI sort more precisely.
+        </p>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          onClick={() => onContinue(selectedPreset, description)}
+          className="px-6 py-3 rounded-xl bg-primary text-on-primary font-headline font-bold flex items-center gap-2 hover:bg-primary/90 transition-colors"
+        >
+          <Sparkles className="w-4 h-4" />
+          Start AI Sort
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Phase: Sort ───────────────────────────────────────────────────────── */
+
+function SortPhase({
+  files,
+  presetId,
+  description,
+  onDone,
+}: {
+  files: SortableFile[]
+  presetId: string
+  description: string
+  onDone: (sorted: SortableFile[]) => void
+}) {
+  const [progress, setProgress] = useState(0)
+  const [currentFile, setCurrentFile] = useState('')
+  const [modelProgress, setModelProgress] = useState(0)
+  const [stage, setStage] = useState<'loading' | 'classifying' | 'done'>('loading')
+  const workerRef = useRef<Worker | null>(null)
+  const hasDoneRef = useRef(false)
+
+  useEffect(() => {
+    const kept = files.filter((f) => f.keep)
+    if (kept.length === 0) {
+      onDone(files)
+      return
+    }
+
+    const results = new Map<string, string>()
+    let classified = 0
+
+    const worker = new Worker(new URL('@/lib/ai/worker.ts', import.meta.url))
+    workerRef.current = worker
+
+    worker.onmessage = async (e: MessageEvent<WorkerResponse>) => {
+      const msg = e.data
+
+      if (msg.type === 'loadProgress') {
+        setModelProgress(msg.progress)
+        return
+      }
+
+      if (msg.type === 'modelLoaded') {
+        setStage('classifying')
+        // Start classifying all kept files
+        for (const item of kept) {
+          try {
+            const dataUrl = await readAsDataURL(item.file)
+            worker.postMessage({ type: 'classify', photoId: item.id, imageData: dataUrl, topK: 3 })
+          } catch {
+            classified++
+          }
+        }
+        return
+      }
+
+      if (msg.type === 'result') {
+        const top = msg.results[0]
+        if (top) {
+          // Map label to preset category
+          const { getAllLabels, getCategoryForLabel: getPresetCat } = await import('@/lib/ai/presets')
+          const { getPreset } = await import('@/lib/ai/presets')
+          const preset = getPreset(presetId)
+          let category = top.category as string
+          if (preset) {
+            const mapped = getPresetCat(preset, top.label)
+            if (mapped) category = mapped
+          }
+          results.set(msg.photoId, category)
+        }
+        classified++
+        setCurrentFile(msg.photoId)
+        setProgress(Math.round((classified / kept.length) * 100))
+
+        if (classified >= kept.length && !hasDoneRef.current) {
+          hasDoneRef.current = true
+          setStage('done')
+          const updated = files.map((f) => ({
+            ...f,
+            category: results.get(f.id) ?? f.category,
+          }))
+          setTimeout(() => onDone(updated), 800)
+        }
+      }
+
+      if (msg.type === 'error') {
+        classified++
+        setProgress(Math.round((classified / kept.length) * 100))
+        if (classified >= kept.length && !hasDoneRef.current) {
+          hasDoneRef.current = true
+          setStage('done')
+          const updated = files.map((f) => ({
+            ...f,
+            category: results.get(f.id) ?? 'Uncategorized',
+          }))
+          setTimeout(() => onDone(updated), 800)
+        }
+      }
+    }
+
+    worker.postMessage({ type: 'loadModel' })
+
+    return () => {
+      worker.terminate()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const displayProgress = stage === 'loading' ? modelProgress : progress
+  const statusText =
+    stage === 'loading'
+      ? `Loading AI model… ${modelProgress}%`
+      : stage === 'classifying'
+        ? `Classifying photos… ${progress}%`
+        : 'Complete!'
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[50vh] gap-10">
+      <div className="text-center space-y-2">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-primary font-bold">Step 4 of 4</p>
+        <h2 className="text-3xl font-headline font-extrabold tracking-tighter text-on-surface italic">
+          AI Sorting
+        </h2>
+        <p className="text-on-surface-variant/60 text-sm">{statusText}</p>
+      </div>
+
+      {/* Animated orb */}
+      <div className="relative w-40 h-40">
+        <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping" style={{ animationDuration: '2s' }} />
+        <div className="absolute inset-4 rounded-full bg-primary/20 animate-pulse" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          {stage === 'done' ? (
+            <CheckCircle2 className="w-14 h-14 text-primary" />
+          ) : (
+            <Sparkles className="w-14 h-14 text-primary" />
+          )}
+        </div>
+        {/* Progress ring */}
+        <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 160 160">
+          <circle
+            cx="80" cy="80" r="72"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+            className="text-outline-variant/20"
+          />
+          <circle
+            cx="80" cy="80" r="72"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+            strokeLinecap="round"
+            className="text-primary transition-all duration-300"
+            strokeDasharray={`${2 * Math.PI * 72}`}
+            strokeDashoffset={`${2 * Math.PI * 72 * (1 - displayProgress / 100)}`}
+          />
+        </svg>
+      </div>
+
+      {/* Stage indicators */}
+      <div className="flex gap-8">
+        {[
+          { label: 'Model loaded', done: stage !== 'loading' },
+          { label: 'Classifying', done: stage === 'done' },
+          { label: 'Complete', done: stage === 'done' },
+        ].map((s, i) => (
+          <div key={i} className="flex items-center gap-2">
+            {s.done ? (
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+            ) : stage === 'loading' && i === 0 ? (
+              <Loader2 className="w-4 h-4 text-primary animate-spin" />
+            ) : stage === 'classifying' && i === 1 ? (
+              <Loader2 className="w-4 h-4 text-primary animate-spin" />
+            ) : (
+              <div className="w-4 h-4 rounded-full border-2 border-outline-variant/30" />
+            )}
+            <span className={['text-xs font-mono', s.done ? 'text-on-surface' : 'text-on-surface-variant/40'].join(' ')}>
+              {s.label}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-[10px] font-mono text-on-surface-variant/30 text-center max-w-xs">
+        Running entirely in your browser — no photos leave your device.
+      </p>
+    </div>
+  )
+}
+
+/* ─── Phase: Results ────────────────────────────────────────────────────── */
+
+function ResultsPhase({ files }: { files: SortableFile[] }) {
+  const sorted = files.filter((f) => f.keep && f.category)
+  const byCategory = sorted.reduce<Record<string, SortableFile[]>>((acc, f) => {
+    const cat = f.category ?? 'Uncategorized'
+    acc[cat] = [...(acc[cat] ?? []), f]
+    return acc
+  }, {})
+
+  const categories = Object.keys(byCategory).sort()
+  const rejected = files.filter((f) => !f.keep)
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-primary font-bold mb-1">Complete</p>
+          <h2 className="text-3xl font-headline font-extrabold tracking-tighter text-on-surface italic flex items-center gap-3">
+            <CheckCircle2 className="w-8 h-8 text-primary" />
+            Sort complete
+          </h2>
+          <p className="text-on-surface-variant/60 text-sm mt-1">
+            {sorted.length} photos sorted into {categories.length} categories
+            {rejected.length > 0 && `, ${rejected.length} rejected`}
+          </p>
+        </div>
+        <Link
+          href="/dashboard/gallery"
+          className="px-5 py-2.5 rounded-xl bg-primary text-on-primary font-headline font-bold text-sm flex items-center gap-2 hover:bg-primary/90 transition-colors"
+        >
+          View in Gallery
+          <ChevronRight className="w-4 h-4" />
+        </Link>
+      </div>
+
+      {/* Summary grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {categories.map((cat) => {
+          const catFiles = byCategory[cat]
+          const preview = catFiles[0]?.cullResult?.preview
+          return (
+            <div key={cat} className="bg-surface-container rounded-2xl overflow-hidden group cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all">
+              <div className="aspect-video bg-surface-container-high flex items-center justify-center overflow-hidden relative">
+                {preview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={preview} alt={cat} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                ) : (
+                  <FolderOpen className="w-10 h-10 text-on-surface-variant/20" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between">
+                  <p className="text-white font-headline font-bold text-sm truncate">{cat}</p>
+                  <span className="text-[10px] font-mono text-white/70 bg-black/40 px-1.5 py-0.5 rounded">
+                    {catFiles.length}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* All sorted files */}
+      <div className="space-y-2">
+        <p className="text-xs font-mono uppercase tracking-widest text-on-surface-variant/50">All sorted files</p>
+        <div className="bg-surface-container rounded-2xl overflow-hidden">
+          {sorted.map((f, i) => (
+            <div
+              key={f.id}
+              className={['flex items-center justify-between px-4 py-3 transition-colors hover:bg-surface-container-high', i !== 0 ? 'border-t border-outline-variant/10' : ''].join(' ')}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-surface-container-high overflow-hidden flex-shrink-0">
+                  {f.cullResult?.preview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={f.cullResult.preview} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-4 h-4 m-2 text-on-surface-variant/30" />
+                  )}
+                </div>
+                <p className="text-sm font-mono text-on-surface truncate max-w-[200px]">{f.file.name}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {f.cullResult && f.cullResult.flags.length > 0 && (
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                )}
+                <span className="px-2.5 py-0.5 rounded-lg bg-primary/10 text-primary text-[10px] font-mono font-bold uppercase tracking-widest">
+                  {f.category}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Main Page ──────────────────────────────────────────────────────────── */
 
 export default function AISortPage() {
-  const [files, setFiles] = useState<FileWithStatus[]>(MOCK_FILES);
-  const [isSorting, setIsSorting] = useState(false);
-  const [isDone, setIsDone] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [currentAction, setCurrentAction] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [phase, setPhase] = useState<Phase>('upload')
+  const [files, setFiles] = useState<SortableFile[]>([])
+  const [presetId, setPresetId] = useState('wedding')
+  const [description, setDescription] = useState('')
 
-  /* ---- handlers ---- */
+  const handleUpload = useCallback((raw: File[]) => {
+    const sortable: SortableFile[] = raw.map((f) => ({
+      file: f,
+      id: uid(),
+      keep: true,
+    }))
+    setFiles(sortable)
+    setPhase('cull')
+  }, [])
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setIsDone(false);
-      const newFiles: FileWithStatus[] = Array.from(e.target.files).map((f) => ({
-        file: { name: f.name, size: f.size },
-        id: Math.random().toString(36).substring(2, 11),
-        status: 'pending' as const,
-      }));
-      setFiles((prev) => [...prev, ...newFiles]);
-    }
-  };
+  const handleCullDone = useCallback((updated: SortableFile[]) => {
+    setFiles(updated)
+    setPhase('context')
+  }, [])
 
-  const startSorting = () => {
-    if (files.length === 0) return;
-    setIsSorting(true);
-    setIsDone(false);
-    setProgress(0);
+  const handleContextDone = useCallback((pid: string, desc: string) => {
+    setPresetId(pid)
+    setDescription(desc)
+    setPhase('sort')
+  }, [])
 
-    let currentFileIndex = 0;
-    const totalFiles = files.length;
-
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        const next = prev + 100 / (totalFiles * 5);
-        if (next >= 100) {
-          clearInterval(interval);
-          setIsSorting(false);
-          setIsDone(true);
-          setCurrentAction('Sorting Complete');
-          // mark all remaining as completed
-          setFiles((prev) =>
-            prev.map((f) => ({
-              ...f,
-              status: 'completed' as const,
-              category: f.category || CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)],
-            })),
-          );
-          return 100;
-        }
-        return next;
-      });
-
-      if (Math.random() > 0.7 && currentFileIndex < totalFiles) {
-        setFiles((prev) => {
-          const updated = [...prev];
-          if (updated[currentFileIndex]) {
-            updated[currentFileIndex] = {
-              ...updated[currentFileIndex],
-              status: 'completed',
-              category: CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)],
-            };
-          }
-          return updated;
-        });
-        currentFileIndex++;
-        setCurrentAction(`Analyzing ${files[currentFileIndex]?.file.name || 'assets'}...`);
-      }
-    }, 200);
-  };
-
-  const removeFile = (id: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id));
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (isSorting) return;
-    setIsDone(false);
-    const droppedFiles: FileWithStatus[] = Array.from(e.dataTransfer.files).map((f) => ({
-      file: { name: f.name, size: f.size },
-      id: Math.random().toString(36).substring(2, 11),
-      status: 'pending' as const,
-    }));
-    setFiles((prev) => [...prev, ...droppedFiles]);
-  };
-
-  /* ---- render ---- */
+  const handleSortDone = useCallback((sorted: SortableFile[]) => {
+    setFiles(sorted)
+    setPhase('results')
+  }, [])
 
   return (
     <div className="space-y-8 pb-12">
       {/* Header */}
-      <div>
-        <h2 className="text-4xl font-headline font-extrabold tracking-tighter text-on-surface italic flex items-center gap-3">
-          <Sparkles className="w-8 h-8 text-primary" />
-          AI Neural Sort
-        </h2>
-        <p className="text-on-surface-variant font-body mt-2">
-          Upload RAW or JPEG assets to automatically categorize your shoot using computer vision.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* ========== Left: Upload & Progress ========== */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Drop zone */}
-          <div
-            onClick={() => fileInputRef.current?.click()}
-            onDrop={handleDrop}
-            onDragOver={(e) => e.preventDefault()}
-            className={[
-              'relative border-2 border-dashed border-outline-variant/20 rounded-3xl p-12 flex flex-col items-center justify-center gap-4 transition-all cursor-pointer group overflow-hidden',
-              isSorting
-                ? 'pointer-events-none opacity-50'
-                : 'hover:border-primary/40 hover:bg-primary/5',
-            ].join(' ')}
-          >
-            <div className="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center group-hover:scale-110 transition-transform">
-              <UploadCloud className="w-8 h-8 text-primary" />
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-headline font-bold text-on-surface">
-                Drop RAW/JPEG files here
-              </p>
-              <p className="text-sm text-on-surface-variant/60">
-                or click to browse your local storage
-              </p>
-            </div>
-            <input
-              type="file"
-              multiple
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-              accept=".jpg,.jpeg,.raw,.cr2,.nef"
-            />
-
-            {/* Decorative SVG neural network background */}
-            <div className="absolute inset-0 z-[-1] opacity-5 text-on-surface">
-              <svg
-                width="100%"
-                height="100%"
-                viewBox="0 0 200 100"
-                preserveAspectRatio="none"
-              >
-                <path d="M0,50 Q25,0 50,50 T100,50 T150,50 T200,50" fill="none" stroke="currentColor" strokeWidth="0.5" />
-                <path d="M0,30 Q25,80 50,30 T100,30 T150,30 T200,30" fill="none" stroke="currentColor" strokeWidth="0.5" />
-                <path d="M0,70 Q25,20 50,70 T100,70 T150,70 T200,70" fill="none" stroke="currentColor" strokeWidth="0.5" />
-                {/* nodes */}
-                <circle cx="25" cy="25" r="2" fill="currentColor" opacity="0.3" />
-                <circle cx="75" cy="50" r="2" fill="currentColor" opacity="0.3" />
-                <circle cx="125" cy="35" r="2" fill="currentColor" opacity="0.3" />
-                <circle cx="175" cy="65" r="2" fill="currentColor" opacity="0.3" />
-                <circle cx="50" cy="70" r="1.5" fill="currentColor" opacity="0.2" />
-                <circle cx="100" cy="20" r="1.5" fill="currentColor" opacity="0.2" />
-                <circle cx="150" cy="80" r="1.5" fill="currentColor" opacity="0.2" />
-                {/* connecting lines */}
-                <line x1="25" y1="25" x2="75" y2="50" stroke="currentColor" strokeWidth="0.3" opacity="0.15" />
-                <line x1="75" y1="50" x2="125" y2="35" stroke="currentColor" strokeWidth="0.3" opacity="0.15" />
-                <line x1="125" y1="35" x2="175" y2="65" stroke="currentColor" strokeWidth="0.3" opacity="0.15" />
-                <line x1="50" y1="70" x2="100" y2="20" stroke="currentColor" strokeWidth="0.3" opacity="0.15" />
-                <line x1="100" y1="20" x2="150" y2="80" stroke="currentColor" strokeWidth="0.3" opacity="0.15" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Processing state */}
-          {isSorting && (
-            <div className="bg-surface-container-low p-8 rounded-3xl border border-outline-variant/10 space-y-4">
-              <div className="flex justify-between items-end">
-                <div>
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-primary font-bold mb-1">
-                    Neural Processing
-                  </p>
-                  <h3 className="text-xl font-headline font-bold text-on-surface">
-                    {currentAction || 'Initializing Sort...'}
-                  </h3>
-                </div>
-                <p className="text-2xl font-mono font-bold text-primary">
-                  {Math.round(progress)}%
-                </p>
-              </div>
-
-              {/* Progress bar with animated gradient */}
-              <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-[#ffb780] to-[#d48441] rounded-full transition-all duration-200 ease-linear"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex items-center gap-2 text-[10px] font-mono text-on-surface-variant/60 uppercase tracking-widest">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Analyzing Metadata
-                </div>
-                <div className="flex items-center gap-2 text-[10px] font-mono text-on-surface-variant/60 uppercase tracking-widest">
-                  <Layers className="w-3 h-3" />
-                  Clustering Patterns
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Complete state */}
-          <div
-            className={[
-              'bg-secondary/10 p-8 rounded-3xl border border-secondary/20 flex items-center justify-between transition-all duration-500',
-              isDone ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none h-0 p-0 border-0 overflow-hidden',
-            ].join(' ')}
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-secondary/20 flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6 text-secondary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-headline font-bold text-secondary">
-                  Categorization Complete
-                </h3>
-                <p className="text-sm text-secondary/60">
-                  {files.length} assets sorted into {new Set(files.map((f) => f.category).filter(Boolean)).size} neural clusters.
-                </p>
-              </div>
-            </div>
-            <Link href="/dashboard/gallery" className="px-8 py-3 bg-secondary text-on-secondary rounded-xl font-headline font-bold uppercase tracking-tight shadow-lg hover:shadow-secondary/20 transition-all flex items-center gap-2">
-              View Full Gallery
-              <ChevronRight className="w-5 h-5" />
-            </Link>
-          </div>
-
-          {/* Start sorting CTA */}
-          {files.length > 0 && !isSorting && !isDone && (
-            <div className="flex justify-end">
-              <button
-                onClick={startSorting}
-                className="px-8 py-3 bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary rounded-xl font-headline font-bold uppercase tracking-tight shadow-lg hover:shadow-primary/20 transition-all flex items-center gap-2"
-              >
-                <Sparkles className="w-5 h-5" />
-                Begin AI Categorization
-              </button>
-            </div>
-          )}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-4xl font-headline font-extrabold tracking-tighter text-on-surface italic flex items-center gap-3">
+            <Sparkles className="w-8 h-8 text-primary" />
+            AI Neural Sort
+          </h1>
+          <p className="text-on-surface-variant/60 font-body mt-1 text-sm">
+            Automatically categorize your shoot using computer vision — entirely in your browser.
+          </p>
         </div>
 
-        {/* ========== Right: Processing Queue Sidebar ========== */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-surface-container-low rounded-3xl border border-outline-variant/10 overflow-hidden flex flex-col h-[600px]">
-            {/* Queue header */}
-            <div className="p-6 border-b border-outline-variant/10 flex items-center justify-between bg-surface-container-low/50 backdrop-blur-md sticky top-0 z-10">
-              <h3 className="text-lg font-headline font-bold text-on-surface">Processing Queue</h3>
-              <span className="px-3 py-1 bg-surface-container-highest rounded-full text-[10px] font-mono font-bold uppercase tracking-widest text-on-surface-variant">
-                {files.length} Assets
-              </span>
-            </div>
-
-            {/* Queue list */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {files.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-on-surface-variant/40 gap-4">
-                  <ImageIcon className="w-12 h-12 opacity-20" />
-                  <p className="text-sm font-headline italic">No assets in queue</p>
-                </div>
-              ) : (
-                files.map((f) => (
-                  <div
-                    key={f.id}
-                    className="flex items-center justify-between p-3 bg-surface-container-lowest rounded-xl border border-outline-variant/5 group transition-all duration-300"
-                  >
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center flex-shrink-0">
-                        <FileType className="w-5 h-5 text-on-surface-variant/40" />
-                      </div>
-                      <div className="overflow-hidden">
-                        <p className="text-sm font-headline font-bold truncate text-on-surface">
-                          {f.file.name}
-                        </p>
-                        <p className="text-[10px] font-mono text-on-surface-variant/40 uppercase tracking-widest">
-                          {(f.file.size / (1024 * 1024)).toFixed(2)} MB
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {f.status === 'completed' ? (
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 bg-primary/10 text-primary text-[9px] font-mono font-bold uppercase tracking-widest rounded-md">
-                            {f.category}
-                          </span>
-                          <CheckCircle2 className="w-4 h-4 text-secondary" />
-                        </div>
-                      ) : isSorting ? (
-                        <Loader2 className="w-4 h-4 text-primary animate-spin" />
-                      ) : (
-                        <button
-                          onClick={() => removeFile(f.id)}
-                          className="p-1 hover:bg-tertiary/10 hover:text-tertiary rounded-md transition-colors opacity-0 group-hover:opacity-100"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+        <div className="flex gap-2">
+          <Link
+            href="/dashboard/presets"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container border border-outline-variant/20 text-sm font-headline font-bold text-on-surface-variant hover:text-on-surface transition-colors"
+          >
+            <Tag className="w-4 h-4" />
+            Presets
+          </Link>
+          <Link
+            href="/dashboard/settings"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container border border-outline-variant/20 text-sm font-headline font-bold text-on-surface-variant hover:text-on-surface transition-colors"
+          >
+            <Settings2 className="w-4 h-4" />
+            Settings
+          </Link>
         </div>
       </div>
+
+      {/* Step indicator */}
+      {phase !== 'upload' && (
+        <div className="max-w-md">
+          <StepIndicator phase={phase} />
+        </div>
+      )}
+
+      {/* Phase content */}
+      {phase === 'upload' && <UploadPhase onFiles={handleUpload} />}
+      {phase === 'cull' && <CullPhase files={files} onContinue={handleCullDone} />}
+      {phase === 'context' && <ContextPhase onContinue={handleContextDone} />}
+      {phase === 'sort' && (
+        <SortPhase
+          files={files}
+          presetId={presetId}
+          description={description}
+          onDone={handleSortDone}
+        />
+      )}
+      {phase === 'results' && <ResultsPhase files={files} />}
     </div>
-  );
+  )
 }
