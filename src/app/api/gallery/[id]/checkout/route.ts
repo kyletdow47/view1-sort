@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createGalleryCheckout } from '@/lib/stripe/checkout'
 import { getApplicationFeePercent } from '@/lib/stripe/plans'
 import type { PlanTier } from '@/lib/stripe/plans'
+import { rateLimit, getIp } from '@/lib/rate-limit'
 import type { Project, Profile } from '@/types/supabase'
 
 function getServiceSupabase() {
@@ -23,6 +24,13 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
+  const rl = rateLimit(`checkout:${getIp(req.headers)}`, { limit: 10, windowSec: 60 })
+  if (!rl.success) {
+    return NextResponse.json({ error: 'Too many requests' }, {
+      status: 429,
+      headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+    })
+  }
   const { id: projectId } = await params
 
   let body: CheckoutRequestBody

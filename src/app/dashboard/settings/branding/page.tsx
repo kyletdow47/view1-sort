@@ -129,7 +129,7 @@ export default function BrandingPage() {
       <div>
         <h1 className="font-headline text-3xl italic font-extrabold text-on-surface flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441]">
-            <Palette size={20} className="text-[#4e2600]" />
+            <Palette size={20} className="text-on-primary" />
           </div>
           Brand Identity
         </h1>
@@ -305,7 +305,7 @@ export default function BrandingPage() {
                         onClick={() => setWatermarkPosition(pos)}
                         className={`h-8 w-8 rounded-lg text-[8px] font-medium transition-all ${
                           watermarkPosition === pos
-                            ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600]'
+                            ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary'
                             : 'bg-surface-container-highest text-on-surface-variant/30 hover:text-on-surface-variant/60'
                         }`}
                         title={positionLabels[pos]}
@@ -429,7 +429,7 @@ export default function BrandingPage() {
             </Card>
 
             {/* Save Button */}
-            <button className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3.5 font-headline font-bold text-[#4e2600] transition-opacity hover:opacity-90 shadow-lg shadow-[#d48441]/20">
+            <button className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3.5 font-headline font-bold text-on-primary transition-opacity hover:opacity-90 shadow-lg shadow-[#d48441]/20">
               <Save size={18} />
               Save Brand Kit
             </button>

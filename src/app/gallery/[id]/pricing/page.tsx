@@ -81,15 +81,15 @@ export default function PricingPage({ params }: PricingPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#151312]">
+    <div className="min-h-screen bg-background">
       {/* Top Nav */}
-      <nav className="border-b border-[#534439]/30 bg-[#1d1b1a]">
+      <nav className="border-b border-outline-variant/30 bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441]">
-              <Camera size={16} className="text-[#4e2600]" />
+              <Camera size={16} className="text-on-primary" />
             </div>
-            <span className="text-sm font-bold text-[#e7e1df]">PhotoSorter</span>
+            <span className="text-sm font-bold text-on-surface">PhotoSorter</span>
           </div>
           <div className="flex items-center gap-1">
             {NAV_TABS.map((tab) => (
@@ -97,8 +97,8 @@ export default function PricingPage({ params }: PricingPageProps) {
                 key={tab}
                 className={`rounded-lg px-4 py-2 text-xs font-medium transition-colors ${
                   tab === activeTab
-                    ? 'bg-[#ffb780]/15 text-[#ffb780]'
-                    : 'text-[#d9c2b4]/60 hover:text-[#d9c2b4]'
+                    ? 'bg-primary/15 text-primary'
+                    : 'text-on-surface-variant/60 hover:text-on-surface-variant'
                 }`}
               >
                 {tab}
@@ -112,29 +112,29 @@ export default function PricingPage({ params }: PricingPageProps) {
       <div className="mx-auto max-w-2xl px-6 py-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-headline text-3xl font-extrabold italic text-[#e7e1df]">
+          <h1 className="font-headline text-3xl font-extrabold italic text-on-surface">
             Gallery Pricing
           </h1>
-          <p className="mt-1 text-sm text-[#d9c2b4]/70">Johnson Wedding</p>
+          <p className="mt-1 text-sm text-on-surface-variant/70">Johnson Wedding</p>
         </div>
 
         {/* Primary Price */}
-        <div className="mb-8 rounded-2xl border border-[#534439]/30 bg-[#1d1b1a] p-6 text-center">
-          <span className="font-label text-[10px] uppercase tracking-widest text-[#d9c2b4]/60">
+        <div className="mb-8 rounded-2xl border border-outline-variant/30 bg-surface p-6 text-center">
+          <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
             Gallery Price
           </span>
           <div className="mt-3 flex items-baseline justify-center gap-1">
-            <DollarSign size={28} className="text-[#ffb780]" />
-            <span className="text-5xl font-extrabold text-[#e7e1df]">2,400</span>
-            <span className="ml-1 text-lg font-medium text-[#d9c2b4]/60">USD</span>
+            <DollarSign size={28} className="text-primary" />
+            <span className="text-5xl font-extrabold text-on-surface">2,400</span>
+            <span className="ml-1 text-lg font-medium text-on-surface-variant/60">USD</span>
           </div>
         </div>
 
         {/* Currency Conversions */}
-        <div className="mb-8 rounded-2xl border border-[#534439]/30 bg-[#1d1b1a] p-6">
+        <div className="mb-8 rounded-2xl border border-outline-variant/30 bg-surface p-6">
           <div className="flex items-center gap-2 mb-4">
-            <Globe size={16} className="text-[#95d1d1]/60" />
-            <span className="font-label text-[10px] uppercase tracking-widest text-[#d9c2b4]/60">
+            <Globe size={16} className="text-emerald-400/60" />
+            <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
               Approximate Conversions
             </span>
           </div>
@@ -142,28 +142,28 @@ export default function PricingPage({ params }: PricingPageProps) {
             {CONVERSIONS.map((conv) => (
               <div
                 key={conv.currency}
-                className="flex items-baseline justify-between rounded-xl bg-[#211f1e] px-4 py-3"
+                className="flex items-baseline justify-between rounded-xl bg-surface-container px-4 py-3"
               >
-                <span className="text-sm text-[#d9c2b4]/50">
+                <span className="text-sm text-on-surface-variant/50">
                   {'\u2248'} {conv.symbol}
                   {conv.amount}
                 </span>
-                <span className="font-label text-[10px] uppercase tracking-widest text-[#d9c2b4]/40">
+                <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/40">
                   {conv.currency}
                 </span>
               </div>
             ))}
           </div>
-          <p className="mt-4 text-[10px] text-[#a18d80]/50 text-center">
+          <p className="mt-4 text-[10px] text-on-surface-variant/50 text-center">
             Exchange rates are approximate and updated daily
           </p>
         </div>
 
         {/* Package Options */}
-        <div className="mb-8 rounded-2xl border border-[#534439]/30 bg-[#1d1b1a] p-6">
+        <div className="mb-8 rounded-2xl border border-outline-variant/30 bg-surface p-6">
           <div className="flex items-center gap-2 mb-4">
-            <Package size={16} className="text-[#ffb780]/60" />
-            <span className="font-label text-[10px] uppercase tracking-widest text-[#d9c2b4]/60">
+            <Package size={16} className="text-primary/60" />
+            <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
               Package Options
             </span>
           </div>
@@ -173,17 +173,17 @@ export default function PricingPage({ params }: PricingPageProps) {
                 key={pkg.name}
                 className={`flex items-center justify-between rounded-xl px-4 py-4 transition-colors ${
                   pkg.active
-                    ? 'bg-[#211f1e] hover:bg-[#2c2928]'
-                    : 'bg-[#211f1e]/50 opacity-50'
+                    ? 'bg-surface-container hover:bg-surface-container'
+                    : 'bg-surface-container/50 opacity-50'
                 }`}
               >
                 <div>
-                  <p className="text-sm font-medium text-[#e7e1df]">{pkg.name}</p>
-                  <p className="mt-0.5 text-[11px] text-[#d9c2b4]/50">{pkg.description}</p>
+                  <p className="text-sm font-medium text-on-surface">{pkg.name}</p>
+                  <p className="mt-0.5 text-[11px] text-on-surface-variant/50">{pkg.description}</p>
                 </div>
                 <span
                   className={`text-sm font-bold ${
-                    pkg.active ? 'text-[#ffb780]' : 'text-[#a18d80]/40'
+                    pkg.active ? 'text-primary' : 'text-on-surface-variant/40'
                   }`}
                 >
                   {pkg.price}
@@ -197,7 +197,7 @@ export default function PricingPage({ params }: PricingPageProps) {
         <div className="mb-8 flex flex-col items-center gap-4">
           <a
             href={`/gallery/${id}/cart`}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3.5 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
           >
             <CreditCard size={16} />
             Proceed to Payment
@@ -206,11 +206,11 @@ export default function PricingPage({ params }: PricingPageProps) {
 
           {/* Payment Methods */}
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-[#d9c2b4]/40">Accepted:</span>
+            <span className="text-[10px] text-on-surface-variant/40">Accepted:</span>
             {PAYMENT_METHODS.map((method) => (
               <span
                 key={method}
-                className="rounded-md border border-[#534439]/30 bg-[#211f1e] px-2.5 py-1 text-[10px] font-medium text-[#d9c2b4]/60"
+                className="rounded-md border border-outline-variant/30 bg-surface-container px-2.5 py-1 text-[10px] font-medium text-on-surface-variant/60"
               >
                 {method}
               </span>
@@ -219,30 +219,30 @@ export default function PricingPage({ params }: PricingPageProps) {
         </div>
 
         {/* FAQ Section */}
-        <div className="rounded-2xl border border-[#534439]/30 bg-[#1d1b1a] p-6">
+        <div className="rounded-2xl border border-outline-variant/30 bg-surface p-6">
           <div className="flex items-center gap-2 mb-4">
-            <HelpCircle size={16} className="text-[#ffb4a5]/60" />
-            <span className="font-label text-[10px] uppercase tracking-widest text-[#d9c2b4]/60">
+            <HelpCircle size={16} className="text-rose-400/60" />
+            <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
               Frequently Asked Questions
             </span>
           </div>
           <div className="space-y-2">
             {FAQ_ITEMS.map((faq, index) => (
-              <div key={index} className="rounded-xl bg-[#211f1e] overflow-hidden">
+              <div key={index} className="rounded-xl bg-surface-container overflow-hidden">
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-[#2c2928]"
+                  className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-surface-container"
                 >
-                  <span className="text-sm font-medium text-[#e7e1df]">{faq.question}</span>
+                  <span className="text-sm font-medium text-on-surface">{faq.question}</span>
                   {expandedFaq === index ? (
-                    <ChevronUp size={16} className="text-[#a18d80]/60" />
+                    <ChevronUp size={16} className="text-on-surface-variant/60" />
                   ) : (
-                    <ChevronDown size={16} className="text-[#a18d80]/60" />
+                    <ChevronDown size={16} className="text-on-surface-variant/60" />
                   )}
                 </button>
                 {expandedFaq === index && (
-                  <div className="border-t border-[#534439]/20 px-4 py-3">
-                    <p className="text-xs leading-relaxed text-[#d9c2b4]/60">{faq.answer}</p>
+                  <div className="border-t border-outline-variant/20 px-4 py-3">
+                    <p className="text-xs leading-relaxed text-on-surface-variant/60">{faq.answer}</p>
                   </div>
                 )}
               </div>

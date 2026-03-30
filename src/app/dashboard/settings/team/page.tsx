@@ -50,9 +50,9 @@ const pendingInvites: PendingInvite[] = [
 ]
 
 const roleConfig: Record<Role, { label: string; color: string; bg: string; icon: React.ElementType }> = {
-  owner: { label: 'Owner', color: 'text-[#ffb780]', bg: 'bg-[#ffb780]/15', icon: Crown },
-  editor: { label: 'Editor', color: 'text-[#95d1d1]', bg: 'bg-[#95d1d1]/15', icon: Pencil },
-  viewer: { label: 'Viewer', color: 'text-[#d9c2b4]', bg: 'bg-[#d9c2b4]/15', icon: Eye },
+  owner: { label: 'Owner', color: 'text-primary', bg: 'bg-primary/15', icon: Crown },
+  editor: { label: 'Editor', color: 'text-emerald-400', bg: 'bg-emerald-400/15', icon: Pencil },
+  viewer: { label: 'Viewer', color: 'text-on-surface-variant', bg: 'bg-[#d9c2b4]/15', icon: Eye },
 }
 
 const permissions = [
@@ -110,7 +110,7 @@ export default function TeamPage() {
       <div>
         <h1 className="font-headline text-3xl italic font-extrabold text-on-surface flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441]">
-            <Users size={20} className="text-[#4e2600]" />
+            <Users size={20} className="text-on-primary" />
           </div>
           Team & Workspace
         </h1>
@@ -210,7 +210,7 @@ export default function TeamPage() {
               <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50" />
             </div>
           </div>
-          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2.5 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90 whitespace-nowrap">
+          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 whitespace-nowrap">
             <Send size={14} />
             Send Invite
           </button>
@@ -221,7 +221,7 @@ export default function TeamPage() {
       {pendingInvites.length > 0 && (
         <Card>
           <div className="flex items-center gap-2 mb-5">
-            <Clock size={18} className="text-[#ffb780]" />
+            <Clock size={18} className="text-primary" />
             <h2 className="font-headline font-bold text-lg text-on-surface">
               Pending Invitations
             </h2>
@@ -233,11 +233,11 @@ export default function TeamPage() {
               return (
                 <div
                   key={invite.id}
-                  className="flex items-center justify-between rounded-xl bg-surface-container p-4 border border-dashed border-[#ffb780]/20"
+                  className="flex items-center justify-between rounded-xl bg-surface-container p-4 border border-dashed border-primary/20"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#ffb780]/10">
-                      <Mail size={16} className="text-[#ffb780]/60" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                      <Mail size={16} className="text-primary/60" />
                     </div>
                     <div>
                       <span className="text-sm text-on-surface">{invite.email}</span>
@@ -282,19 +282,19 @@ export default function TeamPage() {
                 </th>
                 <th className="pb-3 px-4 text-center">
                   <div className="flex flex-col items-center gap-1">
-                    <Crown size={14} className="text-[#ffb780]" />
+                    <Crown size={14} className="text-primary" />
                     <SectionLabel>Owner</SectionLabel>
                   </div>
                 </th>
                 <th className="pb-3 px-4 text-center">
                   <div className="flex flex-col items-center gap-1">
-                    <Pencil size={14} className="text-[#95d1d1]" />
+                    <Pencil size={14} className="text-emerald-400" />
                     <SectionLabel>Editor</SectionLabel>
                   </div>
                 </th>
                 <th className="pb-3 px-4 text-center">
                   <div className="flex flex-col items-center gap-1">
-                    <Eye size={14} className="text-[#d9c2b4]" />
+                    <Eye size={14} className="text-on-surface-variant" />
                     <SectionLabel>Viewer</SectionLabel>
                   </div>
                 </th>

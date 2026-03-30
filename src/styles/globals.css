@@ -2,159 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================
-   THEME SYSTEM — CSS custom properties (RGB tuples for Tailwind
-   opacity modifier support: bg-primary/20 etc.)
-   ============================================================ */
+/* ─────────────────────────────────────────────────────────────────────────────
+   Theme Tokens — CSS Custom Properties
+   Values are space-separated RGB integers (no #, no commas) so Tailwind's
+   `bg-token/opacity` syntax works: rgb(var(--t-bg) / 0.9)
+───────────────────────────────────────────────────────────────────────────── */
 
-/* ── Warm / Stone (default — amber accent) ── */
-:root {
-  /* Surfaces */
-  --tw-bg:               21 19 18;      /* #151312 */
-  --tw-surface-lowest:   16 14 13;      /* #100e0d */
-  --tw-surface-low:      29 27 26;      /* #1d1b1a */
-  --tw-surface:          33 31 30;      /* #211f1e */
-  --tw-surface-high:     44 41 40;      /* #2c2928 */
-  --tw-surface-highest:  55 52 51;      /* #373433 */
-  --tw-surface-bright:   59 57 55;      /* #3b3937 */
-
-  /* Primary — amber */
-  --tw-primary:          255 183 128;   /* #ffb780 */
-  --tw-primary-c:        212 132 65;    /* #d48441 */
-  --tw-on-primary:       78  38  0;     /* #4e2600 */
-
-  /* Accent */
-  --tw-accent:           212 145 92;    /* #D4915C */
-  --tw-accent-hover:     224 160 110;   /* #E0A06E */
-
-  /* Text */
-  --tw-on-surface:       231 225 223;   /* #e7e1df */
-  --tw-on-surface-v:     217 194 180;   /* #d9c2b4 */
-
-  /* Borders */
-  --tw-outline-v:        83  68  57;    /* #534439 */
-  --tw-outline:          161 141 128;   /* #a18d80 */
-
-  /* Toast */
-  --toast-bg:     #211f1e;
-  --toast-border: #534439;
-  --toast-text:   #e7e1df;
-}
-
-/* ── Zinc / Cool (indigo accent) ── */
+/* ── Zinc / Cool (default — indigo accent) ── */
+:root,
 [data-theme="zinc"] {
-  --tw-bg:               13  14  20;    /* #0D0E14 */
-  --tw-surface-lowest:   10  11  16;    /* #0A0B10 */
-  --tw-surface-low:      19  20  28;    /* #13141C */
-  --tw-surface:          26  27  38;    /* #1A1B26 */
-  --tw-surface-high:     34  37  58;    /* #22253A */
-  --tw-surface-highest:  45  48  80;    /* #2D3050 */
-  --tw-surface-bright:   54  57  96;    /* #363960 */
-
-  --tw-primary:          129 140 248;   /* #818cf8 */
-  --tw-primary-c:        99  102 241;   /* #6366f1 */
-  --tw-on-primary:       255 255 255;   /* #ffffff */
-
-  --tw-accent:           99  102 241;   /* #6366f1 */
-  --tw-accent-hover:     79  70  229;   /* #4F46E5 */
-
-  --tw-on-surface:       224 231 255;   /* #E0E7FF */
-  --tw-on-surface-v:     165 180 252;   /* #A5B4FC */
-
-  --tw-outline-v:        30  34  64;    /* #1E2240 */
-  --tw-outline:          75  83  128;   /* #4B5380 */
-
-  --toast-bg:     #1A1B26;
-  --toast-border: #1E2240;
-  --toast-text:   #E0E7FF;
+  --t-bg:                    9   9  11;   /* #09090b */
+  --t-surface:              24  24  27;   /* #18181b */
+  --t-surface-low:          12  12  14;   /* #0c0c0e */
+  --t-surface-container:    30  30  35;   /* #1e1e23 */
+  --t-surface-high:         39  39  46;   /* #27272e */
+  --t-surface-highest:      63  63  70;   /* #3f3f46 */
+  --t-on-surface:          244 244 245;   /* #f4f4f5 */
+  --t-on-surface-variant:  161 161 170;   /* #a1a1aa */
+  --t-outline:              82  82  91;   /* #52525b */
+  --t-outline-variant:      39  39  42;   /* #27272a */
+  --t-primary:              99 102 241;   /* #6366f1 indigo-500 */
+  --t-primary-dim:          67  56 202;   /* #4338ca indigo-700 */
+  --t-on-primary:          255 255 255;
 }
 
-/* ── Mono / Greyscale ── */
+/* ── Stone / Warm (amber accent) ── */
+[data-theme="stone"] {
+  --t-bg:                   12  10   9;   /* #0c0a09 */
+  --t-surface:              28  25  23;   /* #1c1917 */
+  --t-surface-low:          16  14  13;   /* #100e0d */
+  --t-surface-container:    33  31  30;   /* #211f1e */
+  --t-surface-high:         44  41  40;   /* #2c2928 */
+  --t-surface-highest:      55  52  51;   /* #373433 */
+  --t-on-surface:          231 225 223;   /* #e7e1df */
+  --t-on-surface-variant:  161 141 128;   /* #a18d80 */
+  --t-outline:             161 141 128;   /* #a18d80 */
+  --t-outline-variant:      83  68  57;   /* #534439 */
+  --t-primary:             217 119   6;   /* #d97706 amber-600 */
+  --t-primary-dim:         180  83   9;   /* #b45309 amber-700 */
+  --t-on-primary:           28  15   0;   /* #1c0f00 */
+}
+
+/* ── Monochrome ── */
 [data-theme="mono"] {
-  --tw-bg:               8   8   8;     /* #080808 */
-  --tw-surface-lowest:   4   4   4;     /* #040404 */
-  --tw-surface-low:      16  16  16;    /* #101010 */
-  --tw-surface:          24  24  24;    /* #181818 */
-  --tw-surface-high:     34  34  34;    /* #222222 */
-  --tw-surface-highest:  46  46  46;    /* #2E2E2E */
-  --tw-surface-bright:   58  58  58;    /* #3A3A3A */
-
-  --tw-primary:          232 232 232;   /* #E8E8E8 */
-  --tw-primary-c:        189 189 189;   /* #BDBDBD */
-  --tw-on-primary:       8   8   8;     /* #080808 */
-
-  --tw-accent:           196 196 196;   /* #C4C4C4 */
-  --tw-accent-hover:     220 220 220;   /* #DCDCDC */
-
-  --tw-on-surface:       240 240 240;   /* #F0F0F0 */
-  --tw-on-surface-v:     170 170 170;   /* #AAAAAA */
-
-  --tw-outline-v:        42  42  42;    /* #2A2A2A */
-  --tw-outline:          85  85  85;    /* #555555 */
-
-  --toast-bg:     #181818;
-  --toast-border: #2A2A2A;
-  --toast-text:   #F0F0F0;
+  --t-bg:                    0   0   0;
+  --t-surface:              17  17  17;
+  --t-surface-low:           8   8   8;
+  --t-surface-container:    26  26  26;
+  --t-surface-high:         34  34  34;
+  --t-surface-highest:      42  42  42;
+  --t-on-surface:          255 255 255;
+  --t-on-surface-variant:  160 160 160;
+  --t-outline:              85  85  85;
+  --t-outline-variant:      51  51  51;
+  --t-primary:             255 255 255;
+  --t-primary-dim:         200 200 200;
+  --t-on-primary:            0   0   0;
 }
 
-/* ============================================================
-   BASE LAYER
-   ============================================================ */
-
-@layer base {
-  * { box-sizing: border-box; }
-
-  html {
-    scroll-behavior: smooth;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  body {
-    font-family: var(--font-plus-jakarta-sans), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    font-feature-settings: 'cv11', 'ss01';
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* Thin, refined scrollbar */
-  ::-webkit-scrollbar          { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track    { background: transparent; }
-  ::-webkit-scrollbar-thumb    { background: rgb(var(--tw-outline-v)); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgb(var(--tw-outline)); }
-  * { scrollbar-width: thin; scrollbar-color: rgb(var(--tw-outline-v)) transparent; }
-}
-
-/* ============================================================
-   UTILITIES LAYER
-   ============================================================ */
-
+/* ─────────────────────────────────────────────────────────────────────────────
+   Utilities
+───────────────────────────────────────────────────────────────────────────── */
 @layer utilities {
-  /* ── Theme-aware gradients ── */
-  .primary-gradient {
-    background: linear-gradient(135deg,
-      rgb(var(--tw-primary)) 0%,
-      rgb(var(--tw-primary-c)) 100%
-    );
-  }
-  .accent-gradient {
-    background: linear-gradient(135deg,
-      rgb(var(--tw-accent)) 0%,
-      rgb(var(--tw-primary-c)) 100%
-    );
-  }
-
-  /* ── Glass morphism ── */
+  /* Glass morphism */
   .glass-effect {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
   .glass-panel {
-    background: rgb(var(--tw-surface-highest) / 0.4);
+    background: rgb(var(--t-surface-container) / 0.4);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
 
-  /* ── Elevation hover pattern (micro + medium motion) ── */
+  /* Motion — micro (buttons, nav items) */
+  .motion-micro {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  }
+  .motion-micro:hover { transform: translateY(-1px); }
+
+  /* Motion — medium (project cards, gallery items) */
+  .motion-medium {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .motion-medium:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgb(0 0 0 / 0.3);
+  }
+
+  /* Elevation hover — Pencil system */
   .hoverable {
     transition: box-shadow 250ms ease, transform 250ms ease;
   }
@@ -163,7 +99,13 @@
     transform: translateY(-2px);
   }
 
-  /* ── Airy fluid grid helpers ── */
+  /* Selection ring — accent color border, no fill */
+  .ring-selected {
+    outline: 2px solid rgb(var(--t-primary));
+    outline-offset: 2px;
+  }
+
+  /* Airy fluid grids */
   .content-grid {
     display: grid;
     gap: 1.25rem;
@@ -173,60 +115,44 @@
   .fluid-grid-3 { display: grid; gap: 1.25rem; grid-template-columns: repeat(3, 1fr); }
   .fluid-grid-4 { display: grid; gap: 1.25rem; grid-template-columns: repeat(4, 1fr); }
 
-  /* ── Soft border shorthand ── */
-  .border-soft   { border: 1px solid rgb(var(--tw-outline-v) / 0.7); }
-  .border-soft-2 { border: 1px solid rgb(var(--tw-outline-v) / 0.4); }
+  /* Soft borders */
+  .border-soft   { border: 1px solid rgb(var(--t-outline-variant) / 0.7); }
+  .border-soft-2 { border: 1px solid rgb(var(--t-outline-variant) / 0.4); }
 
-  /* ── Typography ── */
+  /* Primary gradient (theme-aware) */
+  .primary-gradient {
+    background: linear-gradient(135deg,
+      rgb(var(--t-primary)) 0%,
+      rgb(var(--t-primary-dim)) 100%
+    );
+  }
+
+  /* Text */
   .text-balance { text-wrap: balance; }
   .text-pretty  { text-wrap: pretty; }
-
-  /* ── Theme-aware card ── */
-  .card-base {
-    background: rgb(var(--tw-surface));
-    border: 1px solid rgb(var(--tw-outline-v) / 0.7);
-    border-radius: 1rem;
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 0 0 1px rgb(255 255 255 / 0.03);
-    transition: box-shadow 250ms ease, transform 250ms ease;
-  }
-  .card-base:hover {
-    box-shadow: 0 4px 12px rgb(0 0 0 / 0.5), 0 1px 3px rgb(0 0 0 / 0.3);
-    transform: translateY(-2px);
-  }
-
-  /* ── Theme switcher dots ── */
-  .theme-dot {
-    width: 13px;
-    height: 13px;
-    border-radius: 9999px;
-    border: 2px solid transparent;
-    cursor: pointer;
-    transition: all 150ms ease;
-    flex-shrink: 0;
-  }
-  .theme-dot:hover { opacity: 1; transform: scale(1.2); }
-  .theme-dot.active {
-    border-color: rgb(var(--tw-on-surface) / 0.7);
-  }
-  .theme-dot-warm { background: #D4915C; }
-  .theme-dot-zinc { background: #6366f1; }
-  .theme-dot-mono { background: #C4C4C4; }
 }
 
-/* ============================================================
-   MICRO-MOTION — applied globally to interactive elements
-   ============================================================ */
-
+/* ─────────────────────────────────────────────────────────────────────────────
+   Global micro-motion on interactive elements
+───────────────────────────────────────────────────────────────────────────── */
 button, a, [role="button"] {
   transition-property: color, background-color, border-color, box-shadow, transform, opacity;
   transition-duration: 150ms;
   transition-timing-function: ease;
 }
 
-/* ============================================================
-   MATERIAL ICONS
-   ============================================================ */
+/* ─────────────────────────────────────────────────────────────────────────────
+   Scrollbar
+───────────────────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar          { width: 4px; height: 4px; }
+::-webkit-scrollbar-track    { background: rgb(var(--t-bg)); }
+::-webkit-scrollbar-thumb    { background: rgb(var(--t-outline-variant)); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--t-primary)); }
+* { scrollbar-width: thin; scrollbar-color: rgb(var(--t-outline-variant)) transparent; }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Material Icons
+───────────────────────────────────────────────────────────────────────────── */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }

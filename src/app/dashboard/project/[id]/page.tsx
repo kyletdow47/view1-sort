@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
 import { getProject } from '@/lib/queries/projects'
 import { getMedia } from '@/lib/queries/media'
 import { WorkspaceView } from '@/components/features/workspace/WorkspaceView'

@@ -1,55 +1,30 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useTheme, type Theme } from '@/hooks/useTheme'
 
-export type AppTheme = 'warm' | 'zinc' | 'mono'
-
-const THEMES: { id: AppTheme; label: string; color: string }[] = [
-  { id: 'warm', label: 'Warm / Stone',  color: '#D4915C' },
-  { id: 'zinc', label: 'Zinc / Cool',   color: '#6366f1' },
-  { id: 'mono', label: 'Monochrome',    color: '#C4C4C4' },
+const THEMES: { value: Theme; label: string; swatch: string }[] = [
+  { value: 'zinc',  label: 'Zinc / Cool',  swatch: '#6366f1' },
+  { value: 'stone', label: 'Stone / Warm', swatch: '#d97706' },
+  { value: 'mono',  label: 'Mono',         swatch: '#ffffff' },
 ]
 
-function applyTheme(theme: AppTheme) {
-  if (theme === 'warm') {
-    document.documentElement.removeAttribute('data-theme')
-  } else {
-    document.documentElement.setAttribute('data-theme', theme)
-  }
-  try { localStorage.setItem('v1-theme', theme) } catch {}
-}
-
 export function ThemeSwitcher({ className = '' }: { className?: string }) {
-  const [theme, setTheme] = useState<AppTheme>('warm')
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    try {
-      const saved = localStorage.getItem('v1-theme') as AppTheme | null
-      if (saved && THEMES.some(t => t.id === saved)) {
-        setTheme(saved)
-      }
-    } catch {}
-  }, [])
-
-  const handleTheme = (t: AppTheme) => {
-    setTheme(t)
-    applyTheme(t)
-  }
-
-  if (!mounted) return null
+  const { theme, setTheme } = useTheme()
 
   return (
-    <div className={`flex items-center gap-1.5 ${className}`} title="Switch theme">
-      {THEMES.map(t => (
+    <div className={`flex items-center gap-1.5 ${className}`} aria-label="Theme switcher">
+      {THEMES.map(({ value, label, swatch }) => (
         <button
-          key={t.id}
-          onClick={() => handleTheme(t.id)}
-          title={t.label}
-          aria-label={`Switch to ${t.label} theme`}
-          className={`theme-dot theme-dot-${t.id} ${theme === t.id ? 'active' : 'opacity-50'}`}
-          style={{ background: t.color }}
+          key={value}
+          onClick={() => setTheme(value)}
+          title={`${label} theme`}
+          aria-pressed={theme === value}
+          className={`flex h-5 w-5 items-center justify-center rounded-full border transition-all ${
+            theme === value
+              ? 'scale-110 border-on-surface/40 ring-2 ring-primary/60'
+              : 'border-on-surface/10 opacity-50 hover:opacity-80'
+          }`}
+          style={{ background: swatch }}
         />
       ))}
     </div>

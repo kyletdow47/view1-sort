@@ -2,13 +2,13 @@ import type { Metadata } from 'next'
 import { LandingPage } from '@/components/features/landing/LandingPage'
 
 export const metadata: Metadata = {
-  title: 'View1 Studio — AI Photo Sorting for Professional Photographers',
+  title: 'View1 Sort — The AI That Thinks Like a Photographer',
   description:
-    'Sort, deliver, and get paid for your photography. AI-powered platform for wedding and event photographers.',
+    'AI-powered photo sorting, gallery delivery, contracts, invoicing, and business workflow for professional photographers. Sort by story, not just sharpness.',
   openGraph: {
-    title: 'View1 Studio — AI Photo Sorting for Professional Photographers',
+    title: 'View1 Sort — The AI That Thinks Like a Photographer',
     description:
-      'Sort, deliver, and get paid for your photography. AI-powered platform for wedding and event photographers.',
+      'AI-powered photo sorting, gallery delivery, contracts, invoicing, and business workflow for professional photographers.',
     type: 'website',
   },
 }

@@ -29,4 +29,3 @@ export { toast, toastError, toastInfo, toastSuccess, toastWarning } from './Toas
 export type { ExternalToast } from './Toast'
 
 export { ThemeSwitcher } from './ThemeSwitcher'
-export type { AppTheme } from './ThemeSwitcher'

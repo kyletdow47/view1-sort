@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
 import { BillingView } from '@/components/features/billing/BillingView'
 import type { Profile } from '@/types/supabase'
 
