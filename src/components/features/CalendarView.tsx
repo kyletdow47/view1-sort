@@ -146,7 +146,7 @@ export function CalendarView({ bookings, todayYear, todayMonth, todayDay }: Cale
             <Search className="w-4 h-4" />
             Find Slot
           </button>
-          <button className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary rounded-xl text-xs font-mono font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+          <button className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-br from-primary to-primary-dim text-on-primary rounded-xl text-xs font-mono font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">
             <Plus className="w-4 h-4" />
             Add Booking
           </button>

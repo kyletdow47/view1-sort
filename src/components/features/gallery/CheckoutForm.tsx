@@ -71,27 +71,27 @@ export function CheckoutForm({ project, projectId, photographerName }: CheckoutF
     <form onSubmit={handleSubmit} className="mx-auto max-w-2xl px-6 py-10">
       {/* Project header */}
       <div className="mb-8 text-center">
-        <h1 className="font-headline text-2xl font-bold text-[#e7e1df]">{project.name}</h1>
-        <p className="mt-1 text-sm text-[#a18d80]">by {photographerName}</p>
+        <h1 className="font-headline text-2xl font-bold text-on-surface">{project.name}</h1>
+        <p className="mt-1 text-sm text-on-surface-variant">by {photographerName}</p>
       </div>
 
       {/* Order summary */}
-      <div className="mb-6 rounded-xl border border-[#534439]/40 bg-[#1d1b1a] p-5">
-        <h2 className="font-label text-[10px] uppercase tracking-widest text-[#a18d80] mb-4">
+      <div className="mb-6 rounded-xl border border-outline-variant/40 bg-surface-container p-5">
+        <h2 className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-4">
           Order Summary
         </h2>
         <p className="text-sm text-[#d9c2b4] mb-4">
           Full access to the {project.name} gallery with download rights.
         </p>
-        <div className="border-t border-[#534439]/30 pt-4">
+        <div className="border-t border-outline-variant/30 pt-4">
           <div className="flex justify-between text-base font-bold">
-            <span className="text-[#e7e1df]">
+            <span className="text-on-surface">
               {project.pricing_model === 'flat_fee' ? 'Gallery Fee' : 'Price'}
             </span>
-            <span className="text-[#ffb780]">{priceLabel}</span>
+            <span className="text-primary">{priceLabel}</span>
           </div>
           {project.pricing_model === 'per_photo' && (
-            <p className="mt-2 text-xs text-[#a18d80]">
+            <p className="mt-2 text-xs text-on-surface-variant">
               Final total calculated at checkout based on your selection.
             </p>
           )}
@@ -99,12 +99,12 @@ export function CheckoutForm({ project, projectId, photographerName }: CheckoutF
       </div>
 
       {/* Email */}
-      <div className="mb-6 rounded-xl border border-[#534439]/40 bg-[#1d1b1a] p-5">
+      <div className="mb-6 rounded-xl border border-outline-variant/40 bg-surface-container p-5">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-label text-[10px] uppercase tracking-widest text-[#a18d80]">
+          <h2 className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">
             Your Email
           </h2>
-          <div className="flex items-center gap-1.5 text-[#a18d80]/60">
+          <div className="flex items-center gap-1.5 text-on-surface-variant/60">
             <Shield size={12} />
             <span className="text-[10px]">Powered by Stripe</span>
           </div>
@@ -113,7 +113,7 @@ export function CheckoutForm({ project, projectId, photographerName }: CheckoutF
         <div className="relative">
           <CreditCard
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a18d80]/50"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50"
           />
           <input
             type="email"
@@ -122,11 +122,11 @@ export function CheckoutForm({ project, projectId, photographerName }: CheckoutF
             placeholder="you@example.com"
             required
             disabled={loading}
-            className="h-11 w-full rounded-lg border border-[#534439]/50 bg-[#211f1e] pl-10 pr-3 text-sm text-[#e7e1df] placeholder-[#a18d80]/40 outline-none transition-colors focus:border-[#ffb780]/50 focus:ring-1 focus:ring-[#ffb780]/20 disabled:opacity-50"
+            className="h-11 w-full rounded-lg border border-outline-variant/50 bg-surface-container pl-10 pr-3 text-sm text-on-surface placeholder-on-surface-variant/40 outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/20 disabled:opacity-50"
           />
         </div>
 
-        <p className="mt-2 text-xs text-[#a18d80]/60">
+        <p className="mt-2 text-xs text-on-surface-variant/60">
           Your download link and receipt will be sent here.
         </p>
 
@@ -144,18 +144,18 @@ export function CheckoutForm({ project, projectId, photographerName }: CheckoutF
             onChange={(e) => setTermsAccepted(e.target.checked)}
             className="peer sr-only"
           />
-          <div className="h-4 w-4 rounded border border-[#534439] bg-[#211f1e] transition-colors peer-checked:border-[#ffb780] peer-checked:bg-[#ffb780]" />
+          <div className="h-4 w-4 rounded border border-outline-variant bg-surface-container transition-colors peer-checked:border-primary peer-checked:bg-primary" />
           {termsAccepted && (
-            <Check size={10} className="absolute inset-0 m-auto text-[#4e2600]" />
+            <Check size={10} className="absolute inset-0 m-auto text-on-primary" />
           )}
         </div>
-        <span className="text-xs leading-relaxed text-[#a18d80]">
+        <span className="text-xs leading-relaxed text-on-surface-variant">
           I agree to the{' '}
-          <Link href="#" className="text-[#ffb780] underline underline-offset-2">
+          <Link href="#" className="text-primary underline underline-offset-2">
             Terms of Service
           </Link>{' '}
           and{' '}
-          <Link href="#" className="text-[#ffb780] underline underline-offset-2">
+          <Link href="#" className="text-primary underline underline-offset-2">
             Privacy Policy
           </Link>
           .
@@ -166,12 +166,12 @@ export function CheckoutForm({ project, projectId, photographerName }: CheckoutF
       <button
         type="submit"
         disabled={!canSubmit}
-        className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3.5 font-headline font-bold text-[#4e2600] transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full rounded-xl bg-gradient-to-br from-primary to-primary-dim py-3.5 font-headline font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
       >
         {loading ? 'Redirecting to Stripe…' : `Continue to Payment — ${priceLabel}`}
       </button>
 
-      <div className="mt-4 flex items-center justify-center gap-2 text-[#a18d80]/60">
+      <div className="mt-4 flex items-center justify-center gap-2 text-on-surface-variant/60">
         <Lock size={12} />
         <span className="text-[11px]">256-bit encryption &middot; Your payment is secure</span>
       </div>

@@ -49,7 +49,7 @@ const statusColors: Record<EditStatus, string> = {
   reviewed: 'bg-emerald-400/15 text-emerald-400',
   priced: 'bg-primary/15 text-primary',
   paid: 'bg-emerald-500/15 text-emerald-400',
-  in_progress: 'bg-[#d48441]/15 text-[#d48441]',
+  in_progress: 'bg-primary/15 text-primary',
   delivered: 'bg-emerald-500/15 text-emerald-400',
 }
 
@@ -120,7 +120,7 @@ function StatusPipeline({ status }: { status: EditStatus }) {
             <div
               className={`flex h-6 w-6 items-center justify-center rounded-full transition-colors ${
                 isCurrent
-                  ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary'
+                  ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary'
                   : isCompleted
                   ? 'bg-primary/20 text-primary'
                   : 'bg-surface-container-highest text-on-surface-variant/30'
@@ -175,7 +175,7 @@ export default function EditsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-headline text-3xl italic font-extrabold text-on-surface flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim">
               <Pencil size={20} className="text-on-primary" />
             </div>
             Edit Requests
@@ -199,7 +199,7 @@ export default function EditsPage() {
             onClick={() => setActiveTab(tab)}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === tab
-                ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary'
+                ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary'
                 : 'text-on-surface-variant/60 hover:text-on-surface hover:bg-surface-container'
             }`}
           >

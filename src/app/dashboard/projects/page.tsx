@@ -111,14 +111,14 @@ export default function ProjectsPage() {
             <input
               type="text"
               placeholder="Search projects..."
-              className="bg-[#100e0d] border-none rounded-lg pl-9 pr-4 py-2 text-sm text-on-surface placeholder-[#534439] focus:ring-1 focus:ring-[#ffb780]/20 w-56"
+              className="bg-surface-low border-none rounded-lg pl-9 pr-4 py-2 text-sm text-on-surface placeholder-on-surface-variant/30 focus:ring-1 focus:ring-primary/20 w-56"
             />
           </div>
           <button className="flex items-center gap-2 px-3 py-2 bg-surface-container rounded-lg text-sm text-on-surface-variant hover:bg-surface-highest transition-colors">
             <Filter size={14} />
             Filter
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary font-bold text-sm rounded-lg">
+          <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary font-bold text-sm rounded-lg">
             <Plus size={14} />
             New Project
           </button>
@@ -167,7 +167,7 @@ export default function ProjectsPage() {
                 <div className="flex items-center gap-2 mb-4">
                   <TypeIcon size={12} className="text-on-surface-variant" />
                   <span className="text-xs text-on-surface-variant">{project.type}</span>
-                  <span className="text-[#534439]">&middot;</span>
+                  <span className="text-on-surface-variant">&middot;</span>
                   <span className="text-xs text-on-surface-variant">{project.date}</span>
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-outline-variant/20">

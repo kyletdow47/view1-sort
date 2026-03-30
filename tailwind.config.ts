@@ -37,6 +37,9 @@ const config: Config = {
         'primary-dim':     t('--t-primary-dim'),
         'on-primary':      t('--t-on-primary'),
 
+        // Accent muted (indigo-300 for subtle text/icons)
+        'accent-muted':    t('--t-accent-muted'),
+
         // Legacy aliases kept for backward compatibility
         accent:            t('--t-primary'),
         'accent-hover':    t('--t-primary-dim'),
@@ -50,12 +53,15 @@ const config: Config = {
       },
 
       fontFamily: {
-        // Plus Jakarta Sans is the ONLY font. All aliases point here.
-        sans:     ['var(--font-jakarta)', 'Plus Jakarta Sans', 'sans-serif'],
-        body:     ['var(--font-jakarta)', 'Plus Jakarta Sans', 'sans-serif'],
-        headline: ['var(--font-jakarta)', 'Plus Jakarta Sans', 'sans-serif'],
-        label:    ['var(--font-jakarta)', 'Plus Jakarta Sans', 'sans-serif'],
-        mono:     ['var(--font-jakarta)', 'Plus Jakarta Sans', 'sans-serif'],
+        // Inter: body, UI elements
+        sans:     ['var(--font-inter)', 'Inter', 'sans-serif'],
+        body:     ['var(--font-inter)', 'Inter', 'sans-serif'],
+        label:    ['var(--font-inter)', 'Inter', 'sans-serif'],
+        // Geist: headings, display
+        headline: ['var(--font-geist)', 'Geist', 'sans-serif'],
+        display:  ['var(--font-geist)', 'Geist', 'sans-serif'],
+        // Geist Mono: code, data
+        mono:     ['var(--font-geist-mono)', 'Geist Mono', 'monospace'],
       },
 
       // Pencil design system radii: soft, airy borders

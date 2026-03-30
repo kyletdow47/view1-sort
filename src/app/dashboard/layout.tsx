@@ -41,11 +41,11 @@ import { ThemeSwitcher } from '@/components/common/ThemeSwitcher'
 import type { Notification as DBNotification } from '@/types/supabase'
 
 const NOTIFICATION_TYPE_CONFIG: Record<string, { icon: React.ElementType; bg: string }> = {
-  booking: { icon: CalendarDays, bg: 'bg-[#ffb780]/20 text-[#ffb780]' },
-  payment: { icon: DollarSign, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
-  gallery_viewed: { icon: Eye, bg: 'bg-[#ffb4a5]/20 text-[#ffb4a5]' },
-  client_accepted: { icon: UserCheck, bg: 'bg-[#d9c2b4]/20 text-[#d9c2b4]' },
-  upload_complete: { icon: Cloud, bg: 'bg-[#95d1d1]/20 text-[#95d1d1]' },
+  booking: { icon: CalendarDays, bg: 'bg-primary/20 text-accent-muted' },
+  payment: { icon: DollarSign, bg: 'bg-success/20 text-success' },
+  gallery_viewed: { icon: Eye, bg: 'bg-primary/20 text-accent-muted' },
+  client_accepted: { icon: UserCheck, bg: 'bg-primary/15 text-accent-muted' },
+  upload_complete: { icon: Cloud, bg: 'bg-success/20 text-success' },
 }
 
 function NotificationIcon({ type }: { type: string }) {
@@ -106,21 +106,21 @@ function NotificationDropdown({
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-full mt-2 w-[min(380px,calc(100vw-2rem))] rounded-xl border border-[#534439]/60 bg-[#1d1b1a] shadow-2xl shadow-black/40 z-50"
+      className="absolute right-0 top-full mt-2 w-[min(380px,calc(100vw-2rem))] rounded-xl border border-outline-variant/60 bg-surface-container shadow-2xl shadow-black/40 z-50"
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#534439]/40 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-outline-variant/40 px-4 py-3">
         <div className="flex items-center gap-2">
-          <span className="font-headline font-bold text-sm text-[#e7e1df]">Notifications</span>
+          <span className="font-headline font-bold text-sm text-on-surface">Notifications</span>
           {unreadCount > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#d48441] px-1.5 text-[10px] font-bold text-[#4e2600]">
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-on-primary">
               {unreadCount}
             </span>
           )}
         </div>
         <button
           onClick={onMarkAllRead}
-          className="text-[11px] font-medium text-[#ffb780] hover:text-[#ffb780]/80 transition-colors"
+          className="text-[11px] font-medium text-primary hover:text-primary/80 transition-colors"
         >
           Mark all read
         </button>
@@ -129,7 +129,7 @@ function NotificationDropdown({
       {/* Notification list */}
       <div className="max-h-[380px] overflow-y-auto">
         {notifications.length === 0 ? (
-          <div className="px-4 py-8 text-center text-sm text-[#a18d80]">
+          <div className="px-4 py-8 text-center text-sm text-on-surface-variant">
             No notifications yet
           </div>
         ) : (
@@ -137,22 +137,22 @@ function NotificationDropdown({
             <div
               key={notification.id}
               onClick={() => !notification.read && onMarkRead(notification.id)}
-              className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-[#252322]/60 cursor-pointer ${
-                !notification.read ? 'border-l-2 border-l-[#ffb780]' : 'border-l-2 border-l-transparent'
+              className={`flex items-start gap-3 px-4 py-3 transition-colors hover:bg-surface-highest/60 cursor-pointer ${
+                !notification.read ? 'border-l-2 border-l-primary' : 'border-l-2 border-l-transparent'
               }`}
             >
               <NotificationIcon type={notification.type} />
               <div className="min-w-0 flex-1">
-                <p className={`text-sm font-medium leading-snug ${!notification.read ? 'text-[#e7e1df]' : 'text-[#e7e1df]/60'}`}>
+                <p className={`text-sm font-medium leading-snug ${!notification.read ? 'text-on-surface' : 'text-on-surface/60'}`}>
                   {notification.title}
                 </p>
-                <p className="mt-0.5 text-xs text-[#a18d80] leading-relaxed line-clamp-2">
+                <p className="mt-0.5 text-xs text-on-surface-variant leading-relaxed line-clamp-2">
                   {notification.body}
                 </p>
-                <p className="mt-1 text-[10px] text-[#a18d80]/60">{timeAgo(notification.created_at)}</p>
+                <p className="mt-1 text-[10px] text-on-surface-variant/60">{timeAgo(notification.created_at)}</p>
               </div>
               {!notification.read && (
-                <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#ffb780]" />
+                <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
               )}
             </div>
           ))
@@ -160,8 +160,8 @@ function NotificationDropdown({
       </div>
 
       {/* Footer */}
-      <div className="border-t border-[#534439]/40 px-4 py-3 text-center">
-        <button className="text-xs font-medium text-[#ffb780] hover:text-[#ffb780]/80 transition-colors">
+      <div className="border-t border-outline-variant/40 px-4 py-3 text-center">
+        <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
           View All Notifications
         </button>
       </div>
@@ -299,17 +299,17 @@ export default function DashboardLayout({
       {/*  SIDEBAR — fixed 256px (w-64), slides in on mobile           */}
       {/* ============================================================ */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-[#1c1a19] shadow-[4px_0_24px_-4px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-surface shadow-[4px_0_24px_-4px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-in-out ${
           mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         {/* Brand */}
         <div className="flex items-center gap-3 px-5 py-6">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441]">
-            <Camera size={18} className="text-[#4e2600]" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-dim">
+            <Camera size={18} className="text-on-primary" />
           </div>
           <div className="flex flex-col flex-1">
-            <span className="font-headline font-black text-2xl tracking-tighter leading-tight text-[#ffb780]">
+            <span className="font-headline font-black text-2xl tracking-tighter leading-tight text-primary">
               View1 Sort
             </span>
             <span className="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/60">
@@ -338,8 +338,8 @@ export default function DashboardLayout({
                     href={item.href}
                     className={`mx-2 flex items-center gap-3 px-4 py-3 font-body font-medium transition-colors duration-150 ${
                       active
-                        ? 'rounded-lg bg-[#252322] text-[#ffb780]'
-                        : 'text-[#e7e1df]/50 hover:bg-[#252322]/50 hover:text-[#e7e1df]'
+                        ? 'rounded-lg bg-surface-highest text-primary'
+                        : 'text-on-surface/50 hover:bg-surface-highest/50 hover:text-on-surface'
                     }`}
                   >
                     <Icon
@@ -360,8 +360,8 @@ export default function DashboardLayout({
               onClick={() => setSchedulingOpen(!schedulingOpen)}
               className={`flex w-full items-center gap-3 px-4 py-3 font-body font-medium transition-colors duration-150 ${
                 isSchedulingActive
-                  ? 'rounded-lg bg-[#252322] text-[#ffb780]'
-                  : 'text-[#e7e1df]/50 hover:bg-[#252322]/50 hover:text-[#e7e1df]'
+                  ? 'rounded-lg bg-surface-highest text-primary'
+                  : 'text-on-surface/50 hover:bg-surface-highest/50 hover:text-on-surface'
               }`}
             >
               <CalendarDays size={20} className="shrink-0" fill={isSchedulingActive ? 'currentColor' : 'none'} />
@@ -388,8 +388,8 @@ export default function DashboardLayout({
                         href={item.href}
                         className={`flex items-center gap-2.5 px-3 py-2 text-[13px] font-body font-medium transition-colors duration-150 ${
                           active
-                            ? 'rounded-md bg-[#252322] text-[#ffb780]'
-                            : 'text-[#e7e1df]/40 hover:bg-[#252322]/50 hover:text-[#e7e1df]'
+                            ? 'rounded-md bg-surface-highest text-primary'
+                            : 'text-on-surface/40 hover:bg-surface-highest/50 hover:text-on-surface'
                         }`}
                       >
                         <Icon
@@ -416,16 +416,16 @@ export default function DashboardLayout({
                 {userInitials}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-[#e7e1df] truncate">
+                <p className="text-sm font-medium text-on-surface truncate">
                   {profile?.display_name ?? user?.email ?? ''}
                 </p>
-                <p className="text-[10px] text-[#a18d80] truncate">
+                <p className="text-[10px] text-on-surface-variant truncate">
                   {profile?.tier ? `${profile.tier.charAt(0).toUpperCase()}${profile.tier.slice(1)} plan` : ''}
                 </p>
               </div>
               <button
                 onClick={() => signOut()}
-                className="shrink-0 rounded-md p-1.5 text-[#a18d80] hover:bg-[#252322] hover:text-[#e7e1df] transition-colors"
+                className="shrink-0 rounded-md p-1.5 text-on-surface-variant hover:bg-surface-highest hover:text-on-surface transition-colors"
                 aria-label="Sign out"
                 title="Sign out"
               >
@@ -437,8 +437,8 @@ export default function DashboardLayout({
             href="/dashboard/settings"
             className={`flex items-center gap-3 px-4 py-3 font-body font-medium transition-colors duration-150 ${
               isActive(pathname, '/dashboard/settings')
-                ? 'rounded-lg bg-[#252322] text-[#ffb780]'
-                : 'text-[#e7e1df]/50 hover:bg-[#252322]/50 hover:text-[#e7e1df]'
+                ? 'rounded-lg bg-surface-highest text-primary'
+                : 'text-on-surface/50 hover:bg-surface-highest/50 hover:text-on-surface'
             }`}
           >
             <Settings size={20} className="shrink-0" fill={isActive(pathname, '/dashboard/settings') ? 'currentColor' : 'none'} />
@@ -505,7 +505,7 @@ export default function DashboardLayout({
                         href={`${getProjectBasePath(pathname)}${tabSlug}`}
                         className={`px-3 py-1.5 text-sm font-medium transition-colors ${
                           isTabActive
-                            ? 'border-b-2 border-[#ffb780] text-[#ffb780]'
+                            ? 'border-b-2 border-primary text-primary'
                             : 'text-on-surface-variant/50 hover:text-on-surface'
                         }`}
                       >
@@ -522,7 +522,7 @@ export default function DashboardLayout({
                   <PenLine size={14} />
                   Batch Rename
                 </button>
-                <button className="rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441] px-3 md:px-4 py-2 text-xs md:text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90">
+                <button className="rounded-lg bg-gradient-to-br from-primary to-primary-dim px-3 md:px-4 py-2 text-xs md:text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
                   Publish
                 </button>
                 <div className="relative">
@@ -533,7 +533,7 @@ export default function DashboardLayout({
                   >
                     <Bell size={18} />
                     {unreadCount > 0 && (
-                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-on-primary">
                         {unreadCount}
                       </span>
                     )}
@@ -593,7 +593,7 @@ export default function DashboardLayout({
                         key={tab}
                         className={`cursor-pointer px-3 py-1.5 text-sm font-medium transition-colors ${
                           isTabActive
-                            ? 'border-b-2 border-[#ffb780] text-[#ffb780]'
+                            ? 'border-b-2 border-primary text-primary'
                             : 'text-on-surface-variant/50 hover:text-on-surface'
                         }`}
                       >
@@ -614,7 +614,7 @@ export default function DashboardLayout({
                   >
                     <Bell size={18} />
                     {unreadCount > 0 && (
-                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#d48441] px-1 text-[9px] font-bold text-[#4e2600]">
+                      <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-on-primary">
                         {unreadCount}
                       </span>
                     )}

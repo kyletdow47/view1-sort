@@ -11,19 +11,21 @@
 /* ── Zinc / Cool (default — indigo accent) ── */
 :root,
 [data-theme="zinc"] {
-  --t-bg:                    9   9  11;   /* #09090b */
-  --t-surface:              24  24  27;   /* #18181b */
-  --t-surface-low:          12  12  14;   /* #0c0c0e */
-  --t-surface-container:    30  30  35;   /* #1e1e23 */
-  --t-surface-high:         39  39  46;   /* #27272e */
-  --t-surface-highest:      63  63  70;   /* #3f3f46 */
-  --t-on-surface:          244 244 245;   /* #f4f4f5 */
-  --t-on-surface-variant:  161 161 170;   /* #a1a1aa */
-  --t-outline:              82  82  91;   /* #52525b */
-  --t-outline-variant:      39  39  42;   /* #27272a */
-  --t-primary:              99 102 241;   /* #6366f1 indigo-500 */
+  --t-bg:                   13  14  20;   /* #0d0e14 */
+  --t-surface:              19  20  28;   /* #13141c */
+  --t-surface-low:           9  10  15;   /* #090a0f */
+  --t-surface-container:    26  26  36;   /* #1a1a24 */
+  --t-surface-high:         26  27  38;   /* #1a1b26 */
+  --t-surface-highest:      42  42  53;   /* #2a2a35 */
+  --t-on-surface:          224 231 255;   /* #E0E7FF */
+  --t-on-surface-variant:  107 114 128;   /* #6b7280 */
+  --t-outline:              62  64  93;   /* #3e405d */
+  --t-outline-variant:      42  42  53;   /* #2a2a35 */
+  --t-primary:              79  70 229;   /* #4f46e5 indigo-600 */
   --t-primary-dim:          67  56 202;   /* #4338ca indigo-700 */
   --t-on-primary:          255 255 255;
+  --t-accent-muted:        165 180 252;   /* #A5B4FC indigo-300 */
+  --t-accent-glow:          79  70 229;   /* #4f46e5 at 10% used as rgba */
 }
 
 /* ── Stone / Warm (amber accent) ── */
@@ -58,6 +60,16 @@
   --t-primary:             255 255 255;
   --t-primary-dim:         200 200 200;
   --t-on-primary:            0   0   0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Font Variables
+───────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Fallback: if CSS variable fonts aren't loaded, fall back to system fonts */
+  --font-inter:      'Inter', system-ui, sans-serif;
+  --font-geist:      'Geist', 'Inter', system-ui, sans-serif;
+  --font-geist-mono: 'Geist Mono', 'Fira Code', monospace;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

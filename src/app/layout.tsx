@@ -1,12 +1,24 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans } from 'next/font/google'
+import { Inter, Geist, Geist_Mono } from 'next/font/google'
 import { Toaster } from 'sonner'
 import '@/styles/globals.css'
 
-const jakarta = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700', '800'],
-  variable: '--font-jakarta',
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+const geist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist',
+  display: 'swap',
+})
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
   display: 'swap',
 })
 
@@ -54,7 +66,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" data-theme="zinc" suppressHydrationWarning>
-      <body className={`${jakarta.variable} font-sans bg-background text-on-surface antialiased selection:bg-primary/20`}>
+      <body className={`${inter.variable} ${geist.variable} ${geistMono.variable} font-sans bg-background text-on-surface antialiased selection:bg-primary/20`}>
         {children}
         <Toaster
           position="top-right"
@@ -63,7 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               background: 'rgb(var(--t-surface-container))',
               border: '1px solid rgb(var(--t-outline-variant))',
               color: 'rgb(var(--t-on-surface))',
-              fontFamily: 'var(--font-jakarta)',
+              fontFamily: 'var(--font-geist)',
             },
           }}
         />

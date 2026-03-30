@@ -387,7 +387,7 @@ function NewFormPanel({ onSave, onCancel }: { onSave: (form: BookingForm) => voi
       <p className="mt-3 text-xs text-on-surface-variant/60">Pre-populated with sensible default fields for the selected shoot type.</p>
       <div className="mt-5 flex justify-end gap-3">
         <button onClick={onCancel} className="rounded-xl border border-outline-variant/30 px-5 py-2 text-sm font-medium text-on-surface-variant hover:border-primary/30 hover:text-primary transition-colors">Cancel</button>
-        <button onClick={handleCreate} disabled={!name.trim()} className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2 text-sm font-bold text-on-primary hover:opacity-90 disabled:opacity-40 transition-opacity">
+        <button onClick={handleCreate} disabled={!name.trim()} className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-5 py-2 text-sm font-bold text-on-primary hover:opacity-90 disabled:opacity-40 transition-opacity">
           <Check size={14} />
           Create Form
         </button>
@@ -441,7 +441,7 @@ export default function BookingFormsPage() {
         </div>
         <button
           onClick={() => { setShowNew(true); setSelectedId(null) }}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-4 py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity shrink-0"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-4 py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity shrink-0"
         >
           <Plus size={15} />
           New Form

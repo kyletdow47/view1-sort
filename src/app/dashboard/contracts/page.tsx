@@ -197,7 +197,7 @@ function ContractPreview({ contract, onClose }: { contract: Contract; onClose: (
       </div>
 
       <div className="p-5 border-t border-outline-variant/20 flex gap-3">
-        <button className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity">
+        <button className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity">
           <Send size={14} />
           Send to Client
         </button>
@@ -348,7 +348,7 @@ function InvoicesTab() {
       <div className="flex justify-end">
         <button
           onClick={addInvoice}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-4 py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-4 py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity"
         >
           <Plus size={15} />
           New Invoice
@@ -463,7 +463,7 @@ export default function ContractsPage() {
               onClick={() => setActiveTab(tab)}
               className={`flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-medium transition-all ${
                 activeTab === tab
-                  ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary shadow-sm'
+                  ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary shadow-sm'
                   : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >

@@ -130,7 +130,7 @@ export default function BulkManagementPage() {
                 placeholder="Search projects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-background border border-outline-variant/30 rounded-xl pl-10 pr-4 py-2 text-xs text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-[#ffb780]/20 transition-all"
+                className="w-full bg-background border border-outline-variant/30 rounded-xl pl-10 pr-4 py-2 text-xs text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
           </div>
@@ -200,7 +200,7 @@ export default function BulkManagementPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#534439]/10">
+            <tbody className="divide-y divide-outline-variant/10">
               {filteredProjects.map((project) => (
                 <tr
                   key={project.id}

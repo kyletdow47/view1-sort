@@ -51,7 +51,7 @@ export default function ApprovePage({ params }: ApprovePageProps) {
         <nav className="border-b border-outline-variant/30 bg-surface">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-dim">
                 <Camera size={16} className="text-on-primary" />
               </div>
               <span className="text-sm font-bold text-on-surface">PhotoSorter</span>
@@ -95,7 +95,7 @@ export default function ApprovePage({ params }: ApprovePageProps) {
                 <Star
                   key={s}
                   size={16}
-                  className={s <= rating ? 'fill-[#ffb780] text-primary' : 'text-[#534439]'}
+                  className={s <= rating ? 'fill-primary text-primary' : 'text-on-surface-variant'}
                 />
               ))}
               <span className="ml-2 text-xs text-on-surface-variant/50">Your rating</span>
@@ -120,7 +120,7 @@ export default function ApprovePage({ params }: ApprovePageProps) {
       <nav className="border-b border-outline-variant/30 bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-dim">
               <Camera size={16} className="text-on-primary" />
             </div>
             <span className="text-sm font-bold text-on-surface">PhotoSorter</span>
@@ -232,8 +232,8 @@ export default function ApprovePage({ params }: ApprovePageProps) {
                     size={24}
                     className={
                       s <= (hoveredStar || rating)
-                        ? 'fill-[#ffb780] text-primary'
-                        : 'text-[#534439]/60'
+                        ? 'fill-primary text-primary'
+                        : 'text-on-surface-variant/60'
                     }
                   />
                 </button>
@@ -246,7 +246,7 @@ export default function ApprovePage({ params }: ApprovePageProps) {
             onChange={(e) => setFeedback(e.target.value)}
             placeholder="Any final notes for the photographer?"
             rows={4}
-            className="w-full rounded-xl border border-outline-variant/30 bg-surface-container px-4 py-3 text-sm text-on-surface placeholder-[#a18d80]/40 outline-none transition-colors focus:border-primary/40"
+            className="w-full rounded-xl border border-outline-variant/30 bg-surface-container px-4 py-3 text-sm text-on-surface placeholder-on-surface-variant/40 outline-none transition-colors focus:border-primary/40"
           />
         </div>
 
@@ -257,8 +257,8 @@ export default function ApprovePage({ params }: ApprovePageProps) {
             disabled={!allChecked}
             className={`flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all ${
               allChecked
-                ? 'bg-emerald-400 text-[#151312] hover:opacity-90'
-                : 'cursor-not-allowed bg-[#534439]/30 text-on-surface-variant/40'
+                ? 'bg-emerald-400 text-background hover:opacity-90'
+                : 'cursor-not-allowed bg-surface-highest/30 text-on-surface-variant/40'
             }`}
           >
             <Check size={16} />

@@ -102,8 +102,8 @@ export default function ExportPage({ params }: ExportPageProps) {
                   onClick={() => setFormat(opt.key)}
                   className={`flex flex-col items-center gap-2 rounded-xl p-4 text-center transition-all ${
                     format === opt.key
-                      ? 'bg-gradient-to-br from-[#ffb780]/15 to-[#d48441]/10 ring-2 ring-[#ffb780]/50'
-                      : 'bg-background ring-1 ring-[#534439]/40 hover:ring-[#ffb780]/20'
+                      ? 'bg-gradient-to-br from-primary/15 to-primary-dim/10 ring-2 ring-primary/50'
+                      : 'bg-background ring-1 ring-outline-variant/40 hover:ring-primary/20'
                   }`}
                 >
                   <span className={format === opt.key ? 'text-primary' : 'text-on-surface-variant'}>
@@ -164,8 +164,8 @@ export default function ExportPage({ params }: ExportPageProps) {
                       onClick={() => setQuality(q.key)}
                       className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                         quality === q.key
-                          ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary'
-                          : 'bg-background text-on-surface-variant ring-1 ring-[#534439]/40 hover:ring-[#ffb780]/30'
+                          ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary'
+                          : 'bg-background text-on-surface-variant ring-1 ring-outline-variant/40 hover:ring-primary/30'
                       }`}
                     >
                       {q.label}
@@ -197,13 +197,13 @@ export default function ExportPage({ params }: ExportPageProps) {
               </div>
               <div className="h-2.5 w-full rounded-full bg-surface-container">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#ffb780] to-[#d48441] transition-all"
+                  className="h-full rounded-full bg-gradient-to-r from-primary to-primary-dim transition-all"
                   style={{ width: '0%' }}
                 />
               </div>
             </div>
 
-            <button className="rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-8 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
+            <button className="rounded-xl bg-gradient-to-br from-primary to-primary-dim px-8 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
               Start Export
             </button>
           </div>
@@ -230,12 +230,12 @@ export default function ExportPage({ params }: ExportPageProps) {
                     style={{ paddingLeft: entry.indent === 0 ? 0 : 12 }}
                   >
                     {entry.indent > 0 && (
-                      <span className="text-[#534439]">{prefix}</span>
+                      <span className="text-on-surface-variant">{prefix}</span>
                     )}
                     {entry.isFile ? (
                       <FileText size={14} className="text-on-surface-variant shrink-0" />
                     ) : (
-                      <Folder size={14} className={entry.indent === 0 ? 'text-primary shrink-0' : 'text-[#d48441] shrink-0'} />
+                      <Folder size={14} className={entry.indent === 0 ? 'text-primary shrink-0' : 'text-primary shrink-0'} />
                     )}
                     <span className={entry.indent === 0 ? 'text-primary font-medium' : 'text-on-surface'}>
                       {entry.name}
@@ -277,7 +277,7 @@ export default function ExportPage({ params }: ExportPageProps) {
                       </div>
                     </div>
                     {exp.status === 'completed' ? (
-                      <button className="inline-flex items-center gap-1 rounded-lg bg-surface-container px-2.5 py-1.5 text-[11px] font-medium text-on-surface-variant ring-1 ring-[#534439]/40 hover:ring-[#ffb780]/30 hover:text-primary transition-colors">
+                      <button className="inline-flex items-center gap-1 rounded-lg bg-surface-container px-2.5 py-1.5 text-[11px] font-medium text-on-surface-variant ring-1 ring-outline-variant/40 hover:ring-primary/30 hover:text-primary transition-colors">
                         <Download size={12} />
                         Re-download
                       </button>

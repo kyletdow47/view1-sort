@@ -128,7 +128,7 @@ export default function BrandingPage() {
       {/* Header */}
       <div>
         <h1 className="font-headline text-3xl italic font-extrabold text-on-surface flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim">
             <Palette size={20} className="text-on-primary" />
           </div>
           Brand Identity
@@ -193,7 +193,7 @@ export default function BrandingPage() {
                 <div className="flex-1 h-full" style={{ backgroundColor: bgColor }} />
                 <div className="flex-1 h-full" style={{ backgroundColor: primaryColor }} />
                 <div className="flex-1 h-full" style={{ backgroundColor: secondaryColor }} />
-                <div className="w-8 h-full bg-[#e7e1df]" />
+                <div className="w-8 h-full bg-on-surface" />
               </div>
             </div>
           </Card>
@@ -305,7 +305,7 @@ export default function BrandingPage() {
                         onClick={() => setWatermarkPosition(pos)}
                         className={`h-8 w-8 rounded-lg text-[8px] font-medium transition-all ${
                           watermarkPosition === pos
-                            ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary'
+                            ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary'
                             : 'bg-surface-container-highest text-on-surface-variant/30 hover:text-on-surface-variant/60'
                         }`}
                         title={positionLabels[pos]}
@@ -429,7 +429,7 @@ export default function BrandingPage() {
             </Card>
 
             {/* Save Button */}
-            <button className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3.5 font-headline font-bold text-on-primary transition-opacity hover:opacity-90 shadow-lg shadow-[#d48441]/20">
+            <button className="mt-4 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim py-3.5 font-headline font-bold text-on-primary transition-opacity hover:opacity-90 shadow-lg shadow-primary/20">
               <Save size={18} />
               Save Brand Kit
             </button>

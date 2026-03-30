@@ -215,7 +215,7 @@ const activityIcons: Record<ActivityItem['icon'], typeof Eye> = {
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl border border-[#534439]/40 bg-[#1d1b1a] p-6 ${className}`}>
+    <div className={`rounded-2xl border border-outline-variant/40 bg-surface-container p-6 ${className}`}>
       {children}
     </div>
   )
@@ -224,9 +224,9 @@ function Card({ children, className = '' }: { children: React.ReactNode; classNa
 function StatBox({ label, value, icon: Icon, accent = false }: { label: string; value: string; icon: typeof Star; accent?: boolean }) {
   return (
     <div className="flex flex-col items-center gap-1 px-4">
-      <Icon size={14} className="text-[#e7e1df]/40 mb-1" />
-      <p className={`text-xl font-extrabold ${accent ? 'text-[#ffb780]' : 'text-[#e7e1df]'}`}>{value}</p>
-      <p className="text-[10px] uppercase tracking-widest text-[#e7e1df]/50 font-medium">{label}</p>
+      <Icon size={14} className="text-on-surface/40 mb-1" />
+      <p className={`text-xl font-extrabold ${accent ? 'text-primary' : 'text-on-surface'}`}>{value}</p>
+      <p className="text-[10px] uppercase tracking-widest text-on-surface/50 font-medium">{label}</p>
     </div>
   )
 }
@@ -237,8 +237,8 @@ function TabButton({ id, label, active, onClick }: { id: TabId; label: string; a
       onClick={() => onClick(id)}
       className={`px-4 py-2.5 text-sm font-medium rounded-lg transition-all whitespace-nowrap ${
         active
-          ? 'bg-[#ffb780]/15 text-[#ffb780]'
-          : 'text-[#e7e1df]/50 hover:text-[#e7e1df]/80 hover:bg-[#e7e1df]/5'
+          ? 'bg-primary/15 text-primary'
+          : 'text-on-surface/50 hover:text-on-surface/80 hover:bg-on-surface/5'
       }`}
     >
       {label}
@@ -249,8 +249,8 @@ function TabButton({ id, label, active, onClick }: { id: TabId; label: string; a
 function SectionTitle({ icon: Icon, children }: { icon: typeof Star; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-5">
-      <Icon size={18} className="text-[#ffb780]" />
-      <h2 className="font-bold text-lg text-[#e7e1df]">{children}</h2>
+      <Icon size={18} className="text-primary" />
+      <h2 className="font-bold text-lg text-on-surface">{children}</h2>
     </div>
   )
 }
@@ -274,17 +274,17 @@ function OverviewTab({ note, setNote }: { note: string; setNote: (v: string) => 
                 <div key={item.id} className="flex gap-4 relative">
                   {/* Timeline line */}
                   {idx < activities.length - 1 && (
-                    <div className="absolute left-[15px] top-[34px] bottom-0 w-px bg-[#534439]/40" />
+                    <div className="absolute left-[15px] top-[34px] bottom-0 w-px bg-surface-highest/40" />
                   )}
                   {/* Icon bubble */}
-                  <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#534439]/30 border border-[#534439]/40">
-                    <IconComp size={14} className="text-[#ffb780]" />
+                  <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-highest/30 border border-outline-variant/40">
+                    <IconComp size={14} className="text-primary" />
                   </div>
                   {/* Content */}
                   <div className="pb-6 min-w-0">
-                    <p className="text-sm font-medium text-[#e7e1df]">{item.action}</p>
-                    <p className="text-xs text-[#e7e1df]/50 mt-0.5">{item.detail}</p>
-                    <p className="text-[10px] text-[#e7e1df]/30 mt-1">{item.time}</p>
+                    <p className="text-sm font-medium text-on-surface">{item.action}</p>
+                    <p className="text-xs text-on-surface/50 mt-0.5">{item.detail}</p>
+                    <p className="text-[10px] text-on-surface/30 mt-1">{item.time}</p>
                   </div>
                 </div>
               )
@@ -299,31 +299,31 @@ function OverviewTab({ note, setNote }: { note: string; setNote: (v: string) => 
             {upcomingBookings.map((booking) => (
               <div
                 key={booking.id}
-                className="flex items-center justify-between rounded-xl bg-[#151312] p-4 border border-[#534439]/30 hover:border-[#534439]/60 transition-colors"
+                className="flex items-center justify-between rounded-xl bg-background p-4 border border-outline-variant/30 hover:border-outline-variant/60 transition-colors"
               >
                 <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#ffb780]/10">
-                    <Camera size={20} className="text-[#ffb780]" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                    <Camera size={20} className="text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-[#e7e1df]">{booking.name}</p>
+                    <p className="text-sm font-medium text-on-surface">{booking.name}</p>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="flex items-center gap-1 text-xs text-[#e7e1df]/50">
+                      <span className="flex items-center gap-1 text-xs text-on-surface/50">
                         <Calendar size={11} />
                         {new Date(booking.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
-                      <span className="flex items-center gap-1 text-xs text-[#e7e1df]/50">
+                      <span className="flex items-center gap-1 text-xs text-on-surface/50">
                         <Clock size={11} />
                         {booking.time}
                       </span>
-                      <span className="flex items-center gap-1 text-xs text-[#e7e1df]/50">
+                      <span className="flex items-center gap-1 text-xs text-on-surface/50">
                         <MapPin size={11} />
                         {booking.location}
                       </span>
                     </div>
                   </div>
                 </div>
-                <span className="rounded-full bg-[#ffb780]/10 px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-[#ffb780]">
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-medium uppercase tracking-wider text-primary">
                   {booking.type}
                 </span>
               </div>
@@ -340,22 +340,22 @@ function OverviewTab({ note, setNote }: { note: string; setNote: (v: string) => 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Clock size={14} className="text-[#e7e1df]/40" />
-                <span className="text-sm text-[#e7e1df]/70">Avg Response Time</span>
+                <Clock size={14} className="text-on-surface/40" />
+                <span className="text-sm text-on-surface/70">Avg Response Time</span>
               </div>
-              <span className="text-sm font-medium text-[#e7e1df]">{client.responseTime}</span>
+              <span className="text-sm font-medium text-on-surface">{client.responseTime}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Mail size={14} className="text-[#e7e1df]/40" />
-                <span className="text-sm text-[#e7e1df]/70">Preferred Contact</span>
+                <Mail size={14} className="text-on-surface/40" />
+                <span className="text-sm text-on-surface/70">Preferred Contact</span>
               </div>
-              <span className="text-sm font-medium text-[#e7e1df]">{client.preferredContact}</span>
+              <span className="text-sm font-medium text-on-surface">{client.preferredContact}</span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Users size={14} className="text-[#e7e1df]/40" />
-                <span className="text-sm text-[#e7e1df]/70">Referrals Given</span>
+                <Users size={14} className="text-on-surface/40" />
+                <span className="text-sm text-on-surface/70">Referrals Given</span>
               </div>
               <span className="text-sm font-bold text-emerald-400">{client.referrals}</span>
             </div>
@@ -369,10 +369,10 @@ function OverviewTab({ note, setNote }: { note: string; setNote: (v: string) => 
             value={note}
             onChange={(e) => setNote(e.target.value)}
             rows={5}
-            className="w-full rounded-xl bg-[#151312] px-4 py-3 text-sm text-[#e7e1df] placeholder-[#e7e1df]/30 outline-none ring-1 ring-[#534439]/40 focus:ring-[#ffb780]/50 resize-none transition-all"
+            className="w-full rounded-xl bg-background px-4 py-3 text-sm text-on-surface placeholder-on-surface-variant/30 outline-none ring-1 ring-outline-variant/40 focus:ring-primary/50 resize-none transition-all"
             placeholder="Add private notes about this client..."
           />
-          <button className="mt-3 w-full rounded-xl bg-[#ffb780]/10 py-2.5 text-sm font-medium text-[#ffb780] ring-1 ring-[#ffb780]/20 hover:bg-[#ffb780]/20 transition-all">
+          <button className="mt-3 w-full rounded-xl bg-primary/10 py-2.5 text-sm font-medium text-primary ring-1 ring-primary/20 hover:bg-primary/20 transition-all">
             Save Notes
           </button>
         </Card>
@@ -389,9 +389,9 @@ function OverviewTab({ note, setNote }: { note: string; setNote: (v: string) => 
             ].map((action) => (
               <button
                 key={action.label}
-                className="flex w-full items-center gap-3 rounded-xl bg-[#151312] px-4 py-3 text-sm text-[#e7e1df] border border-[#534439]/20 hover:border-[#534439]/50 hover:bg-[#151312]/80 transition-all"
+                className="flex w-full items-center gap-3 rounded-xl bg-background px-4 py-3 text-sm text-on-surface border border-outline-variant/20 hover:border-outline-variant/50 hover:bg-background/80 transition-all"
               >
-                <action.icon size={16} className="text-[#ffb780] shrink-0" />
+                <action.icon size={16} className="text-primary shrink-0" />
                 {action.label}
               </button>
             ))}
@@ -410,27 +410,27 @@ function ProjectsTab() {
         {projects.map((project) => (
           <div
             key={project.id}
-            className="rounded-2xl border border-[#534439]/30 bg-[#1d1b1a] overflow-hidden hover:border-[#534439]/60 transition-all group"
+            className="rounded-2xl border border-outline-variant/30 bg-surface-container overflow-hidden hover:border-outline-variant/60 transition-all group"
           >
             {/* Thumbnail placeholder */}
-            <div className="h-36 bg-gradient-to-br from-[#534439]/20 to-[#151312] flex items-center justify-center relative">
-              <Camera size={32} className="text-[#e7e1df]/10" />
+            <div className="h-36 bg-gradient-to-br from-surface-highest/20 to-[#151312] flex items-center justify-center relative">
+              <Camera size={32} className="text-on-surface/10" />
               <div className="absolute top-3 right-3">
                 <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider ${projectStatusColors[project.status]}`}>
                   {project.status.replace('_', ' ')}
                 </span>
               </div>
-              <div className="absolute bottom-3 left-3 flex items-center gap-1 text-[10px] text-[#e7e1df]/40">
+              <div className="absolute bottom-3 left-3 flex items-center gap-1 text-[10px] text-on-surface/40">
                 <Hash size={10} />
                 {project.id}
               </div>
             </div>
             {/* Card body */}
             <div className="p-4">
-              <h3 className="text-sm font-semibold text-[#e7e1df] group-hover:text-[#ffb780] transition-colors truncate">
+              <h3 className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors truncate">
                 {project.name}
               </h3>
-              <div className="flex items-center gap-3 mt-2 text-xs text-[#e7e1df]/40">
+              <div className="flex items-center gap-3 mt-2 text-xs text-on-surface/40">
                 <span className="flex items-center gap-1">
                   <Calendar size={11} />
                   {new Date(project.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -440,9 +440,9 @@ function ProjectsTab() {
                   {project.photos}
                 </span>
               </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#534439]/20">
-                <span className="text-xs text-[#e7e1df]/40">{project.type}</span>
-                <span className="text-sm font-bold text-[#e7e1df]">${project.amount.toLocaleString()}</span>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-outline-variant/20">
+                <span className="text-xs text-on-surface/40">{project.type}</span>
+                <span className="text-sm font-bold text-on-surface">${project.amount.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -463,9 +463,9 @@ function InvoicesTab() {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-[#534439]/30">
+            <tr className="border-b border-outline-variant/30">
               {['Invoice #', 'Date', 'Project', 'Amount', 'Status', ''].map((h) => (
-                <th key={h} className={`pb-3 pr-4 text-[10px] uppercase tracking-widest text-[#e7e1df]/40 font-medium ${h === 'Amount' ? 'text-right' : 'text-left'}`}>
+                <th key={h} className={`pb-3 pr-4 text-[10px] uppercase tracking-widest text-on-surface/40 font-medium ${h === 'Amount' ? 'text-right' : 'text-left'}`}>
                   {h}
                 </th>
               ))}
@@ -473,20 +473,20 @@ function InvoicesTab() {
           </thead>
           <tbody>
             {invoices.map((inv) => (
-              <tr key={inv.id} className="border-b border-[#534439]/15 last:border-0 hover:bg-[#e7e1df]/[0.02] transition-colors">
-                <td className="py-3.5 pr-4 text-sm font-mono text-[#e7e1df]/70">{inv.number}</td>
-                <td className="py-3.5 pr-4 text-sm text-[#e7e1df]/50">
+              <tr key={inv.id} className="border-b border-outline-variant/15 last:border-0 hover:bg-on-surface/[0.02] transition-colors">
+                <td className="py-3.5 pr-4 text-sm font-mono text-on-surface/70">{inv.number}</td>
+                <td className="py-3.5 pr-4 text-sm text-on-surface/50">
                   {new Date(inv.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </td>
-                <td className="py-3.5 pr-4 text-sm text-[#e7e1df] max-w-[240px] truncate">{inv.project}</td>
-                <td className="py-3.5 pr-4 text-sm font-bold text-[#e7e1df] text-right">${inv.amount.toLocaleString()}</td>
+                <td className="py-3.5 pr-4 text-sm text-on-surface max-w-[240px] truncate">{inv.project}</td>
+                <td className="py-3.5 pr-4 text-sm font-bold text-on-surface text-right">${inv.amount.toLocaleString()}</td>
                 <td className="py-3.5 pr-4">
                   <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider ${invoiceStatusColors[inv.status]}`}>
                     {inv.status}
                   </span>
                 </td>
                 <td className="py-3.5">
-                  <button className="rounded-lg p-1.5 text-[#e7e1df]/20 hover:text-[#e7e1df]/60 transition-colors">
+                  <button className="rounded-lg p-1.5 text-on-surface/20 hover:text-on-surface/60 transition-colors">
                     <ExternalLink size={14} />
                   </button>
                 </td>
@@ -497,22 +497,22 @@ function InvoicesTab() {
       </div>
 
       {/* Summary */}
-      <div className="mt-6 pt-4 border-t border-[#534439]/30 flex flex-wrap gap-6">
+      <div className="mt-6 pt-4 border-t border-outline-variant/30 flex flex-wrap gap-6">
         <div>
-          <p className="text-[10px] uppercase tracking-widest text-[#e7e1df]/40 mb-1">Total Paid</p>
+          <p className="text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">Total Paid</p>
           <p className="text-lg font-bold text-emerald-400">${totalPaid.toLocaleString()}</p>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-widest text-[#e7e1df]/40 mb-1">Pending</p>
+          <p className="text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">Pending</p>
           <p className="text-lg font-bold text-amber-400">${totalPending.toLocaleString()}</p>
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-widest text-[#e7e1df]/40 mb-1">Overdue</p>
+          <p className="text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">Overdue</p>
           <p className="text-lg font-bold text-red-400">${totalOverdue.toLocaleString()}</p>
         </div>
         <div className="ml-auto">
-          <p className="text-[10px] uppercase tracking-widest text-[#e7e1df]/40 mb-1">Grand Total</p>
-          <p className="text-lg font-bold text-[#e7e1df]">${(totalPaid + totalPending + totalOverdue).toLocaleString()}</p>
+          <p className="text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">Grand Total</p>
+          <p className="text-lg font-bold text-on-surface">${(totalPaid + totalPending + totalOverdue).toLocaleString()}</p>
         </div>
       </div>
     </Card>
@@ -534,10 +534,10 @@ function StatisticsTab() {
           { label: 'Payment Speed', value: '2 days', icon: Zap, detail: 'Avg time to pay' },
         ].map((stat) => (
           <Card key={stat.label} className="!p-5 text-center">
-            <stat.icon size={20} className="text-[#ffb780] mx-auto mb-3" />
-            <p className="text-2xl font-extrabold text-[#e7e1df]">{stat.value}</p>
-            <p className="text-[10px] uppercase tracking-widest text-[#e7e1df]/40 mt-1">{stat.label}</p>
-            <p className="text-[10px] text-[#e7e1df]/25 mt-0.5">{stat.detail}</p>
+            <stat.icon size={20} className="text-primary mx-auto mb-3" />
+            <p className="text-2xl font-extrabold text-on-surface">{stat.value}</p>
+            <p className="text-[10px] uppercase tracking-widest text-on-surface/40 mt-1">{stat.label}</p>
+            <p className="text-[10px] text-on-surface/25 mt-0.5">{stat.detail}</p>
           </Card>
         ))}
       </div>
@@ -550,14 +550,14 @@ function StatisticsTab() {
             const pct = (item.amount / maxRevenue) * 100
             return (
               <div key={item.month} className="flex-1 flex flex-col items-center gap-2">
-                <span className="text-[10px] text-[#e7e1df]/50 font-medium">${item.amount}</span>
+                <span className="text-[10px] text-on-surface/50 font-medium">${item.amount}</span>
                 <div className="w-full relative" style={{ height: '140px' }}>
                   <div
-                    className="absolute bottom-0 w-full rounded-t-lg bg-gradient-to-t from-[#ffb780]/60 to-[#ffb780]/20 transition-all hover:from-[#ffb780]/80 hover:to-[#ffb780]/40"
+                    className="absolute bottom-0 w-full rounded-t-lg bg-gradient-to-t from-primary/60 to-primary/20 transition-all hover:from-primary/80 hover:to-primary/40"
                     style={{ height: `${pct}%` }}
                   />
                 </div>
-                <span className="text-[10px] text-[#e7e1df]/30">{item.month}</span>
+                <span className="text-[10px] text-on-surface/30">{item.month}</span>
               </div>
             )
           })}
@@ -575,16 +575,16 @@ function StatisticsTab() {
               return (
                 <div key={item.type}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm text-[#e7e1df]/80">{item.type}</span>
-                    <span className="text-sm font-bold text-[#e7e1df]">${item.revenue.toLocaleString()}</span>
+                    <span className="text-sm text-on-surface/80">{item.type}</span>
+                    <span className="text-sm font-bold text-on-surface">${item.revenue.toLocaleString()}</span>
                   </div>
-                  <div className="h-2.5 rounded-full bg-[#151312] overflow-hidden">
+                  <div className="h-2.5 rounded-full bg-background overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#ffb780]/70 to-[#ffb780] transition-all"
+                      className="h-full rounded-full bg-gradient-to-r from-primary/70 to-primary transition-all"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <p className="text-[10px] text-[#e7e1df]/25 mt-1">{item.count} project{item.count > 1 ? 's' : ''}</p>
+                  <p className="text-[10px] text-on-surface/25 mt-1">{item.count} project{item.count > 1 ? 's' : ''}</p>
                 </div>
               )
             })}
@@ -620,14 +620,14 @@ function TasksTab() {
               onClick={() => setFilter(f)}
               className={`px-3 py-1 text-xs rounded-full font-medium transition-all capitalize ${
                 filter === f
-                  ? 'bg-[#ffb780]/15 text-[#ffb780]'
-                  : 'text-[#e7e1df]/40 hover:text-[#e7e1df]/60 hover:bg-[#e7e1df]/5'
+                  ? 'bg-primary/15 text-primary'
+                  : 'text-on-surface/40 hover:text-on-surface/60 hover:bg-on-surface/5'
               }`}
             >
               {f}
             </button>
           ))}
-          <button className="ml-2 flex items-center gap-1.5 rounded-xl bg-[#ffb780]/10 px-3 py-1.5 text-xs font-medium text-[#ffb780] ring-1 ring-[#ffb780]/20 hover:bg-[#ffb780]/20 transition-all">
+          <button className="ml-2 flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary ring-1 ring-primary/20 hover:bg-primary/20 transition-all">
             <Plus size={12} />
             Add Task
           </button>
@@ -640,8 +640,8 @@ function TasksTab() {
             key={task.id}
             className={`flex items-center gap-4 rounded-xl p-4 border transition-all ${
               task.completed
-                ? 'bg-[#151312]/50 border-[#534439]/15'
-                : 'bg-[#151312] border-[#534439]/30 hover:border-[#534439]/50'
+                ? 'bg-background/50 border-outline-variant/15'
+                : 'bg-background border-outline-variant/30 hover:border-outline-variant/50'
             }`}
           >
             {/* Checkbox */}
@@ -650,7 +650,7 @@ function TasksTab() {
               className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all ${
                 task.completed
                   ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-                  : 'border-[#534439]/50 hover:border-[#ffb780]/50'
+                  : 'border-outline-variant/50 hover:border-primary/50'
               }`}
             >
               {task.completed && <Check size={12} />}
@@ -658,10 +658,10 @@ function TasksTab() {
 
             {/* Description */}
             <div className="flex-1 min-w-0">
-              <p className={`text-sm ${task.completed ? 'text-[#e7e1df]/30 line-through' : 'text-[#e7e1df]'}`}>
+              <p className={`text-sm ${task.completed ? 'text-on-surface/30 line-through' : 'text-on-surface'}`}>
                 {task.description}
               </p>
-              <p className="text-[10px] text-[#e7e1df]/25 mt-0.5 flex items-center gap-1">
+              <p className="text-[10px] text-on-surface/25 mt-0.5 flex items-center gap-1">
                 <Calendar size={9} />
                 Due {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </p>
@@ -675,7 +675,7 @@ function TasksTab() {
         ))}
 
         {filtered.length === 0 && (
-          <div className="text-center py-12 text-[#e7e1df]/30 text-sm">
+          <div className="text-center py-12 text-on-surface/30 text-sm">
             No {filter !== 'all' ? filter : ''} tasks found.
           </div>
         )}
@@ -698,12 +698,12 @@ function PortalTab() {
       {/* Explanation */}
       <Card>
         <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#ffb780]/10">
-            <Globe size={24} className="text-[#ffb780]" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Globe size={24} className="text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-[#e7e1df]">Client Portal</h3>
-            <p className="text-sm text-[#e7e1df]/50 mt-1 leading-relaxed">
+            <h3 className="text-lg font-bold text-on-surface">Client Portal</h3>
+            <p className="text-sm text-on-surface/50 mt-1 leading-relaxed">
               Create a dedicated dashboard for this client where they can view their galleries,
               download photos, check invoice status, and communicate with you directly.
               The portal is password-protected and branded with your studio identity.
@@ -712,19 +712,19 @@ function PortalTab() {
         </div>
 
         {/* Toggle */}
-        <div className="flex items-center justify-between mt-6 pt-5 border-t border-[#534439]/30">
+        <div className="flex items-center justify-between mt-6 pt-5 border-t border-outline-variant/30">
           <div>
-            <p className="text-sm font-medium text-[#e7e1df]">Enable Client Portal</p>
-            <p className="text-xs text-[#e7e1df]/40 mt-0.5">Client will receive an email invitation</p>
+            <p className="text-sm font-medium text-on-surface">Enable Client Portal</p>
+            <p className="text-xs text-on-surface/40 mt-0.5">Client will receive an email invitation</p>
           </div>
           <button
             onClick={() => setPortalEnabled(!portalEnabled)}
             className={`relative w-12 h-6 rounded-full transition-all ${
-              portalEnabled ? 'bg-[#ffb780]' : 'bg-[#534439]/50'
+              portalEnabled ? 'bg-primary' : 'bg-surface-highest/50'
             }`}
           >
             <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-[#e7e1df] shadow-md transition-all ${
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-on-surface shadow-md transition-all ${
                 portalEnabled ? 'left-[26px]' : 'left-0.5'
               }`}
             />
@@ -738,7 +738,7 @@ function PortalTab() {
           <SectionTitle icon={Eye}>Portal Preview</SectionTitle>
           <button
             onClick={handleCopy}
-            className="flex items-center gap-1.5 rounded-xl bg-[#ffb780]/10 px-3 py-1.5 text-xs font-medium text-[#ffb780] ring-1 ring-[#ffb780]/20 hover:bg-[#ffb780]/20 transition-all"
+            className="flex items-center gap-1.5 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary ring-1 ring-primary/20 hover:bg-primary/20 transition-all"
           >
             {copied ? <Check size={12} /> : <Copy size={12} />}
             {copied ? 'Copied!' : 'Copy Portal Link'}
@@ -746,52 +746,52 @@ function PortalTab() {
         </div>
 
         {/* Mock portal sections */}
-        <div className="rounded-xl border border-[#534439]/30 bg-[#151312] p-5 space-y-4">
-          <p className="text-[10px] uppercase tracking-widest text-[#e7e1df]/30 mb-3">What Sarah will see</p>
+        <div className="rounded-xl border border-outline-variant/30 bg-background p-5 space-y-4">
+          <p className="text-[10px] uppercase tracking-widest text-on-surface/30 mb-3">What Sarah will see</p>
 
           {/* Galleries */}
-          <div className="rounded-lg bg-[#1d1b1a] p-4 border border-[#534439]/20">
+          <div className="rounded-lg bg-surface-container p-4 border border-outline-variant/20">
             <div className="flex items-center gap-2 mb-2">
-              <FolderOpen size={14} className="text-[#ffb780]" />
-              <span className="text-sm font-medium text-[#e7e1df]">My Galleries</span>
+              <FolderOpen size={14} className="text-primary" />
+              <span className="text-sm font-medium text-on-surface">My Galleries</span>
             </div>
             <div className="flex gap-2">
               {['Spring Family Session', 'Anniversary Portraits', 'Wedding Day'].map((g) => (
-                <div key={g} className="flex-1 rounded-lg bg-[#151312] p-2.5 border border-[#534439]/15">
-                  <div className="h-12 rounded bg-[#534439]/10 mb-2 flex items-center justify-center">
-                    <Camera size={14} className="text-[#e7e1df]/10" />
+                <div key={g} className="flex-1 rounded-lg bg-background p-2.5 border border-outline-variant/15">
+                  <div className="h-12 rounded bg-surface-highest/10 mb-2 flex items-center justify-center">
+                    <Camera size={14} className="text-on-surface/10" />
                   </div>
-                  <p className="text-[10px] text-[#e7e1df]/40 truncate">{g}</p>
+                  <p className="text-[10px] text-on-surface/40 truncate">{g}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Invoices */}
-          <div className="rounded-lg bg-[#1d1b1a] p-4 border border-[#534439]/20">
+          <div className="rounded-lg bg-surface-container p-4 border border-outline-variant/20">
             <div className="flex items-center gap-2 mb-2">
-              <FileText size={14} className="text-[#ffb780]" />
-              <span className="text-sm font-medium text-[#e7e1df]">My Invoices</span>
+              <FileText size={14} className="text-primary" />
+              <span className="text-sm font-medium text-on-surface">My Invoices</span>
             </div>
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span className="text-[#e7e1df]/40">INV-2026-0031</span>
+                <span className="text-on-surface/40">INV-2026-0031</span>
                 <span className="text-amber-400">Pending — $500</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-[#e7e1df]/40">INV-2026-0012</span>
+                <span className="text-on-surface/40">INV-2026-0012</span>
                 <span className="text-emerald-400">Paid — $550</span>
               </div>
             </div>
           </div>
 
           {/* Messages */}
-          <div className="rounded-lg bg-[#1d1b1a] p-4 border border-[#534439]/20">
+          <div className="rounded-lg bg-surface-container p-4 border border-outline-variant/20">
             <div className="flex items-center gap-2 mb-2">
-              <MessageSquare size={14} className="text-[#ffb780]" />
-              <span className="text-sm font-medium text-[#e7e1df]">Messages</span>
+              <MessageSquare size={14} className="text-primary" />
+              <span className="text-sm font-medium text-on-surface">Messages</span>
             </div>
-            <p className="text-xs text-[#e7e1df]/30">Direct messaging with your photographer</p>
+            <p className="text-xs text-on-surface/30">Direct messaging with your photographer</p>
           </div>
         </div>
       </Card>
@@ -823,7 +823,7 @@ export default function ClientProfilePage() {
       {/* Back link */}
       <Link
         href="/dashboard/clients"
-        className="inline-flex items-center gap-1.5 text-sm text-[#e7e1df]/40 hover:text-[#e7e1df] transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-on-surface/40 hover:text-on-surface transition-colors"
       >
         <ArrowLeft size={16} />
         Back to Clients
@@ -835,15 +835,15 @@ export default function ClientProfilePage() {
           {/* Left: Avatar + info */}
           <div className="flex items-start gap-5">
             {/* Avatar */}
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffb780] via-[#e09050] to-[#c06830] text-2xl font-extrabold text-[#3a1800] shadow-lg shadow-[#ffb780]/10">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-[#e09050] to-[#c06830] text-2xl font-extrabold text-[#3a1800] shadow-lg shadow-primary/10">
               {client.initials}
             </div>
 
             <div>
               {/* Name + VIP */}
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-extrabold text-[#e7e1df]">{client.name}</h1>
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#ffb780]/15 px-3 py-1 text-xs font-bold text-[#ffb780]">
+                <h1 className="text-2xl font-extrabold text-on-surface">{client.name}</h1>
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary">
                   <Crown size={12} />
                   {client.tier}
                 </span>
@@ -851,23 +851,23 @@ export default function ClientProfilePage() {
 
               {/* Contact row */}
               <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-2">
-                <span className="flex items-center gap-1.5 text-sm text-[#e7e1df]/60">
-                  <Mail size={14} className="text-[#e7e1df]/30" />
+                <span className="flex items-center gap-1.5 text-sm text-on-surface/60">
+                  <Mail size={14} className="text-on-surface/30" />
                   {client.email}
                 </span>
-                <span className="flex items-center gap-1.5 text-sm text-[#e7e1df]/60">
-                  <Phone size={14} className="text-[#e7e1df]/30" />
+                <span className="flex items-center gap-1.5 text-sm text-on-surface/60">
+                  <Phone size={14} className="text-on-surface/30" />
                   {client.phone}
                 </span>
               </div>
 
               {/* Dates row */}
               <div className="flex items-center gap-4 mt-2">
-                <span className="flex items-center gap-1 text-xs text-[#e7e1df]/35">
+                <span className="flex items-center gap-1 text-xs text-on-surface/35">
                   <Calendar size={12} />
                   Client since {new Date(client.joinedDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                 </span>
-                <span className="flex items-center gap-1 text-xs text-[#e7e1df]/35">
+                <span className="flex items-center gap-1 text-xs text-on-surface/35">
                   <Clock size={12} />
                   Last active {new Date(client.lastActive).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </span>
@@ -876,7 +876,7 @@ export default function ClientProfilePage() {
           </div>
 
           {/* Right: Stats row */}
-          <div className="flex items-center gap-0 divide-x divide-[#534439]/30 border border-[#534439]/20 rounded-xl bg-[#151312] py-4 px-2 shrink-0">
+          <div className="flex items-center gap-0 divide-x divide-outline-variant/30 border border-outline-variant/20 rounded-xl bg-background py-4 px-2 shrink-0">
             <StatBox label="Projects" value={String(client.projectCount)} icon={FolderOpen} />
             <StatBox label="Total Spent" value={`$${client.totalSpent.toLocaleString()}`} icon={CreditCard} accent />
             <StatBox label="Avg Value" value={`$${client.avgProjectValue}`} icon={Target} />
@@ -886,7 +886,7 @@ export default function ClientProfilePage() {
       </Card>
 
       {/* ============ TAB NAVIGATION ============ */}
-      <div className="flex items-center gap-1 overflow-x-auto rounded-xl border border-[#534439]/20 bg-[#1d1b1a] p-1.5">
+      <div className="flex items-center gap-1 overflow-x-auto rounded-xl border border-outline-variant/20 bg-surface-container p-1.5">
         {tabs.map((tab) => (
           <TabButton key={tab.id} id={tab.id} label={tab.label} active={activeTab === tab.id} onClick={setActiveTab} />
         ))}

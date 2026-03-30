@@ -183,7 +183,7 @@ export default function RefundPage({ params }: RefundPageProps) {
                   onChange={(e) => setPartialAmount(e.target.value)}
                   placeholder="0.00"
                   max={originalAmount}
-                  className="h-11 w-full rounded-lg border border-outline-variant/50 bg-surface-container pl-10 pr-3 text-sm text-on-surface placeholder-[#a18d80]/40 outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-[#ffb780]/20"
+                  className="h-11 w-full rounded-lg border border-outline-variant/50 bg-surface-container pl-10 pr-3 text-sm text-on-surface placeholder-on-surface-variant/40 outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
                 />
               </div>
               <p className="mt-1 text-[11px] text-on-surface-variant/60">
@@ -201,7 +201,7 @@ export default function RefundPage({ params }: RefundPageProps) {
           <select
             value={reason}
             onChange={(e) => setReason(e.target.value as RefundReason)}
-            className="h-11 w-full appearance-none rounded-lg border border-outline-variant/50 bg-surface-container px-3 text-sm text-on-surface outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-[#ffb780]/20"
+            className="h-11 w-full appearance-none rounded-lg border border-outline-variant/50 bg-surface-container px-3 text-sm text-on-surface outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
           >
             {REASON_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -221,7 +221,7 @@ export default function RefundPage({ params }: RefundPageProps) {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Add any internal notes about this refund..."
             rows={3}
-            className="w-full rounded-lg border border-outline-variant/50 bg-surface-container px-3 py-2.5 text-sm text-on-surface placeholder-[#a18d80]/40 outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-[#ffb780]/20 resize-none"
+            className="w-full rounded-lg border border-outline-variant/50 bg-surface-container px-3 py-2.5 text-sm text-on-surface placeholder-on-surface-variant/40 outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/20 resize-none"
           />
         </div>
 

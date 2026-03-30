@@ -267,7 +267,7 @@ export default function StripeConnectPage() {
         {/* Onboarding hero card */}
         <Card className="col-span-12 lg:col-span-8 relative overflow-hidden">
           {/* Decorative gradient blob */}
-          <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-gradient-to-br from-[#ffb780]/15 to-[#d48441]/10 blur-3xl" />
+          <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-gradient-to-br from-primary/15 to-primary-dim/10 blur-3xl" />
 
           <div className="relative flex flex-col lg:flex-row lg:items-center gap-8">
             <div className="flex-1 space-y-5">
@@ -329,7 +329,7 @@ export default function StripeConnectPage() {
                 <button
                   onClick={handleConnect}
                   disabled={connecting}
-                  className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-8 py-3 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90 disabled:opacity-60"
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-8 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-60"
                 >
                   {connecting ? (
                     <Loader2 size={16} className="animate-spin" />
@@ -406,7 +406,7 @@ export default function StripeConnectPage() {
                       onClick={() => setPayoutFreq(f)}
                       className={`flex-1 rounded-lg py-2 text-xs font-medium transition-colors ${
                         payoutFreq === f
-                          ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600]'
+                          ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary'
                           : 'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/20 hover:ring-primary/30'
                       }`}
                     >
@@ -555,7 +555,7 @@ export default function StripeConnectPage() {
             </div>
             <div className="h-3 w-full rounded-full bg-surface-container-highest">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#ffb780] to-[#d48441] transition-all"
+                className="h-full rounded-full bg-gradient-to-r from-primary to-primary-dim transition-all"
                 style={{ width: '74%' }}
               />
             </div>

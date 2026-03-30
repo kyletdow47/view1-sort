@@ -109,7 +109,7 @@ export default function TeamPage() {
       {/* Header */}
       <div>
         <h1 className="font-headline text-3xl italic font-extrabold text-on-surface flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim">
             <Users size={20} className="text-on-primary" />
           </div>
           Team & Workspace
@@ -210,7 +210,7 @@ export default function TeamPage() {
               <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50" />
             </div>
           </div>
-          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 whitespace-nowrap">
+          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-5 py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 whitespace-nowrap">
             <Send size={14} />
             Send Invite
           </button>

@@ -270,7 +270,7 @@ function OfferForm({ initial, onSave, onCancel }: OfferFormProps) {
         <button
           onClick={handleSave}
           disabled={!name.trim()}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-5 py-2 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           <Check size={15} />
           {initial ? 'Save Changes' : 'Create Offer'}
@@ -295,7 +295,7 @@ function OfferCard({ offer, onEdit, onDuplicate, onDelete }: OfferCardProps) {
   return (
     <Card className="relative">
       {offer.popular && (
-        <div className="absolute -top-px left-6 flex items-center gap-1 rounded-b-lg bg-gradient-to-br from-[#ffb780] to-[#d48441] px-3 py-1">
+        <div className="absolute -top-px left-6 flex items-center gap-1 rounded-b-lg bg-gradient-to-br from-primary to-primary-dim px-3 py-1">
           <Star size={10} className="text-on-primary fill-on-primary" />
           <span className="text-[10px] font-bold uppercase tracking-widest text-on-primary">Popular</span>
         </div>
@@ -427,7 +427,7 @@ export default function OffersPage() {
           </button>
           <button
             onClick={handleSaveAll}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-5 py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
           >
             {saved ? <Check size={15} /> : <Save size={15} />}
             {saved ? 'Saved' : 'Save Changes'}
