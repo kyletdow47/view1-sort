@@ -1,10 +1,17 @@
 import { cookies } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { getProject } from '@/lib/queries/projects'
 import { getMedia } from '@/lib/queries/media'
-import { WorkspaceView } from '@/components/features/workspace/WorkspaceView'
 import type { Media, Project } from '@/types/supabase'
+
+// Lazy-load the heavy WorkspaceView bundle (Zustand stores, batch-select, AI labels)
+// so the server shell renders immediately and the workspace hydrates after
+const WorkspaceView = dynamic(
+  () => import('@/components/features/workspace/WorkspaceView').then((m) => ({ default: m.WorkspaceView })),
+  { ssr: false },
+)
 
 interface ProjectPageProps {
   params: Promise<{ id: string }>

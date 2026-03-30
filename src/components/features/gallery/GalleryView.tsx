@@ -111,84 +111,92 @@ export function GalleryView({
 
       {/* Photo grid grouped by category */}
       <main className={styles.main}>
-        {grouped.map(([category, photos]) => (
-          <section key={category} className={styles.section}>
-            <h2 className={styles.sectionTitle}>{category}</h2>
-            <div className={styles.grid}>
-              {photos.map((item, idx) => {
-                const globalIdx = media.indexOf(item)
-                const hasEdit = !!item.edited_thumbnail_url
-                const isViewingOriginal = showingOriginal.has(item.id)
-                return (
-                  <div key={item.id} className={styles.photoCard} style={{ position: 'relative' }}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={getDisplayUrl(item)}
-                      alt={item.filename}
-                      className={styles.photo}
-                      loading="lazy"
-                      onClick={() => setLightboxIndex(globalIdx)}
-                    />
-                    {/* Edited badge */}
-                    {hasEdit && (
-                      <span
-                        style={{
-                          position: 'absolute',
-                          top: '0.375rem',
-                          left: '0.375rem',
-                          fontSize: '0.625rem',
-                          fontWeight: 700,
-                          letterSpacing: '0.04em',
-                          textTransform: 'uppercase',
-                          background: isViewingOriginal ? 'rgba(0,0,0,0.55)' : '#ffb780',
-                          color: isViewingOriginal ? '#f0f0f0' : '#4e2600',
-                          borderRadius: '0.25rem',
-                          padding: '2px 5px',
-                          pointerEvents: 'none',
-                          userSelect: 'none',
-                        }}
-                      >
-                        {isViewingOriginal ? 'Original' : 'Edited'}
-                      </span>
-                    )}
-                    <div className={styles.photoOverlay}>
-                      {hasEdit && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleOriginal(item.id) }}
-                          aria-label={isViewingOriginal ? `Show edited version of ${item.filename}` : `View original ${item.filename}`}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.25rem',
-                            fontSize: '0.6875rem',
-                            padding: '0.25rem 0.5rem',
-                            borderRadius: '0.25rem',
-                            border: 'none',
-                            cursor: 'pointer',
-                            background: 'rgba(255,255,255,0.15)',
-                            color: '#f0f0f0',
-                          }}
-                        >
-                          <RotateCcw size={11} />
-                          {isViewingOriginal ? 'View Edited' : 'View Original'}
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDownloadPhoto(item)}
-                        className={styles.downloadBtn}
-                        aria-label={`Download ${item.filename}`}
-                      >
-                        <Download size={14} />
-                      </button>
-                    </div>
-                    {/* suppress unused idx warning */}
-                    {idx === -1 && null}
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        ))}
+        {(() => {
+          let globalPhotoCount = 0
+          return grouped.map(([category, photos]) => {
+            const sectionStart = globalPhotoCount
+            globalPhotoCount += photos.length
+            return (
+              <section key={category} className={styles.section}>
+                <h2 className={styles.sectionTitle}>{category}</h2>
+                <div className={styles.grid}>
+                  {photos.map((item, idx) => {
+                    const globalIdx = media.indexOf(item)
+                    const hasEdit = !!item.edited_thumbnail_url
+                    const isViewingOriginal = showingOriginal.has(item.id)
+                    // First 4 images are likely above the fold — prioritise for LCP
+                    const isAboveFold = sectionStart + idx < 4
+                    return (
+                      <div key={item.id} className={styles.photoCard} style={{ position: 'relative' }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={getDisplayUrl(item)}
+                          alt={item.filename}
+                          className={styles.photo}
+                          loading={isAboveFold ? 'eager' : 'lazy'}
+                          decoding={isAboveFold ? 'sync' : 'async'}
+                          onClick={() => setLightboxIndex(globalIdx)}
+                        />
+                        {/* Edited badge */}
+                        {hasEdit && (
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: '0.375rem',
+                              left: '0.375rem',
+                              fontSize: '0.625rem',
+                              fontWeight: 700,
+                              letterSpacing: '0.04em',
+                              textTransform: 'uppercase',
+                              background: isViewingOriginal ? 'rgba(0,0,0,0.55)' : '#ffb780',
+                              color: isViewingOriginal ? '#f0f0f0' : '#4e2600',
+                              borderRadius: '0.25rem',
+                              padding: '2px 5px',
+                              pointerEvents: 'none',
+                              userSelect: 'none',
+                            }}
+                          >
+                            {isViewingOriginal ? 'Original' : 'Edited'}
+                          </span>
+                        )}
+                        <div className={styles.photoOverlay}>
+                          {hasEdit && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); toggleOriginal(item.id) }}
+                              aria-label={isViewingOriginal ? `Show edited version of ${item.filename}` : `View original ${item.filename}`}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                fontSize: '0.6875rem',
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '0.25rem',
+                                border: 'none',
+                                cursor: 'pointer',
+                                background: 'rgba(255,255,255,0.15)',
+                                color: '#f0f0f0',
+                              }}
+                            >
+                              <RotateCcw size={11} />
+                              {isViewingOriginal ? 'View Edited' : 'View Original'}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDownloadPhoto(item)}
+                            className={styles.downloadBtn}
+                            aria-label={`Download ${item.filename}`}
+                          >
+                            <Download size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            )
+          })
+        })()}
       </main>
 
       {/* Footer */}

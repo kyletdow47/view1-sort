@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { clsx } from 'clsx'
 import type { HTMLAttributes } from 'react'
 
@@ -38,8 +39,14 @@ export function Avatar({ src, alt, name, size = 'md', className, ...props }: Ava
       {...props}
     >
       {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={resolvedAlt} className="w-full h-full object-cover" />
+        <Image
+          src={src}
+          alt={resolvedAlt}
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 48px, 48px"
+          unoptimized={src.startsWith('blob:') || src.startsWith('data:')}
+        />
       ) : (
         <span aria-hidden="true">{initials}</span>
       )}
