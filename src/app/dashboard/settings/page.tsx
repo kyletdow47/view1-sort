@@ -348,7 +348,7 @@ export default function SettingsPage() {
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2.5 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90 disabled:opacity-60"
+                    className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-primary-dim px-5 py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-60"
                   >
                     {saving ? (
                       <Loader2 size={14} className="animate-spin" />
@@ -408,7 +408,7 @@ export default function SettingsPage() {
                       onClick={() => setCurrency(c)}
                       className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
                         currency === c
-                          ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600]'
+                          ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary'
                           : 'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/20 hover:ring-primary/30'
                       }`}
                     >
@@ -486,7 +486,7 @@ export default function SettingsPage() {
         <div className="col-span-12 lg:col-span-4 space-y-6">
           {/* Pro Studio Subscription */}
           <Card className="relative overflow-hidden">
-            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-[#ffb780]/20 to-[#d48441]/10 blur-2xl" />
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-primary/20 to-primary-dim/10 blur-2xl" />
             <div className="relative">
               <div className="flex items-center gap-2 mb-1">
                 <Crown size={18} className="text-primary" />
@@ -515,7 +515,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleManageSubscription}
                   disabled={portalLoading}
-                  className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-2.5 text-sm font-bold text-[#4e2600] transition-opacity hover:opacity-90 disabled:opacity-60"
+                  className="w-full rounded-xl bg-gradient-to-br from-primary to-primary-dim py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-60"
                 >
                   {portalLoading ? 'Loading…' : 'Manage Subscription'}
                 </button>
@@ -540,7 +540,7 @@ export default function SettingsPage() {
                 value={42}
                 max={100}
                 unit="GB"
-                color="bg-gradient-to-r from-[#ffb780] to-[#d48441]"
+                color="bg-gradient-to-r from-primary to-primary-dim"
               />
               <ProgressBar
                 label="AI Credits"

@@ -76,12 +76,12 @@ function RevenueChart({ amounts }: { amounts: number[] }) {
     <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-[120px]" preserveAspectRatio="none">
       <defs>
         <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffb780" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="#ffb780" stopOpacity="0" />
+          <stop offset="0%" stopColor="#818cf8" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#818cf8" stopOpacity="0" />
         </linearGradient>
       </defs>
       <path d={areaD} fill="url(#chartGrad)" />
-      <path d={pathD} fill="none" stroke="#ffb780" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={pathD} fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -180,7 +180,7 @@ export function BillingView({
               </p>
               <Link
                 href="/dashboard/settings/connect"
-                className="inline-flex items-center gap-2 bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary font-semibold text-sm px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
+                className="inline-flex items-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary font-semibold text-sm px-6 py-3 rounded-lg hover:opacity-90 transition-opacity"
               >
                 <ExternalLink size={14} />
                 Set Up Stripe Connect
@@ -217,7 +217,7 @@ export function BillingView({
                     View Payout History
                     <ChevronRight size={14} className="text-on-surface-variant" />
                   </button>
-                  <button className="w-full flex items-center justify-center gap-2 bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary font-semibold text-sm px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity">
+                  <button className="w-full flex items-center justify-center gap-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary font-semibold text-sm px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity">
                     <ArrowUpRight size={14} />
                     Stripe Dashboard
                   </button>

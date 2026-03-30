@@ -83,19 +83,19 @@ export function NewBookingModal({ isOpen, onClose, onCreated, workspaceId }: New
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative w-full max-w-lg rounded-2xl border border-[#534439]/30 bg-[#1d1b1a] p-6 shadow-2xl">
+      <div className="relative w-full max-w-lg rounded-2xl border border-outline-variant/30 bg-surface-container p-6 shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441]">
-              <CalendarDays size={20} className="text-[#4e2600]" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dim">
+              <CalendarDays size={20} className="text-on-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#e7e1df]">New Booking</h2>
-              <p className="text-xs text-[#a18d80]">Schedule a new shoot session</p>
+              <h2 className="text-lg font-bold text-on-surface">New Booking</h2>
+              <p className="text-xs text-on-surface-variant">Schedule a new shoot session</p>
             </div>
           </div>
-          <button onClick={onClose} className="rounded-lg p-2 text-[#a18d80] hover:bg-[#2c2928] transition-colors">
+          <button onClick={onClose} className="rounded-lg p-2 text-on-surface-variant hover:bg-[#2c2928] transition-colors">
             <X size={18} />
           </button>
         </div>
@@ -104,7 +104,7 @@ export function NewBookingModal({ isOpen, onClose, onCreated, workspaceId }: New
           {/* Client Name + Email */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-medium uppercase tracking-widest text-[#a18d80] mb-1.5">
+              <label className="block text-[10px] font-medium uppercase tracking-widest text-on-surface-variant mb-1.5">
                 Client Name *
               </label>
               <input
@@ -112,11 +112,11 @@ export function NewBookingModal({ isOpen, onClose, onCreated, workspaceId }: New
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
                 placeholder="Sarah Johnson"
-                className="w-full rounded-lg border border-[#534439]/30 bg-[#100e0d] px-3 py-2.5 text-sm text-[#e7e1df] placeholder-[#534439] outline-none focus:border-[#ffb780]/40"
+                className="w-full rounded-lg border border-outline-variant/30 bg-surface-low px-3 py-2.5 text-sm text-on-surface placeholder-on-surface-variant/30 outline-none focus:border-primary/40"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-medium uppercase tracking-widest text-[#a18d80] mb-1.5">
+              <label className="block text-[10px] font-medium uppercase tracking-widest text-on-surface-variant mb-1.5">
                 Email
               </label>
               <input
@@ -124,7 +124,7 @@ export function NewBookingModal({ isOpen, onClose, onCreated, workspaceId }: New
                 value={clientEmail}
                 onChange={(e) => setClientEmail(e.target.value)}
                 placeholder="sarah@example.com"
-                className="w-full rounded-lg border border-[#534439]/30 bg-[#100e0d] px-3 py-2.5 text-sm text-[#e7e1df] placeholder-[#534439] outline-none focus:border-[#ffb780]/40"
+                className="w-full rounded-lg border border-outline-variant/30 bg-surface-low px-3 py-2.5 text-sm text-on-surface placeholder-on-surface-variant/30 outline-none focus:border-primary/40"
               />
             </div>
           </div>
@@ -132,25 +132,25 @@ export function NewBookingModal({ isOpen, onClose, onCreated, workspaceId }: New
           {/* Date + Time */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-medium uppercase tracking-widest text-[#a18d80] mb-1.5">
+              <label className="block text-[10px] font-medium uppercase tracking-widest text-on-surface-variant mb-1.5">
                 Event Date *
               </label>
               <input
                 type="date"
                 value={shootDate}
                 onChange={(e) => setShootDate(e.target.value)}
-                className="w-full rounded-lg border border-[#534439]/30 bg-[#100e0d] px-3 py-2.5 text-sm text-[#e7e1df] outline-none focus:border-[#ffb780]/40"
+                className="w-full rounded-lg border border-outline-variant/30 bg-surface-low px-3 py-2.5 text-sm text-on-surface outline-none focus:border-primary/40"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-medium uppercase tracking-widest text-[#a18d80] mb-1.5">
+              <label className="block text-[10px] font-medium uppercase tracking-widest text-on-surface-variant mb-1.5">
                 Time
               </label>
               <input
                 type="time"
                 value={shootTime}
                 onChange={(e) => setShootTime(e.target.value)}
-                className="w-full rounded-lg border border-[#534439]/30 bg-[#100e0d] px-3 py-2.5 text-sm text-[#e7e1df] outline-none focus:border-[#ffb780]/40"
+                className="w-full rounded-lg border border-outline-variant/30 bg-surface-low px-3 py-2.5 text-sm text-on-surface outline-none focus:border-primary/40"
               />
             </div>
           </div>
@@ -158,26 +158,26 @@ export function NewBookingModal({ isOpen, onClose, onCreated, workspaceId }: New
           {/* Event Type + Package */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-medium uppercase tracking-widest text-[#a18d80] mb-1.5">
+              <label className="block text-[10px] font-medium uppercase tracking-widest text-on-surface-variant mb-1.5">
                 Event Type
               </label>
               <select
                 value={eventType}
                 onChange={(e) => setEventType(e.target.value)}
-                className="w-full rounded-lg border border-[#534439]/30 bg-[#100e0d] px-3 py-2.5 text-sm text-[#e7e1df] outline-none focus:border-[#ffb780]/40"
+                className="w-full rounded-lg border border-outline-variant/30 bg-surface-low px-3 py-2.5 text-sm text-on-surface outline-none focus:border-primary/40"
               >
                 <option value="">Select type...</option>
                 {EVENT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-[10px] font-medium uppercase tracking-widest text-[#a18d80] mb-1.5">
+              <label className="block text-[10px] font-medium uppercase tracking-widest text-on-surface-variant mb-1.5">
                 Package
               </label>
               <select
                 value={packageType}
                 onChange={(e) => setPackageType(e.target.value)}
-                className="w-full rounded-lg border border-[#534439]/30 bg-[#100e0d] px-3 py-2.5 text-sm text-[#e7e1df] outline-none focus:border-[#ffb780]/40"
+                className="w-full rounded-lg border border-outline-variant/30 bg-surface-low px-3 py-2.5 text-sm text-on-surface outline-none focus:border-primary/40"
               >
                 <option value="">Select package...</option>
                 {PACKAGES.map((p) => <option key={p} value={p}>{p}</option>)}
@@ -188,7 +188,7 @@ export function NewBookingModal({ isOpen, onClose, onCreated, workspaceId }: New
           {/* Location + Amount */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-medium uppercase tracking-widest text-[#a18d80] mb-1.5">
+              <label className="block text-[10px] font-medium uppercase tracking-widest text-on-surface-variant mb-1.5">
                 Location
               </label>
               <input
@@ -196,11 +196,11 @@ export function NewBookingModal({ isOpen, onClose, onCreated, workspaceId }: New
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="San Juan, CA"
-                className="w-full rounded-lg border border-[#534439]/30 bg-[#100e0d] px-3 py-2.5 text-sm text-[#e7e1df] placeholder-[#534439] outline-none focus:border-[#ffb780]/40"
+                className="w-full rounded-lg border border-outline-variant/30 bg-surface-low px-3 py-2.5 text-sm text-on-surface placeholder-on-surface-variant/30 outline-none focus:border-primary/40"
               />
             </div>
             <div>
-              <label className="block text-[10px] font-medium uppercase tracking-widest text-[#a18d80] mb-1.5">
+              <label className="block text-[10px] font-medium uppercase tracking-widest text-on-surface-variant mb-1.5">
                 Amount ($)
               </label>
               <input
@@ -210,14 +210,14 @@ export function NewBookingModal({ isOpen, onClose, onCreated, workspaceId }: New
                 placeholder="2400"
                 min="0"
                 step="0.01"
-                className="w-full rounded-lg border border-[#534439]/30 bg-[#100e0d] px-3 py-2.5 text-sm text-[#e7e1df] placeholder-[#534439] outline-none focus:border-[#ffb780]/40"
+                className="w-full rounded-lg border border-outline-variant/30 bg-surface-low px-3 py-2.5 text-sm text-on-surface placeholder-on-surface-variant/30 outline-none focus:border-primary/40"
               />
             </div>
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-[10px] font-medium uppercase tracking-widest text-[#a18d80] mb-1.5">
+            <label className="block text-[10px] font-medium uppercase tracking-widest text-on-surface-variant mb-1.5">
               Notes
             </label>
             <textarea
@@ -225,7 +225,7 @@ export function NewBookingModal({ isOpen, onClose, onCreated, workspaceId }: New
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Any details about the shoot..."
               rows={2}
-              className="w-full rounded-lg border border-[#534439]/30 bg-[#100e0d] px-3 py-2.5 text-sm text-[#e7e1df] placeholder-[#534439] outline-none focus:border-[#ffb780]/40 resize-none"
+              className="w-full rounded-lg border border-outline-variant/30 bg-surface-low px-3 py-2.5 text-sm text-on-surface placeholder-on-surface-variant/30 outline-none focus:border-primary/40 resize-none"
             />
           </div>
 
@@ -236,14 +236,14 @@ export function NewBookingModal({ isOpen, onClose, onCreated, workspaceId }: New
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-xl border border-[#534439]/30 py-2.5 text-sm font-medium text-[#a18d80] hover:bg-[#2c2928] transition-colors"
+              className="flex-1 rounded-xl border border-outline-variant/30 py-2.5 text-sm font-medium text-on-surface-variant hover:bg-[#2c2928] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-2.5 text-sm font-bold text-[#4e2600] hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {submitting ? <Loader2 size={16} className="animate-spin" /> : null}
               {submitting ? 'Creating...' : 'Create Booking'}

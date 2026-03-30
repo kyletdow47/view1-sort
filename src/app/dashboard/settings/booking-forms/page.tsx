@@ -102,7 +102,7 @@ export default function BookingFormsPage() {
                     onClick={() => setActivePreset(preset.name)}
                     className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-gradient-to-br from-[#ffb780]/15 to-[#d48441]/10 text-primary ring-1 ring-primary/30'
+                        ? 'bg-gradient-to-br from-primary/15 to-primary-dim/10 text-primary ring-1 ring-primary/30'
                         : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                     }`}
                   >
@@ -250,7 +250,7 @@ export default function BookingFormsPage() {
                   {/* Header */}
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441]" />
+                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary-dim" />
                       <span className="text-[11px] font-bold text-gray-900">
                         Aperture Studios
                       </span>
@@ -265,7 +265,7 @@ export default function BookingFormsPage() {
 
                   {/* Progress */}
                   <div className="flex gap-1">
-                    <div className="h-1 flex-1 rounded-full bg-[#d48441]" />
+                    <div className="h-1 flex-1 rounded-full bg-primary" />
                     <div className="h-1 flex-1 rounded-full bg-gray-200" />
                     <div className="h-1 flex-1 rounded-full bg-gray-200" />
                   </div>
@@ -331,7 +331,7 @@ export default function BookingFormsPage() {
                   </div>
 
                   {/* CTA */}
-                  <button className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3 text-[12px] font-bold text-on-primary">
+                  <button className="w-full rounded-xl bg-gradient-to-br from-primary to-primary-dim py-3 text-[12px] font-bold text-on-primary">
                     Continue to Step 2
                   </button>
                 </div>
@@ -352,7 +352,7 @@ export default function BookingFormsPage() {
             onClick={() => setConfirmMode('auto')}
             className={`relative flex flex-col items-start gap-3 rounded-xl p-4 text-left transition-all ${
               confirmMode === 'auto'
-                ? 'bg-gradient-to-br from-[#ffb780]/15 to-[#d48441]/10 ring-1 ring-primary/30'
+                ? 'bg-gradient-to-br from-primary/15 to-primary-dim/10 ring-1 ring-primary/30'
                 : 'bg-surface-container ring-1 ring-outline-variant/15 hover:bg-surface-container-high'
             }`}
           >
@@ -381,7 +381,7 @@ export default function BookingFormsPage() {
             onClick={() => setConfirmMode('manual')}
             className={`relative flex flex-col items-start gap-3 rounded-xl p-4 text-left transition-all ${
               confirmMode === 'manual'
-                ? 'bg-gradient-to-br from-[#ffb780]/15 to-[#d48441]/10 ring-1 ring-primary/30'
+                ? 'bg-gradient-to-br from-primary/15 to-primary-dim/10 ring-1 ring-primary/30'
                 : 'bg-surface-container ring-1 ring-outline-variant/15 hover:bg-surface-container-high'
             }`}
           >
@@ -471,7 +471,7 @@ export default function BookingFormsPage() {
             <Link2 size={14} />
             Preview Link
           </button>
-          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2 text-xs font-bold text-on-primary transition-opacity hover:opacity-90">
+          <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-5 py-2 text-xs font-bold text-on-primary transition-opacity hover:opacity-90">
             <Rocket size={14} />
             Publish Changes
           </button>

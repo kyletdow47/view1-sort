@@ -42,13 +42,13 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#151312] text-[#e7e1df]">
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#534439]/30 bg-[#151312]/90 px-6 backdrop-blur-md">
+    <div className="min-h-screen bg-background text-on-surface">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-outline-variant/30 bg-background/90 px-6 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441]">
-            <Camera size={15} className="text-[#4e2600]" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-dim">
+            <Camera size={15} className="text-on-primary" />
           </div>
-          <span className="font-headline font-black text-lg tracking-tighter text-[#ffb780]">
+          <span className="font-headline font-black text-lg tracking-tighter text-primary">
             View1 Sort
           </span>
         </div>

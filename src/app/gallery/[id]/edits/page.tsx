@@ -75,7 +75,7 @@ export default function EditsPage({ params }: EditsPageProps) {
       <nav className="border-b border-outline-variant/30 bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-dim">
               <Camera size={16} className="text-on-primary" />
             </div>
             <span className="text-sm font-bold text-on-surface">PhotoSorter</span>
@@ -147,7 +147,7 @@ export default function EditsPage({ params }: EditsPageProps) {
 
                     {/* Slider Divider */}
                     <div className="relative z-10 flex w-8 flex-col items-center justify-center">
-                      <div className="h-full w-px bg-[#534439]/50" />
+                      <div className="h-full w-px bg-surface-highest/50" />
                       <div className="absolute flex h-8 w-8 items-center justify-center rounded-full border border-outline-variant/50 bg-surface-container">
                         <GripVertical size={14} className="text-on-surface-variant/60" />
                       </div>
@@ -180,7 +180,7 @@ export default function EditsPage({ params }: EditsPageProps) {
 
             {/* Bottom Actions */}
             <div className="mt-10 flex flex-col items-center gap-4">
-              <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-8 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
+              <button className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-8 py-3 text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
                 <Download size={16} />
                 Download All Edits
               </button>

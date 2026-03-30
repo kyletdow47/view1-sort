@@ -86,7 +86,7 @@ export default function PricingPage({ params }: PricingPageProps) {
       <nav className="border-b border-outline-variant/30 bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#ffb780] to-[#d48441]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-dim">
               <Camera size={16} className="text-on-primary" />
             </div>
             <span className="text-sm font-bold text-on-surface">PhotoSorter</span>
@@ -197,7 +197,7 @@ export default function PricingPage({ params }: PricingPageProps) {
         <div className="mb-8 flex flex-col items-center gap-4">
           <a
             href={`/gallery/${id}/cart`}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-3.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim py-3.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90"
           >
             <CreditCard size={16} />
             Proceed to Payment

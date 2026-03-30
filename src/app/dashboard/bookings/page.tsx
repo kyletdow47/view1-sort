@@ -25,7 +25,7 @@ const statusConfig: Record<BookingStatus, {
   icon: React.ElementType
   bg: string
 }> = {
-  pending: { label: 'Pending', color: 'text-[#ffb780]', icon: AlertCircle, bg: 'bg-[#ffb780]/15' },
+  pending: { label: 'Pending', color: 'text-primary', icon: AlertCircle, bg: 'bg-primary/15' },
   confirmed: { label: 'Confirmed', color: 'text-[#95d1d1]', icon: CheckCircle2, bg: 'bg-[#95d1d1]/15' },
   completed: { label: 'Completed', color: 'text-emerald-400', icon: CheckCircle2, bg: 'bg-emerald-500/15' },
   cancelled: { label: 'Cancelled', color: 'text-[#e7765f]', icon: XCircle, bg: 'bg-[#e7765f]/15' },
@@ -182,11 +182,11 @@ function MiniCalendar({
               key={`d-${day}`}
               className={`flex h-8 items-center justify-center rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                 isToday
-                  ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-[#4e2600] font-bold'
+                  ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary font-bold'
                   : isBooked
                   ? 'bg-[#95d1d1]/15 text-[#95d1d1]'
                   : isPending
-                  ? 'bg-[#ffb780]/10 text-[#ffb780]'
+                  ? 'bg-primary/10 text-primary'
                   : 'text-on-surface-variant/60 hover:bg-surface-container'
               }`}
             >
@@ -198,7 +198,7 @@ function MiniCalendar({
 
       <div className="flex items-center gap-4 mt-4 pt-3 border-t border-outline-variant/15">
         <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-[#ffb780] to-[#d48441]" />
+          <div className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-primary to-primary-dim" />
           <span className="text-[10px] text-on-surface-variant/50">Today</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -206,7 +206,7 @@ function MiniCalendar({
           <span className="text-[10px] text-on-surface-variant/50">Confirmed</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-full bg-[#ffb780]/50" />
+          <div className="h-2.5 w-2.5 rounded-full bg-primary/50" />
           <span className="text-[10px] text-on-surface-variant/50">Pending</span>
         </div>
       </div>
@@ -264,7 +264,7 @@ export default async function BookingsPage() {
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-4">
         <StatCard label="Upcoming" value={upcoming} icon={CalendarDays} color="bg-[#95d1d1]/15 text-[#95d1d1]" />
-        <StatCard label="Pending" value={pending} icon={Clock} color="bg-[#ffb780]/15 text-[#ffb780]" />
+        <StatCard label="Pending" value={pending} icon={Clock} color="bg-primary/15 text-primary" />
         <StatCard label="Completed" value={completed} icon={CheckCircle2} color="bg-emerald-500/15 text-emerald-400" />
       </div>
 

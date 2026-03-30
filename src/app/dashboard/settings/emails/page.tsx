@@ -107,7 +107,7 @@ function MiniEmailPreview({ template }: { template: EmailTemplate }) {
     <div className="rounded-xl bg-background border border-outline-variant/20 p-3 space-y-2.5">
       {/* Mini header with logo */}
       <div className="flex items-center gap-2">
-        <div className="w-5 h-5 rounded-md bg-gradient-to-br from-[#ffb780] to-[#d48441]" />
+        <div className="w-5 h-5 rounded-md bg-gradient-to-br from-primary to-primary-dim" />
         <div className="h-1.5 w-16 rounded-full bg-surface-highest" />
       </div>
       {/* Subject line */}
@@ -118,7 +118,7 @@ function MiniEmailPreview({ template }: { template: EmailTemplate }) {
       </p>
       {/* CTA button */}
       <div className="pt-1">
-        <div className="inline-block rounded-md bg-gradient-to-br from-[#ffb780]/80 to-[#d48441]/80 px-3 py-1">
+        <div className="inline-block rounded-md bg-gradient-to-br from-primary/80 to-primary-dim/80 px-3 py-1">
           <span className="text-[9px] font-bold text-on-primary">{template.ctaText}</span>
         </div>
       </div>
@@ -177,11 +177,11 @@ export default function EmailTemplatesPage() {
 
                 {/* Action buttons */}
                 <div className="flex items-center gap-2 mt-4">
-                  <button className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-surface-container px-3 py-2 text-xs font-medium text-on-surface-variant ring-1 ring-[#534439]/40 transition-colors hover:ring-[#ffb780]/30 hover:text-primary">
+                  <button className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-surface-container px-3 py-2 text-xs font-medium text-on-surface-variant ring-1 ring-outline-variant/40 transition-colors hover:ring-primary/30 hover:text-primary">
                     <Pencil size={12} />
                     Edit Template
                   </button>
-                  <button className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-surface-container px-3 py-2 text-xs font-medium text-on-surface-variant ring-1 ring-[#534439]/40 transition-colors hover:ring-[#95d1d1]/30 hover:text-emerald-400">
+                  <button className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-surface-container px-3 py-2 text-xs font-medium text-on-surface-variant ring-1 ring-outline-variant/40 transition-colors hover:ring-[#95d1d1]/30 hover:text-emerald-400">
                     <Send size={12} />
                     Send Test
                   </button>
@@ -210,7 +210,7 @@ export default function EmailTemplatesPage() {
                 type="text"
                 value={fromName}
                 onChange={(e) => setFromName(e.target.value)}
-                className="w-full rounded-lg bg-background px-4 py-2.5 text-sm text-on-surface outline-none ring-1 ring-[#534439]/40 focus:ring-[#ffb780]/50"
+                className="w-full rounded-lg bg-background px-4 py-2.5 text-sm text-on-surface outline-none ring-1 ring-outline-variant/40 focus:ring-primary/50"
               />
             </div>
 
@@ -223,7 +223,7 @@ export default function EmailTemplatesPage() {
                 type="email"
                 value={replyTo}
                 onChange={(e) => setReplyTo(e.target.value)}
-                className="w-full rounded-lg bg-background px-4 py-2.5 text-sm text-on-surface outline-none ring-1 ring-[#534439]/40 focus:ring-[#ffb780]/50"
+                className="w-full rounded-lg bg-background px-4 py-2.5 text-sm text-on-surface outline-none ring-1 ring-outline-variant/40 focus:ring-primary/50"
               />
             </div>
 
@@ -241,7 +241,7 @@ export default function EmailTemplatesPage() {
                     className="h-10 w-10 cursor-pointer rounded-lg border-0 bg-transparent p-0"
                   />
                 </div>
-                <div className="flex items-center gap-2 flex-1 rounded-lg bg-background px-4 py-2.5 ring-1 ring-[#534439]/40">
+                <div className="flex items-center gap-2 flex-1 rounded-lg bg-background px-4 py-2.5 ring-1 ring-outline-variant/40">
                   <Palette size={14} className="text-on-surface-variant/50" />
                   <span className="text-sm font-mono text-on-surface">{brandColor}</span>
                 </div>
@@ -265,7 +265,7 @@ export default function EmailTemplatesPage() {
             </div>
 
             {/* Save button */}
-            <button className="w-full rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
+            <button className="w-full rounded-xl bg-gradient-to-br from-primary to-primary-dim py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90">
               Save Settings
             </button>
           </div>

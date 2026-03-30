@@ -232,7 +232,7 @@ function PackageForm({ initial, onSave, onCancel }: PackageFormProps) {
 
       <div className="mt-6 flex items-center justify-end gap-3">
         <button onClick={onCancel} className="rounded-xl border border-outline-variant/30 px-5 py-2 text-sm font-medium text-on-surface-variant hover:border-primary/30 hover:text-primary transition-colors">Cancel</button>
-        <button onClick={handleSave} disabled={!name.trim()} className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-5 py-2 text-sm font-bold text-on-primary hover:opacity-90 disabled:opacity-40 transition-opacity">
+        <button onClick={handleSave} disabled={!name.trim()} className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-5 py-2 text-sm font-bold text-on-primary hover:opacity-90 disabled:opacity-40 transition-opacity">
           <Check size={14} />
           {initial ? 'Save Changes' : 'Create Package'}
         </button>
@@ -249,7 +249,7 @@ function PackageCard({ pkg, onEdit, onDelete }: { pkg: PhotoPackage; onEdit: () 
   return (
     <Card className="relative flex flex-col">
       {pkg.popular && (
-        <div className="absolute -top-px left-6 flex items-center gap-1 rounded-b-lg bg-gradient-to-br from-[#ffb780] to-[#d48441] px-3 py-1">
+        <div className="absolute -top-px left-6 flex items-center gap-1 rounded-b-lg bg-gradient-to-br from-primary to-primary-dim px-3 py-1">
           <Star size={9} className="text-on-primary fill-on-primary" />
           <span className="text-[10px] font-bold uppercase tracking-widest text-on-primary">Most Popular</span>
         </div>
@@ -313,7 +313,7 @@ function PackagesTab() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button onClick={() => { setShowForm(true); setEditingId(null) }} className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-4 py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity">
+        <button onClick={() => { setShowForm(true); setEditingId(null) }} className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-4 py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity">
           <Plus size={15} />New Package
         </button>
       </div>
@@ -369,7 +369,7 @@ function PrintProductsTab() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button onClick={addProduct} className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#ffb780] to-[#d48441] px-4 py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity">
+        <button onClick={addProduct} className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-4 py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity">
           <Plus size={15} />Add Product
         </button>
       </div>
@@ -471,7 +471,7 @@ export default function PackagesPage() {
               onClick={() => setActiveTab(tab)}
               className={`flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-medium transition-all ${
                 activeTab === tab
-                  ? 'bg-gradient-to-br from-[#ffb780] to-[#d48441] text-on-primary shadow-sm'
+                  ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary shadow-sm'
                   : 'text-on-surface-variant hover:text-on-surface'
               }`}
             >
