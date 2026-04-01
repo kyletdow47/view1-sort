@@ -90,9 +90,9 @@ export function ProjectCard({ project, photoCount = 0 }: ProjectCardProps) {
       tabIndex={0}
       aria-label={`Open project ${project.name}`}
       className={clsx(
-        'group relative rounded-xl border border-view1-border bg-surface cursor-pointer',
-        'hover:border-white/20 transition-all duration-150 overflow-hidden',
-        'focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background',
+        'group relative rounded-2xl glass-card cursor-pointer',
+        'hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(255,255,255,0.08)] transition-all duration-200 overflow-hidden',
+        'focus:outline-none focus:ring-2 focus:ring-white/40 focus:ring-offset-2 focus:ring-offset-transparent',
         deleting && 'opacity-50 pointer-events-none',
       )}
       onClick={handleCardClick}
@@ -147,7 +147,7 @@ export function ProjectCard({ project, photoCount = 0 }: ProjectCardProps) {
               />
               <div
                 data-menu
-                className="absolute right-0 top-8 z-20 w-44 bg-surface border border-view1-border rounded-xl shadow-xl overflow-hidden"
+                className="absolute right-0 top-8 z-20 w-44 bg-[#1a1a2e]/90 backdrop-blur-xl border border-white/15 rounded-xl shadow-xl overflow-hidden"
               >
                 <button
                   type="button"

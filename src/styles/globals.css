@@ -139,6 +139,38 @@
     );
   }
 
+  /* Authenticated app shell — indigo brand gradient background */
+  .app-shell {
+    background: linear-gradient(135deg,
+      #1A3A8F 0%,
+      #2D60D4 18%,
+      #3B7DE8 36%,
+      #5A6FE8 55%,
+      #7B5EA7 78%,
+      #1E2FA8 100%
+    );
+  }
+
+  /* Glass header — sits over the gradient */
+  .glass-header {
+    background: rgba(13, 14, 20, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  }
+
+  /* Glass project card */
+  .glass-card {
+    background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.10) 100%
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.04), 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+
   /* Text */
   .text-balance { text-wrap: balance; }
   .text-pretty  { text-wrap: pretty; }

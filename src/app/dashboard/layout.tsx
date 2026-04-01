@@ -286,7 +286,7 @@ export default function DashboardLayout({
   }, [profile, user])
 
   return (
-    <div className="flex min-h-screen bg-background text-on-surface">
+    <div className="flex min-h-screen app-shell text-on-surface">
       {/* Mobile sidebar backdrop */}
       {mobileSidebarOpen && (
         <div
@@ -299,7 +299,7 @@ export default function DashboardLayout({
       {/*  SIDEBAR — fixed 256px (w-64), slides in on mobile           */}
       {/* ============================================================ */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-surface shadow-[4px_0_24px_-4px_rgba(0,0,0,0.5)] transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-[#0d0e18]/90 backdrop-blur-sm border-r border-white/[0.08] transition-transform duration-300 ease-in-out ${
           mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
@@ -461,7 +461,7 @@ export default function DashboardLayout({
         {/* ---------------------------------------------------------- */}
         {/*  HEADER — fixed, contextual                                */}
         {/* ---------------------------------------------------------- */}
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-outline-variant/30 bg-background/90 px-4 md:px-6 backdrop-blur-md">
+        <header className="sticky top-0 z-20 flex h-16 items-center justify-between glass-header px-4 md:px-6">
 
           {inSorting ? (
             /* ====== SORTING VIEW HEADER ====== */
@@ -485,7 +485,7 @@ export default function DashboardLayout({
                   <input
                     type="text"
                     placeholder="Search..."
-                    className="h-9 w-48 rounded-lg bg-surface-container-lowest pl-10 pr-3 text-sm text-on-surface placeholder-on-surface-variant/40 outline-none focus:ring-1 focus:ring-primary/40"
+                    className="h-9 w-48 rounded-lg bg-white/[0.08] pl-10 pr-3 text-sm text-white/90 placeholder-white/30 outline-none focus:ring-1 focus:ring-white/30 border border-white/[0.12]"
                   />
                 </div>
 
@@ -574,7 +574,7 @@ export default function DashboardLayout({
                   <input
                     type="text"
                     placeholder="Search selection..."
-                    className="h-9 w-48 rounded-lg bg-surface-container-lowest pl-10 pr-3 text-sm text-on-surface placeholder-on-surface-variant/40 outline-none focus:ring-1 focus:ring-primary/40"
+                    className="h-9 w-48 rounded-lg bg-white/[0.08] pl-10 pr-3 text-sm text-white/90 placeholder-white/30 outline-none focus:ring-1 focus:ring-white/30 border border-white/[0.12]"
                   />
                 </div>
 
@@ -661,7 +661,7 @@ export default function DashboardLayout({
                   <input
                     type="text"
                     placeholder="Search projects or assets..."
-                    className="h-9 w-56 rounded-lg bg-surface-container-lowest pl-10 pr-3 text-sm text-on-surface placeholder-on-surface-variant/40 outline-none focus:ring-1 focus:ring-primary/40"
+                    className="h-9 w-56 rounded-lg bg-white/[0.08] pl-10 pr-3 text-sm text-white/90 placeholder-white/30 outline-none focus:ring-1 focus:ring-white/30 border border-white/[0.12]"
                   />
                 </div>
 

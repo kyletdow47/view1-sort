@@ -30,13 +30,12 @@ export function DashboardShell({
   const isAtLimit = tier === 'free' && activeProjectCount >= FREE_TIER_LIMIT
 
   return (
-    <main className="min-h-screen bg-background text-white">
+    <main className="min-h-screen text-white">
       {/* Header */}
-      <div className="border-b border-view1-border bg-surface/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-white">Projects</h1>
-            <p className="text-sm text-white/40 mt-0.5">
+            <h1 className="font-headline font-bold text-2xl text-white">Projects</h1>
+            <p className="text-sm text-white/50 mt-0.5">
               {projects.length} {projects.length === 1 ? 'project' : 'projects'}
               {tier === 'free' && (
                 <span className="ml-2 text-white/30">
@@ -60,11 +59,10 @@ export function DashboardShell({
               New Project
             </Button>
           )}
-        </div>
       </div>
 
       {/* Projects grid */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div>
         {projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <FolderPlus className="w-16 h-16 text-white/20 mx-auto mb-6" />
