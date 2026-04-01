@@ -1,0 +1,41 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm typecheck 2>&1 | tail -5",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "pnpm test --run 2>&1 | tail -10",
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "if echo \"${TOOL_INPUT_PATH:-}\" | grep -qE '(stripe|supabase|webhook|migration)'; then echo 'SEC_SCAN_REQUIRED: '\"${TOOL_INPUT_PATH:-}\"; fi",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -q 'STATE.md' /tmp/view1-session-reads.log 2>/dev/null || echo 'WARNING: STATE.md has not been read this session. Read it before writing.'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
