@@ -50,7 +50,7 @@ function WaitlistForm({ size = 'default' }: { size?: 'default' | 'large' }) {
   if (submitted) {
     return (
       <div className={`flex flex-col items-center gap-3 text-center ${size === 'large' ? 'py-6' : 'py-4'}`}>
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500/20 text-indigo-400">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/[0.08] text-white/80">
           <CheckCircle size={24} />
         </div>
         <p className={`font-semibold text-zinc-100 ${size === 'large' ? 'text-xl' : 'text-base'}`}>
@@ -70,12 +70,12 @@ function WaitlistForm({ size = 'default' }: { size?: 'default' | 'large' }) {
             placeholder="Your name"
             value={name}
             onChange={e => setName(e.target.value)}
-            className="flex-1 rounded-xl border border-zinc-700/60 bg-zinc-900/80 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 transition-all"
+            className="flex-1 rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all"
           />
           <select
             value={type}
             onChange={e => setType(e.target.value)}
-            className="flex-1 rounded-xl border border-zinc-700/60 bg-zinc-900/80 px-4 py-3 text-sm text-zinc-400 outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 transition-all appearance-none"
+            className="flex-1 rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm text-zinc-400 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all appearance-none"
           >
             <option value="">Photography type</option>
             <option value="wedding">Wedding</option>
@@ -95,12 +95,12 @@ function WaitlistForm({ size = 'default' }: { size?: 'default' | 'large' }) {
           value={email}
           onChange={e => setEmail(e.target.value)}
           required
-          className={`flex-1 rounded-xl border border-zinc-700/60 bg-zinc-900/80 px-4 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 transition-all ${size === 'large' ? 'py-4' : 'py-3'}`}
+          className={`flex-1 rounded-xl border border-white/15 bg-white/[0.04] px-4 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all ${size === 'large' ? 'py-4' : 'py-3'}`}
         />
         <button
           type="submit"
           disabled={loading}
-          className={`shrink-0 rounded-xl bg-indigo-500 px-6 font-semibold text-white transition-all hover:bg-indigo-400 disabled:opacity-60 ${size === 'large' ? 'py-4 text-base' : 'py-3 text-sm'}`}
+          className={`shrink-0 rounded-xl bg-white px-6 font-semibold text-zinc-900 transition-all hover:bg-zinc-200 shadow-[0_4px_20px_rgba(255,255,255,0.12)] disabled:opacity-60 ${size === 'large' ? 'py-4 text-base' : 'py-3 text-sm'}`}
         >
           {loading ? 'Joining…' : 'Join Waitlist'}
         </button>
@@ -117,26 +117,24 @@ function WaitlistForm({ size = 'default' }: { size?: 'default' | 'large' }) {
 function ScreenPlaceholder({ label, aspect = '16/9', className = '' }: { label: string; aspect?: string; className?: string }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-zinc-700/40 bg-gradient-to-br from-zinc-900 to-zinc-950 ${className}`}
+      className={`relative overflow-hidden rounded-2xl border border-white/15 bg-white/[0.04] backdrop-blur-xl ${className}`}
       style={{ aspectRatio: aspect }}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(99,102,241,0.08)_0%,transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_80%,rgba(99,102,241,0.05)_0%,transparent_60%)]" />
-      <div className="absolute inset-x-0 top-0 flex h-8 items-center gap-1.5 border-b border-zinc-800 px-3">
-        <div className="h-2 w-2 rounded-full bg-zinc-700" />
-        <div className="h-2 w-2 rounded-full bg-zinc-700" />
-        <div className="h-2 w-2 rounded-full bg-zinc-700" />
-        <div className="mx-3 flex-1 rounded-md bg-zinc-800 h-3.5" />
+      <div className="absolute inset-x-0 top-0 flex h-8 items-center gap-1.5 border-b border-white/10 px-3">
+        <div className="h-2 w-2 rounded-full bg-white/30" />
+        <div className="h-2 w-2 rounded-full bg-white/30" />
+        <div className="h-2 w-2 rounded-full bg-white/30" />
+        <div className="mx-3 flex-1 rounded-md bg-white/10 h-3.5" />
       </div>
       <div className="absolute inset-0 mt-8 opacity-20"
-        style={{ backgroundImage: 'linear-gradient(rgba(99,102,241,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 mt-8">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.08] text-white/80 border border-white/15">
           <Monitor size={20} />
         </div>
         <span className="text-xs font-medium text-zinc-500 tracking-wider uppercase">{label}</span>
       </div>
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-px w-3/4 bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-px w-3/4 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
     </div>
   )
 }
@@ -146,7 +144,7 @@ function ScreenPlaceholder({ label, aspect = '16/9', className = '' }: { label: 
 ───────────────────────────────────────────── */
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/8 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-indigo-400">
+    <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-3 py-1 text-xs font-semibold uppercase tracking-widest text-white/80">
       {children}
     </span>
   )
@@ -168,12 +166,12 @@ const FAQS = [
 function FAQ() {
   const [open, setOpen] = useState<number | null>(null)
   return (
-    <div className="divide-y divide-zinc-800">
+    <div className="divide-y divide-white/10">
       {FAQS.map((faq, i) => (
         <div key={i} className="py-5">
           <button onClick={() => setOpen(open === i ? null : i)} className="flex w-full items-center justify-between gap-4 text-left">
             <span className="font-medium text-zinc-100">{faq.q}</span>
-            <ChevronDown size={16} className={`shrink-0 text-zinc-400 transition-transform ${open === i ? 'rotate-180' : ''}`} />
+            <ChevronDown size={16} className={`shrink-0 text-white/50 transition-transform ${open === i ? 'rotate-180' : ''}`} />
           </button>
           {open === i && <p className="mt-3 text-sm leading-relaxed text-zinc-400">{faq.a}</p>}
         </div>
@@ -251,15 +249,15 @@ function FeatureTabs() {
     <div>
       {/* Tab bar */}
       <div className="flex justify-center mb-10">
-        <div className="inline-flex gap-1 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-1.5">
+        <div className="inline-flex gap-1 rounded-2xl border border-white/15 bg-white/[0.04] p-1.5">
           {FEATURE_TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActive(tab.id)}
               className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all ${
                 active === tab.id
-                  ? 'bg-zinc-800 text-zinc-100 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-300'
+                  ? 'bg-white/10 text-white shadow-sm'
+                  : 'text-white/50 hover:text-zinc-300'
               }`}
             >
               <tab.icon size={14} />
@@ -383,15 +381,15 @@ function UseCaseTabs() {
     <div>
       {/* Tab bar */}
       <div className="flex justify-center mb-10">
-        <div className="inline-flex gap-1 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-1.5 flex-wrap justify-center">
+        <div className="inline-flex gap-1 rounded-2xl border border-white/15 bg-white/[0.04] p-1.5 flex-wrap justify-center">
           {USE_CASES.map(u => (
             <button
               key={u.id}
               onClick={() => setActive(u.id)}
               className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
                 active === u.id
-                  ? 'bg-zinc-800 text-zinc-100 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-300'
+                  ? 'bg-white/10 text-white shadow-sm'
+                  : 'text-white/50 hover:text-zinc-300'
               }`}
             >
               <u.icon size={13} />
@@ -404,9 +402,9 @@ function UseCaseTabs() {
       {/* Content */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 items-start">
         {/* Left — details */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-8">
+        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-8">
           <div className="flex items-center gap-3 mb-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.08] text-white/80 border border-white/15">
               <uc.icon size={18} />
             </div>
             <div>
@@ -414,11 +412,11 @@ function UseCaseTabs() {
               <h3 className="text-lg font-bold text-zinc-100 leading-snug">{uc.headline}</h3>
             </div>
           </div>
-          <p className="text-sm text-zinc-500 italic border-l-2 border-zinc-700 pl-3 mb-6">&ldquo;{uc.subhead}&rdquo;</p>
+          <p className="text-sm text-zinc-500 italic border-l-2 border-white/15 pl-3 mb-6">&ldquo;{uc.subhead}&rdquo;</p>
           <ul className="space-y-3">
             {uc.wins.map((w, i) => (
               <li key={i} className="flex items-start gap-3">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 mt-0.5">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] text-white/80 mt-0.5">
                   <w.icon size={13} />
                 </div>
                 <span className="text-sm text-zinc-300 leading-relaxed">{w.text}</span>
@@ -468,22 +466,18 @@ export function LandingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/auth/login" className="hidden text-sm font-medium text-zinc-400 transition-colors hover:text-zinc-100 md:block">Sign In</Link>
-            <a href="https://photo-sorter-theta.vercel.app/dashboard" target="_blank" rel="noopener noreferrer" className="hidden items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800/60 px-4 py-2 text-sm font-medium text-zinc-200 transition-all hover:border-zinc-600 hover:bg-zinc-800 md:flex">
+            <a href="https://photo-sorter-theta.vercel.app/dashboard" target="_blank" rel="noopener noreferrer" className="hidden items-center gap-1.5 rounded-lg border border-white/20 bg-white/[0.04] backdrop-blur-xl px-4 py-2 text-sm font-medium text-white/80 transition-all hover:border-white/30 hover:bg-white/[0.06] md:flex">
               Open App <ArrowRight size={13} />
             </a>
-            <a href="#waitlist" className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-indigo-400">Get Early Access</a>
+            <a href="#waitlist" className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-zinc-900 transition-all hover:bg-zinc-200 shadow-[0_4px_20px_rgba(255,255,255,0.12)]">Get Early Access</a>
           </div>
         </div>
       </nav>
 
       {/* ── HERO ── */}
       <section className="relative overflow-hidden pt-32 pb-20">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.12)_0%,transparent_100%)]" />
-        <div className="absolute top-1/2 left-1/4 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/4 blur-3xl" />
-        <div className="absolute top-1/3 right-1/4 h-64 w-64 rounded-full bg-violet-500/4 blur-3xl" />
-
         <div className="relative mx-auto max-w-5xl px-6 text-center">
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/8 px-4 py-1.5 text-sm font-medium text-indigo-300">
+          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.07] px-4 py-1.5 text-sm font-medium text-white/80">
             <Sparkles size={13} />
             Now in private early access — join the waitlist
             <ArrowRight size={13} />
@@ -492,7 +486,7 @@ export function LandingPage() {
           <h1 className="mx-auto max-w-4xl text-5xl font-extrabold leading-[1.1] tracking-tight text-zinc-50 sm:text-6xl lg:text-7xl">
             The AI That Thinks
             <br />
-            <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-indigo-300 bg-clip-text text-transparent">
+            <span className="text-white">
               Like a Photographer
             </span>
           </h1>
@@ -529,22 +523,21 @@ export function LandingPage() {
           </div>
 
           <div className="relative mt-16">
-            <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
-            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-b from-indigo-500/5 to-transparent blur-2xl" />
-            <ScreenPlaceholder label="AI Sort Dashboard" aspect="16/9" className="relative shadow-2xl shadow-black/60 ring-1 ring-zinc-700/40" />
+            <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <ScreenPlaceholder label="AI Sort Dashboard" aspect="16/9" className="relative shadow-2xl shadow-black/60 ring-1 ring-white/10" />
           </div>
         </div>
       </section>
 
       {/* ── MARQUEE ── */}
-      <section className="border-y border-zinc-800/40 bg-zinc-950/50 py-4 overflow-hidden">
+      <section className="border-y border-white/10 bg-white/[0.03] py-4 overflow-hidden">
         <div className="flex gap-3 whitespace-nowrap" style={{ animation: 'marquee 35s linear infinite' }}>
           {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
             <span
               key={i}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-zinc-700/50 bg-zinc-800/40 px-3 py-1 text-xs font-medium text-zinc-400"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium text-zinc-400"
             >
-              <item.icon size={11} className="text-indigo-400" />
+              <item.icon size={11} className="text-white/80" />
               {item.label}
             </span>
           ))}
@@ -586,7 +579,7 @@ export function LandingPage() {
               { icon: ClipboardList, text: 'Building shot lists in Notes.app and losing them on set' },
               { icon: FileText, text: 'Copy-pasting client details into contracts, invoices, and emails separately' },
             ].map(pain => (
-              <div key={pain.text} className="flex items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
+              <div key={pain.text} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-400 mt-0.5">
                   <pain.icon size={13} />
                 </div>
@@ -598,7 +591,7 @@ export function LandingPage() {
       </section>
 
       {/* ── AI DIFFERENCE ── */}
-      <section id="features" className="py-24 px-6 bg-zinc-950/40">
+      <section id="features" className="py-24 px-6">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <SectionLabel><Brain size={12} /> The AI Difference</SectionLabel>
@@ -607,7 +600,7 @@ export function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-zinc-700/40 bg-zinc-900/60 p-8">
+            <div className="rounded-2xl border border-white/[0.09] bg-white/[0.04] backdrop-blur-xl p-8">
               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">Everyone Else</p>
               <div className="space-y-3">
                 {['Reject blurry images', 'Reject closed eyes', 'Reject bad exposure', 'Sort by quality score', 'Ignore context and emotion'].map(item => (
@@ -620,8 +613,8 @@ export function LandingPage() {
                 ))}
               </div>
             </div>
-            <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/5 p-8 ring-1 ring-indigo-500/10">
-              <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-4">View1 Sort</p>
+            <div className="rounded-2xl border border-white/20 bg-white/[0.05] backdrop-blur-xl p-8">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/80 mb-4">View1 Sort</p>
               <div className="space-y-3">
                 {[
                   'Smart cull + photographer review before sort',
@@ -631,8 +624,8 @@ export function LandingPage() {
                   'AI Style Profile learns your personal aesthetic',
                 ].map(item => (
                   <div key={item} className="flex items-center gap-3 text-sm text-zinc-100">
-                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-500/15">
-                      <Check size={11} className="text-indigo-400" />
+                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/[0.08]">
+                      <Check size={11} className="text-white/80" />
                     </div>
                     {item}
                   </div>
@@ -690,7 +683,7 @@ export function LandingPage() {
               <div key={step.step} className="relative">
                 <div className="mb-4 flex items-center gap-3">
                   <span className="text-5xl font-black text-zinc-800">{step.step}</span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/12 text-indigo-400 border border-indigo-500/20">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.08] text-white/80 border border-white/15">
                     <step.icon size={18} />
                   </div>
                 </div>
@@ -699,7 +692,7 @@ export function LandingPage() {
                 <ul className="space-y-2">
                   {step.items.map(item => (
                     <li key={item.text} className="flex items-center gap-2.5 text-sm text-zinc-500">
-                      <item.icon size={13} className="shrink-0 text-indigo-400" />
+                      <item.icon size={13} className="shrink-0 text-white/80" />
                       {item.text}
                     </li>
                   ))}
@@ -711,7 +704,7 @@ export function LandingPage() {
       </section>
 
       {/* ── VIBE PRESET BUILDER ── */}
-      <section className="py-24 px-6 bg-zinc-950/40">
+      <section className="py-24 px-6">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 items-center">
             <div>
@@ -723,7 +716,7 @@ export function LandingPage() {
                 Chat with the AI to build a sorting preset that matches your exact aesthetic. It asks about your niche, priorities, what mood you&apos;re going for, and what you always reject. The result? A personal preset that sorts like <em className="text-zinc-200 not-italic font-medium">you</em>.
               </p>
 
-              <div className="mt-8 rounded-2xl border border-zinc-700/40 bg-zinc-900/60 p-5 space-y-3">
+              <div className="mt-8 rounded-2xl border border-white/[0.09] bg-white/[0.04] backdrop-blur-xl p-5 space-y-3">
                 {[
                   { role: 'ai', msg: 'What kind of shoot is this?' },
                   { role: 'user', msg: 'Luxury real estate in Miami. Ocean-facing penthouse, lots of golden hour light.' },
@@ -734,7 +727,7 @@ export function LandingPage() {
                   { role: 'ai', msg: 'Preset "Miami Luxury RE" created — 6 categories, 4 rejection rules. Apply to project?' },
                 ].map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-xs rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${msg.role === 'ai' ? 'bg-zinc-800 text-zinc-200' : 'bg-indigo-500 text-white'}`}>
+                    <div className={`max-w-xs rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${msg.role === 'ai' ? 'bg-white/[0.08] text-zinc-200' : 'bg-white text-zinc-900'}`}>
                       {msg.msg}
                     </div>
                   </div>
@@ -749,7 +742,7 @@ export function LandingPage() {
                   { icon: FolderOpen, text: 'Presets saved to your library and fully reusable' },
                 ].map(f => (
                   <li key={f.text} className="flex items-center gap-3 text-sm text-zinc-300">
-                    <f.icon size={14} className="shrink-0 text-indigo-400" />
+                    <f.icon size={14} className="shrink-0 text-white/80" />
                     {f.text}
                   </li>
                 ))}
@@ -813,7 +806,7 @@ export function LandingPage() {
       </section>
 
       {/* ── FEATURES (TABBED) ── */}
-      <section className="py-24 px-6 bg-zinc-950/40">
+      <section className="py-24 px-6">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <SectionLabel>Every Feature</SectionLabel>
@@ -839,7 +832,7 @@ export function LandingPage() {
       </section>
 
       {/* ── CLIENT EXPERIENCE ── */}
-      <section className="py-24 px-6 bg-zinc-950/40">
+      <section className="py-24 px-6">
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <SectionLabel><Users size={12} /> Client Experience</SectionLabel>
@@ -865,8 +858,8 @@ export function LandingPage() {
               { icon: Bell, title: 'Status notifications', desc: 'Email + SMS updates at every milestone automatically.' },
               { icon: Smartphone, title: 'Full mobile experience', desc: 'Complete gallery, selection, comments, and download on mobile.' },
             ].map(f => (
-              <div key={f.title} className="flex items-start gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
+              <div key={f.title} className="flex items-start gap-4 rounded-2xl border border-white/[0.09] bg-white/[0.04] backdrop-blur-xl p-5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] text-white/80">
                   <f.icon size={16} />
                 </div>
                 <div>
@@ -901,12 +894,12 @@ export function LandingPage() {
               { icon: FolderOpen, label: 'Project Unlocks', sub: 'Workflow begins' },
             ].map((step, i) => (
               <div key={step.label} className="relative flex flex-col items-center text-center gap-2">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-700 text-indigo-400">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/[0.06] border border-white/15 text-white/80">
                   <step.icon size={18} />
                 </div>
                 <p className="text-sm font-semibold text-zinc-100">{step.label}</p>
                 <p className="text-xs text-zinc-500">{step.sub}</p>
-                {i < 4 && <ArrowRight size={14} className="absolute -right-2 top-3 text-zinc-700 hidden md:block" />}
+                {i < 4 && <ArrowRight size={14} className="absolute -right-2 top-3 text-white/30 hidden md:block" />}
               </div>
             ))}
           </div>
@@ -932,7 +925,7 @@ export function LandingPage() {
       </section>
 
       {/* ── ANALYTICS ── */}
-      <section className="py-24 px-6 bg-zinc-950/40">
+      <section className="py-24 px-6">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 items-center">
             <div>
@@ -953,7 +946,7 @@ export function LandingPage() {
                   { icon: RefreshCw, text: 'Repeat client tracking' },
                 ].map(m => (
                   <div key={m.text} className="flex items-center gap-2.5 text-sm text-zinc-300">
-                    <m.icon size={14} className="shrink-0 text-indigo-400" />
+                    <m.icon size={14} className="shrink-0 text-white/80" />
                     {m.text}
                   </div>
                 ))}
@@ -1028,18 +1021,16 @@ export function LandingPage() {
 
       {/* ── WAITLIST CTA ── */}
       <section id="waitlist" className="py-32 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,rgba(99,102,241,0.10)_0%,transparent_100%)]" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
         <div className="relative mx-auto max-w-2xl text-center">
           <div className="mb-6 flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/[0.08] text-white/80 border border-white/15">
               <Camera size={28} />
             </div>
           </div>
           <h2 className="text-5xl font-extrabold tracking-tight text-zinc-50 lg:text-6xl">
             Stop sorting.
             <br />
-            <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Start shooting.</span>
+            <span className="text-white">Start shooting.</span>
           </h2>
           <p className="mt-6 text-xl text-zinc-400 leading-relaxed">
             Join the waitlist for early access. Waitlist members get a <strong className="text-zinc-200 font-semibold">lifetime discount</strong> and are first to try every new feature.
@@ -1051,7 +1042,7 @@ export function LandingPage() {
       </section>
 
       {/* ── FAQ ── */}
-      <section className="py-24 px-6 bg-zinc-950/40">
+      <section className="py-24 px-6">
         <div className="mx-auto max-w-2xl">
           <div className="text-center mb-12">
             <SectionLabel>FAQ</SectionLabel>
@@ -1062,7 +1053,7 @@ export function LandingPage() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-zinc-800/60 py-12 px-6">
+      <footer className="border-t border-white/10 py-12 px-6">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4 mb-10">
             <div className="col-span-2 md:col-span-1">
@@ -1089,7 +1080,7 @@ export function LandingPage() {
               </div>
             ))}
           </div>
-          <div className="border-t border-zinc-800/60 pt-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div className="border-t border-white/10 pt-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <p className="text-xs text-zinc-600">© 2026 View1 Sort. All rights reserved.</p>
             <p className="text-xs text-zinc-600">Built for photographers who take their work seriously.</p>
           </div>
