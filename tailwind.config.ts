@@ -58,8 +58,8 @@ const config: Config = {
         body:     ['var(--font-inter)', 'Inter', 'sans-serif'],
         label:    ['var(--font-inter)', 'Inter', 'sans-serif'],
         // Geist: headings, display
-        headline: ['var(--font-geist)', 'Geist', 'sans-serif'],
-        display:  ['var(--font-geist)', 'Geist', 'sans-serif'],
+        headline: ['var(--font-geist-sans)', 'Geist', 'sans-serif'],
+        display:  ['var(--font-geist-sans)', 'Geist', 'sans-serif'],
         // Geist Mono: code, data
         mono:     ['var(--font-geist-mono)', 'Geist Mono', 'monospace'],
       },

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
-import { Inter, Geist, Geist_Mono } from 'next/font/google'
+import { Inter } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import { Toaster } from 'sonner'
 import '@/styles/globals.css'
 
@@ -10,17 +12,8 @@ const inter = Inter({
   display: 'swap',
 })
 
-const geist = Geist({
-  subsets: ['latin'],
-  variable: '--font-geist',
-  display: 'swap',
-})
+// GeistSans.variable = '--font-geist-sans', GeistMono.variable = '--font-geist-mono'
 
-const geistMono = Geist_Mono({
-  subsets: ['latin'],
-  variable: '--font-geist-mono',
-  display: 'swap',
-})
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://view1sort.com'
 const TITLE = 'View1 Sort — The AI That Thinks Like a Photographer'
@@ -66,7 +59,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" data-theme="zinc" suppressHydrationWarning>
-      <body className={`${inter.variable} ${geist.variable} ${geistMono.variable} font-sans bg-background text-on-surface antialiased selection:bg-primary/20`}>
+      <body className={`${inter.variable} ${GeistSans.variable} ${GeistMono.variable} font-sans bg-background text-on-surface antialiased selection:bg-primary/20`}>
         {children}
         <Toaster
           position="top-right"
@@ -75,7 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               background: 'rgb(var(--t-surface-container))',
               border: '1px solid rgb(var(--t-outline-variant))',
               color: 'rgb(var(--t-on-surface))',
-              fontFamily: 'var(--font-geist)',
+              fontFamily: 'var(--font-geist-sans)',
             },
           }}
         />
