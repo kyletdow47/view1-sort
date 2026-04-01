@@ -8,6 +8,7 @@ import {
   FolderOpen,
   Sparkles,
   Users,
+  Rss,
   BarChart3,
   Settings,
   Camera,
@@ -193,6 +194,7 @@ const navItems: NavItem[] = [
 
 const schedulingItems: NavItem[] = [
   { label: 'Calendar',       href: '/dashboard/calendar',                 icon: CalendarDays },
+  { label: 'Content Hub',    href: '/dashboard/content',                  icon: Rss },
   { label: 'Booking Forms',  href: '/dashboard/settings/booking-forms',   icon: FileText },
   { label: 'Bulk Management',href: '/dashboard/bulk',                     icon: Layers },
 ]
@@ -632,6 +634,7 @@ export function DashboardClientLayout({
                   {pathname.startsWith('/dashboard/ai-sort')          && 'AI Sort'}
                   {pathname.startsWith('/dashboard/analytics')        && 'Analytics'}
                   {pathname.startsWith('/dashboard/calendar')         && 'Calendar'}
+                  {pathname.startsWith('/dashboard/content')          && 'Content Hub'}
                   {pathname.startsWith('/dashboard/bulk')             && 'Bulk Management'}
                 </h1>
               </div>
