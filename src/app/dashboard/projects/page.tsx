@@ -1,198 +1,870 @@
 'use client'
 
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
+  ArrowUpRight,
+  ChevronDown,
+  FolderOpen,
+  Grid3X3,
+  List,
+  MoreVertical,
   Plus,
   Search,
-  Filter,
-  MoreVertical,
-  Camera,
-  Heart,
-  Home,
-  Plane,
-  Image as ImageIcon,
-  CheckCircle,
-  Clock,
-  Archive,
+  Share2,
+  Sparkles,
+  X,
 } from 'lucide-react'
+import { clsx } from 'clsx'
+import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/common/Button'
+import { Input } from '@/components/common/Input'
+import { Modal } from '@/components/common/Modal'
+import { Skeleton } from '@/components/common/Skeleton'
+import { StatusBadge } from '@/components/features/projects/StatusBadge'
+import type { Project } from '@/types/supabase'
+import type { ProjectPipelineStatus } from '@/components/features/projects/StatusBadge'
 
-const PROJECTS = [
-  {
-    id: 'demo-1',
-    name: 'Johnson Wedding',
-    type: 'Wedding',
-    typeIcon: Heart,
-    status: 'published',
-    photos: 847,
-    storage: '12.4 GB',
-    date: 'Sep 14, 2023',
-    hue: 25,
-  },
-  {
-    id: 'demo-2',
-    name: '123 Oak Street Listing',
-    type: 'Real Estate',
-    typeIcon: Home,
-    status: 'draft',
-    photos: 156,
-    storage: '2.1 GB',
-    date: 'Oct 02, 2023',
-    hue: 200,
-  },
-  {
-    id: 'demo-3',
-    name: 'Portugal Travel Series',
-    type: 'Travel',
-    typeIcon: Plane,
-    status: 'active',
-    photos: 432,
-    storage: '8.7 GB',
-    date: 'Nov 18, 2023',
-    hue: 40,
-  },
-  {
-    id: 'demo-4',
-    name: 'Corporate Headshots — Acme Inc',
-    type: 'Commercial',
-    typeIcon: Camera,
-    status: 'completed',
-    photos: 64,
-    storage: '1.2 GB',
-    date: 'Dec 05, 2023',
-    hue: 280,
-  },
-  {
-    id: 'demo-5',
-    name: 'Alpine Solitude',
-    type: 'Landscape',
-    typeIcon: ImageIcon,
-    status: 'published',
-    photos: 3105,
-    storage: '45.2 GB',
-    date: 'Jan 10, 2024',
-    hue: 180,
-  },
-  {
-    id: 'demo-6',
-    name: 'Noir & Silk Editorial',
-    type: 'Fashion',
-    typeIcon: Camera,
-    status: 'completed',
-    photos: 1890,
-    storage: '28.6 GB',
-    date: 'Feb 22, 2024',
-    hue: 340,
-  },
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type SortKey = 'date' | 'name' | 'status'
+type ViewMode = 'grid' | 'list'
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const PIPELINE_STATUSES: Array<{ value: ProjectPipelineStatus | ''; label: string }> = [
+  { value: '',             label: 'All statuses' },
+  { value: 'inquiry',     label: 'Inquiry' },
+  { value: 'quoted',      label: 'Quoted' },
+  { value: 'booked',      label: 'Booked' },
+  { value: 'contracted',  label: 'Contracted' },
+  { value: 'prepped',     label: 'Prepped' },
+  { value: 'shooting',    label: 'Shooting' },
+  { value: 'processing',  label: 'Processing' },
+  { value: 'review',      label: 'In Review' },
+  { value: 'gallery_live',label: 'Gallery Live' },
+  { value: 'delivered',   label: 'Delivered' },
 ]
 
-const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; icon: React.ElementType }> = {
-  published: { label: 'Published', bg: 'bg-[#0c5252]/30', text: 'text-emerald-400', icon: CheckCircle },
-  draft: { label: 'Draft', bg: 'bg-surface-highest', text: 'text-on-surface-variant', icon: Clock },
-  active: { label: 'Active', bg: 'bg-primary/15', text: 'text-primary', icon: CheckCircle },
-  completed: { label: 'Completed', bg: 'bg-[#e7765f]/15', text: 'text-rose-400', icon: Archive },
+const SORT_OPTIONS: Array<{ value: SortKey; label: string }> = [
+  { value: 'date',   label: 'Date (newest)' },
+  { value: 'name',   label: 'Name (A–Z)' },
+  { value: 'status', label: 'Status' },
+]
+
+const GRADIENT_FALLBACKS = [
+  'from-violet-500/30 to-blue-500/30',
+  'from-pink-500/30 to-rose-500/30',
+  'from-amber-500/30 to-orange-500/30',
+  'from-teal-500/30 to-cyan-500/30',
+  'from-indigo-500/30 to-purple-500/30',
+]
+
+function getGradient(id: string): string {
+  const sum = id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  return GRADIENT_FALLBACKS[sum % GRADIENT_FALLBACKS.length]
 }
 
-export default function ProjectsPage() {
+// ─── Loading Skeleton ─────────────────────────────────────────────────────────
+
+function ProjectCardSkeleton() {
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-end justify-between">
+    <div className="rounded-xl overflow-hidden bg-surface border border-outline-variant/20">
+      <Skeleton className="h-44 w-full rounded-none" />
+      <div className="p-4 space-y-3">
+        <Skeleton variant="line" className="w-2/3 h-4" />
+        <Skeleton variant="line" className="w-1/2 h-3" />
+        <Skeleton variant="line" className="w-1/3 h-3" />
+      </div>
+    </div>
+  )
+}
+
+function ProjectRowSkeleton() {
+  return (
+    <tr>
+      {[...Array(6)].map((_, i) => (
+        <td key={i} className="px-4 py-3">
+          <Skeleton variant="line" className="h-3 w-full" />
+        </td>
+      ))}
+    </tr>
+  )
+}
+
+// ─── Grid Card ────────────────────────────────────────────────────────────────
+
+interface ProjectGridCardProps {
+  project: Project
+}
+
+function ProjectGridCard({ project }: ProjectGridCardProps) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const shootDate = project.created_at
+    ? new Date(project.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '—'
+
+  return (
+    <div className="group relative rounded-xl overflow-hidden bg-surface border border-outline-variant/20 hover:border-outline-variant/50 transition-all duration-150">
+      {/* Cover */}
+      <Link href={`/dashboard/project/${project.id}`}>
+        <div
+          className={clsx(
+            'h-44 relative overflow-hidden bg-gradient-to-br',
+            !project.cover_image_url && getGradient(project.id),
+          )}
+        >
+          {project.cover_image_url && (
+            <img
+              src={project.cover_image_url}
+              alt={project.name}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+          {/* Status badge */}
+          <div className="absolute top-3 left-3">
+            <StatusBadge status={project.status} />
+          </div>
+        </div>
+      </Link>
+
+      {/* Options menu */}
+      <div className="absolute top-3 right-3" data-menu>
+        <button
+          type="button"
+          aria-label="Project options"
+          aria-expanded={menuOpen}
+          className="p-1.5 rounded-lg bg-black/40 text-white/70 hover:text-white hover:bg-black/60 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none"
+          onClick={(e) => {
+            e.stopPropagation()
+            setMenuOpen((prev) => !prev)
+          }}
+        >
+          <MoreVertical className="w-4 h-4" />
+        </button>
+
+        {menuOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-10"
+              onClick={() => setMenuOpen(false)}
+            />
+            <div className="absolute right-0 top-8 z-20 w-44 bg-surface border border-outline-variant/40 rounded-xl shadow-elev-3 overflow-hidden">
+              <Link
+                href={`/dashboard/project/${project.id}`}
+                className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-on-surface/70 hover:text-on-surface hover:bg-surface-container transition-colors"
+              >
+                <ArrowUpRight className="w-4 h-4" />
+                View project
+              </Link>
+              <button
+                type="button"
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-on-surface/70 hover:text-on-surface hover:bg-surface-container transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                <Share2 className="w-4 h-4" />
+                Share gallery
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Card body */}
+      <Link href={`/dashboard/project/${project.id}`} className="block p-4 space-y-2">
+        <h3 className="font-sans font-semibold text-on-surface text-sm leading-snug truncate group-hover:text-primary transition-colors">
+          {project.name}
+        </h3>
+
+        {project.preset && (
+          <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary/70">
+            {project.preset}
+          </span>
+        )}
+
+        <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+          <span className="font-mono text-[11px] text-on-surface-variant">
+            {shootDate}
+          </span>
+          <ArrowUpRight className="w-3.5 h-3.5 text-on-surface-variant/40 group-hover:text-primary transition-colors" />
+        </div>
+      </Link>
+    </div>
+  )
+}
+
+// ─── List Row ─────────────────────────────────────────────────────────────────
+
+interface ProjectListRowProps {
+  project: Project
+  index: number
+}
+
+function ProjectListRow({ project, index }: ProjectListRowProps) {
+  const shootDate = project.created_at
+    ? new Date(project.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '—'
+  const updatedDate = project.updated_at
+    ? new Date(project.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '—'
+
+  return (
+    <tr
+      className={clsx(
+        'group border-b border-outline-variant/20 last:border-0 transition-colors hover:bg-surface-container/50',
+        index % 2 === 0 ? 'bg-transparent' : 'bg-surface-container/20',
+      )}
+    >
+      <td className="px-4 py-3">
+        <Link
+          href={`/dashboard/project/${project.id}`}
+          className="font-sans font-medium text-sm text-on-surface group-hover:text-primary transition-colors truncate max-w-[200px] block"
+        >
+          {project.name}
+        </Link>
+        {project.preset && (
+          <span className="text-[10px] text-on-surface-variant">{project.preset}</span>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        <StatusBadge status={project.status} />
+      </td>
+      <td className="px-4 py-3 font-mono text-xs text-on-surface-variant">{shootDate}</td>
+      <td className="px-4 py-3 font-mono text-xs text-on-surface-variant">{updatedDate}</td>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Link
+            href={`/dashboard/project/${project.id}`}
+            className="p-1.5 rounded-md hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"
+            title="View project"
+          >
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </Link>
+          <button
+            type="button"
+            className="p-1.5 rounded-md hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"
+            title="Share gallery"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  )
+}
+
+// ─── New Project Modal ────────────────────────────────────────────────────────
+
+type ModalTab = 'ai' | 'manual'
+
+const PRESETS = ['Wedding', 'Portrait', 'Event', 'Commercial', 'Real Estate', 'Custom'] as const
+type Preset = (typeof PRESETS)[number]
+
+interface NewProjectModalProps {
+  open: boolean
+  onClose: () => void
+  onCreated: (project: Project) => void
+  workspaceId: string | null
+}
+
+function NewProjectModal({ open, onClose, onCreated, workspaceId }: NewProjectModalProps) {
+  const [tab, setTab] = useState<ModalTab>('ai')
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [name, setName] = useState('')
+  const [preset, setPreset] = useState<Preset | ''>('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  function reset() {
+    setTab('ai')
+    setAiPrompt('')
+    setName('')
+    setPreset('')
+    setError(null)
+  }
+
+  function handleClose() {
+    reset()
+    onClose()
+  }
+
+  async function handleAiSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!aiPrompt.trim()) {
+      setError('Describe your project to continue')
+      return
+    }
+    if (!workspaceId) {
+      setError('Workspace not found. Please refresh and try again.')
+      return
+    }
+    setLoading(true)
+    setError(null)
+    try {
+      // Extract project name from prompt — basic heuristic (Edge Function wiring TODO)
+      // TODO: wire to Supabase Edge Function for full NLP extraction
+      const extractedName = aiPrompt.trim().split('\n')[0].slice(0, 80)
+      const supabase = createClient()
+      const { data, error: createError } = await supabase
+        .from('projects')
+        .insert({
+          workspace_id: workspaceId,
+          name: extractedName,
+          preset: null,
+          status: 'inquiry' as string,
+          cover_image_url: null,
+          gallery_public: false,
+          gallery_theme: 'dark',
+          pricing_model: 'free',
+          flat_fee_cents: null,
+          per_photo_cents: null,
+          currency: 'usd',
+        })
+        .select('*')
+        .single()
+
+      if (createError) throw createError
+      onCreated(data as Project)
+      handleClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create project')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleManualSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!name.trim()) {
+      setError('Project name is required')
+      return
+    }
+    if (!workspaceId) {
+      setError('Workspace not found. Please refresh and try again.')
+      return
+    }
+    setLoading(true)
+    setError(null)
+    try {
+      const supabase = createClient()
+      const { data, error: createError } = await supabase
+        .from('projects')
+        .insert({
+          workspace_id: workspaceId,
+          name: name.trim(),
+          preset: preset || null,
+          status: 'inquiry' as string,
+          cover_image_url: null,
+          gallery_public: false,
+          gallery_theme: 'dark',
+          pricing_model: 'free',
+          flat_fee_cents: null,
+          per_photo_cents: null,
+          currency: 'usd',
+        })
+        .select('*')
+        .single()
+
+      if (createError) throw createError
+      onCreated(data as Project)
+      handleClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create project')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={handleClose} title="New Project">
+      {/* Tabs */}
+      <div className="flex rounded-lg bg-surface-container p-1 mb-5">
+        <button
+          type="button"
+          onClick={() => setTab('ai')}
+          className={clsx(
+            'flex-1 flex items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors',
+            tab === 'ai'
+              ? 'bg-surface text-on-surface shadow-elev-1'
+              : 'text-on-surface-variant hover:text-on-surface',
+          )}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          AI Setup
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('manual')}
+          className={clsx(
+            'flex-1 flex items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-colors',
+            tab === 'manual'
+              ? 'bg-surface text-on-surface shadow-elev-1'
+              : 'text-on-surface-variant hover:text-on-surface',
+          )}
+        >
+          <FolderOpen className="w-3.5 h-3.5" />
+          Manual
+        </button>
+      </div>
+
+      {tab === 'ai' ? (
+        <form onSubmit={handleAiSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-on-surface">
+              Describe your project
+            </label>
+            <textarea
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder="e.g. Smith wedding at Rosewood Estate on June 14th, 2026. Outdoor ceremony, 200 guests, golden hour portraits."
+              rows={4}
+              className="w-full rounded-lg bg-background border border-outline-variant/40 text-on-surface placeholder:text-on-surface-variant/40 text-sm px-3 py-2 resize-none transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40 hover:border-outline-variant/60"
+              autoFocus
+            />
+            <p className="text-[11px] text-on-surface-variant/60">
+              View1 AI will extract the project name, date, client, and type automatically.
+              {/* TODO: wire to Supabase Edge Function for full NLP extraction */}
+            </p>
+          </div>
+
+          {error && (
+            <p role="alert" className="text-sm text-red-400">
+              {error}
+            </p>
+          )}
+
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="secondary" size="sm" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" loading={loading} disabled={!aiPrompt.trim()}>
+              <Sparkles className="w-3.5 h-3.5" />
+              Create with AI
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={handleManualSubmit} className="space-y-4">
+          <Input
+            label="Project name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Smith Wedding 2026"
+            autoFocus
+            required
+          />
+
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-on-surface">Type (optional)</label>
+            <div className="grid grid-cols-3 gap-2">
+              {PRESETS.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  className={clsx(
+                    'rounded-lg border px-3 py-2 text-sm text-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40',
+                    preset === p
+                      ? 'border-primary bg-primary/10 text-on-surface'
+                      : 'border-outline-variant/30 bg-surface text-on-surface-variant hover:border-outline-variant/60 hover:text-on-surface',
+                  )}
+                  onClick={() => setPreset((prev) => (prev === p ? '' : p))}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {error && (
+            <p role="alert" className="text-sm text-red-400">
+              {error}
+            </p>
+          )}
+
+          <div className="flex justify-end gap-2 pt-1">
+            <Button type="button" variant="secondary" size="sm" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" loading={loading} disabled={!name.trim()}>
+              Create Project
+            </Button>
+          </div>
+        </form>
+      )}
+    </Modal>
+  )
+}
+
+// ─── Empty State ──────────────────────────────────────────────────────────────
+
+function EmptyState({ onNewProject }: { onNewProject: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10">
+        <FolderOpen className="h-10 w-10 text-primary/60" />
+      </div>
+      <h2 className="font-sans font-semibold text-lg text-on-surface mb-2">No projects yet</h2>
+      <p className="text-sm text-on-surface-variant max-w-sm mb-8">
+        Create your first project to start organising shoots, delivering galleries, and getting paid.
+      </p>
+      <Button onClick={onNewProject}>
+        <Plus className="w-4 h-4" />
+        Create your first project
+      </Button>
+    </div>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+export default function ProjectsPage() {
+  const supabase = createClient()
+
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null)
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<ProjectPipelineStatus | ''>('')
+  const [sortBy, setSortBy] = useState<SortKey>('date')
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [showModal, setShowModal] = useState(false)
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false)
+
+  // ── Fetch workspace + projects ─────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      setLoading(true)
+      setError(null)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        const { data: membership, error: memberError } = await supabase
+          .from('workspace_members')
+          .select('workspace_id')
+          .eq('user_id', user.id)
+          .single()
+
+        if (memberError || !membership) {
+          if (!cancelled) setLoading(false)
+          return
+        }
+
+        const wsId = membership.workspace_id
+        if (!cancelled) setWorkspaceId(wsId)
+
+        const { data: rows, error: projectsError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('workspace_id', wsId)
+          .order('updated_at', { ascending: false })
+
+        if (projectsError) throw projectsError
+        if (!cancelled) setProjects((rows as Project[]) ?? [])
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load projects')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    void load()
+    return () => { cancelled = true }
+  }, [supabase])
+
+  // ── Filter + sort ──────────────────────────────────────────────────
+  const filteredProjects = useMemo(() => {
+    let list = [...projects]
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      list = list.filter((p) => p.name.toLowerCase().includes(q))
+    }
+
+    if (statusFilter) {
+      list = list.filter((p) => (p.status as string) === statusFilter)
+    }
+
+    list.sort((a, b) => {
+      if (sortBy === 'name') return a.name.localeCompare(b.name)
+      if (sortBy === 'status') return a.status.localeCompare(b.status)
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    })
+
+    return list
+  }, [projects, searchQuery, statusFilter, sortBy])
+
+  const handleProjectCreated = useCallback((project: Project) => {
+    setProjects((prev) => [project, ...prev])
+  }, [])
+
+  const activeStatusLabel =
+    PIPELINE_STATUSES.find((s) => s.value === statusFilter)?.label ?? 'All statuses'
+  const activeSortLabel =
+    SORT_OPTIONS.find((s) => s.value === sortBy)?.label ?? 'Sort'
+
+  return (
+    <div className="space-y-6">
+      {/* ── Page header ────────────────────────────────────────────── */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold font-headline tracking-tight text-on-surface mb-1">
-            All Projects
-          </h1>
-          <p className="text-on-surface-variant text-sm">
-            {PROJECTS.length} projects &middot; {PROJECTS.reduce((s, p) => s + p.photos, 0).toLocaleString()} total photos
+          <h1 className="font-sans font-bold text-2xl text-on-surface tracking-tight">Projects</h1>
+          <p className="text-sm text-on-surface-variant mt-0.5">
+            {loading
+              ? 'Loading…'
+              : `${filteredProjects.length} of ${projects.length} project${projects.length !== 1 ? 's' : ''}`}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-            <input
-              type="text"
-              placeholder="Search projects..."
-              className="bg-surface-low border-none rounded-lg pl-9 pr-4 py-2 text-sm text-on-surface placeholder-on-surface-variant/30 focus:ring-1 focus:ring-primary/20 w-56"
-            />
-          </div>
-          <button className="flex items-center gap-2 px-3 py-2 bg-surface-container rounded-lg text-sm text-on-surface-variant hover:bg-surface-highest transition-colors">
-            <Filter size={14} />
-            Filter
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-primary to-primary-dim text-on-primary font-bold text-sm rounded-lg">
-            <Plus size={14} />
-            New Project
-          </button>
-        </div>
+
+        <Button onClick={() => setShowModal(true)} className="self-start sm:self-auto">
+          <Plus className="w-4 h-4" />
+          New Project
+        </Button>
       </div>
 
-      {/* Project Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {PROJECTS.map((project) => {
-          const status = STATUS_CONFIG[project.status]
-          const StatusIcon = status.icon
-          const TypeIcon = project.typeIcon
-          return (
-            <Link
-              key={project.id}
-              href={`/dashboard/project/${project.id}`}
-              className="group relative bg-surface rounded-xl overflow-hidden hover:bg-surface-container transition-all duration-300"
+      {/* ── Filter bar ─────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[200px] max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/50" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search projects…"
+            className="w-full rounded-lg bg-surface border border-outline-variant/30 text-on-surface placeholder:text-on-surface-variant/40 text-sm pl-9 pr-8 py-2 focus:outline-none focus:ring-1 focus:ring-primary/40 hover:border-outline-variant/50 transition-colors"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-on-surface transition-colors"
             >
-              {/* Cover */}
-              <div
-                className="h-44 relative overflow-hidden"
-                style={{
-                  background: `linear-gradient(135deg, hsl(${project.hue}, 25%, 18%) 0%, hsl(${project.hue + 30}, 20%, 12%) 100%)`,
-                }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1d1b1a] via-transparent to-transparent" />
-                <div className="absolute top-4 left-4">
-                  <span className={`${status.bg} ${status.text} px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1`}>
-                    <StatusIcon size={10} />
-                    {status.label}
-                  </span>
-                </div>
-                <button
-                  onClick={(e) => e.preventDefault()}
-                  className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <MoreVertical size={16} />
-                </button>
-              </div>
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
 
-              {/* Info */}
-              <div className="p-5">
-                <h3 className="font-headline font-bold text-on-surface mb-1 group-hover:text-primary transition-colors">
-                  {project.name}
-                </h3>
-                <div className="flex items-center gap-2 mb-4">
-                  <TypeIcon size={12} className="text-on-surface-variant" />
-                  <span className="text-xs text-on-surface-variant">{project.type}</span>
-                  <span className="text-on-surface-variant">&middot;</span>
-                  <span className="text-xs text-on-surface-variant">{project.date}</span>
-                </div>
-                <div className="flex items-center justify-between pt-3 border-t border-outline-variant/20">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block">Photos</span>
-                      <span className="font-label text-sm text-primary font-bold">{project.photos.toLocaleString()}</span>
-                    </div>
-                    <div>
-                      <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block">Size</span>
-                      <span className="font-label text-sm text-on-surface">{project.storage}</span>
-                    </div>
-                  </div>
-                </div>
+        {/* Status dropdown */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              setStatusDropdownOpen((prev) => !prev)
+              setSortDropdownOpen(false)
+            }}
+            className="flex items-center gap-1.5 rounded-lg border border-outline-variant/30 bg-surface px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface hover:border-outline-variant/50 transition-colors"
+          >
+            {activeStatusLabel}
+            <ChevronDown className="w-3.5 h-3.5" />
+          </button>
+          {statusDropdownOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setStatusDropdownOpen(false)} />
+              <div className="absolute left-0 top-full mt-1 z-20 w-48 rounded-xl border border-outline-variant/40 bg-surface shadow-elev-3 overflow-hidden">
+                {PIPELINE_STATUSES.map((s) => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => {
+                      setStatusFilter(s.value)
+                      setStatusDropdownOpen(false)
+                    }}
+                    className={clsx(
+                      'w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left transition-colors',
+                      statusFilter === s.value
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container',
+                    )}
+                  >
+                    {s.value ? <StatusBadge status={s.value} /> : s.label}
+                  </button>
+                ))}
               </div>
-            </Link>
-          )
-        })}
+            </>
+          )}
+        </div>
 
-        {/* Create New */}
-        <div className="border-2 border-dashed border-outline-variant/30 rounded-xl flex flex-col items-center justify-center py-16 text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all cursor-pointer">
-          <Plus size={32} className="mb-3" />
-          <span className="font-headline font-bold text-sm">Create New Project</span>
+        {/* Sort dropdown */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              setSortDropdownOpen((prev) => !prev)
+              setStatusDropdownOpen(false)
+            }}
+            className="flex items-center gap-1.5 rounded-lg border border-outline-variant/30 bg-surface px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface hover:border-outline-variant/50 transition-colors"
+          >
+            {activeSortLabel}
+            <ChevronDown className="w-3.5 h-3.5" />
+          </button>
+          {sortDropdownOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setSortDropdownOpen(false)} />
+              <div className="absolute left-0 top-full mt-1 z-20 w-44 rounded-xl border border-outline-variant/40 bg-surface shadow-elev-3 overflow-hidden">
+                {SORT_OPTIONS.map((s) => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => {
+                      setSortBy(s.value)
+                      setSortDropdownOpen(false)
+                    }}
+                    className={clsx(
+                      'w-full flex items-center px-3 py-2.5 text-sm text-left transition-colors',
+                      sortBy === s.value
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container',
+                    )}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* View toggle */}
+        <div className="ml-auto flex items-center rounded-lg border border-outline-variant/30 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setViewMode('grid')}
+            aria-label="Grid view"
+            className={clsx(
+              'flex items-center justify-center p-2 transition-colors',
+              viewMode === 'grid'
+                ? 'bg-primary/10 text-primary'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container',
+            )}
+          >
+            <Grid3X3 className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('list')}
+            aria-label="List view"
+            className={clsx(
+              'flex items-center justify-center p-2 transition-colors',
+              viewMode === 'list'
+                ? 'bg-primary/10 text-primary'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container',
+            )}
+          >
+            <List className="w-4 h-4" />
+          </button>
         </div>
       </div>
+
+      {/* ── Error state ────────────────────────────────────────────── */}
+      {error && (
+        <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+          {error}
+        </div>
+      )}
+
+      {/* ── Content ────────────────────────────────────────────────── */}
+      {loading ? (
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {[...Array(8)].map((_, i) => <ProjectCardSkeleton key={i} />)}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-outline-variant/20 overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-outline-variant/20 bg-surface-container/50">
+                  {['Project', 'Status', 'Created', 'Updated', 'Actions'].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[...Array(6)].map((_, i) => <ProjectRowSkeleton key={i} />)}
+              </tbody>
+            </table>
+          </div>
+        )
+      ) : filteredProjects.length === 0 && !searchQuery && !statusFilter ? (
+        <EmptyState onNewProject={() => setShowModal(true)} />
+      ) : filteredProjects.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-on-surface-variant text-sm mb-3">No projects match your filters.</p>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setSearchQuery('')
+              setStatusFilter('')
+            }}
+          >
+            Clear filters
+          </Button>
+        </div>
+      ) : viewMode === 'grid' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {filteredProjects.map((project) => (
+            <ProjectGridCard key={project.id} project={project} />
+          ))}
+
+          {/* Create new tile */}
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className="group flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/30 py-16 text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all"
+          >
+            <Plus className="w-8 h-8 mb-2" />
+            <span className="text-sm font-medium">New project</span>
+          </button>
+        </div>
+      ) : (
+        /* List view */
+        <div className="rounded-xl border border-outline-variant/20 overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-outline-variant/20 bg-surface-container/50">
+                <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Project</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Created</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Updated</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-on-surface-variant uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProjects.map((project, i) => (
+                <ProjectListRow key={project.id} project={project} index={i} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ── New Project Modal ───────────────────────────────────────── */}
+      <NewProjectModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onCreated={handleProjectCreated}
+        workspaceId={workspaceId}
+      />
+
+      {/* ── Floating FAB (mobile) ───────────────────────────────────── */}
+      <button
+        type="button"
+        onClick={() => setShowModal(true)}
+        className="fixed bottom-6 right-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-dim text-on-primary shadow-elev-3 hover:shadow-elev-2 hover:-translate-y-0.5 transition-all md:hidden"
+        aria-label="New project"
+      >
+        <Plus className="w-6 h-6" />
+      </button>
     </div>
   )
 }
