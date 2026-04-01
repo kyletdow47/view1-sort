@@ -680,19 +680,19 @@ export function LandingPage() {
                 ],
               },
             ].map(step => (
-              <div key={step.step} className="relative">
+              <div key={step.step} className="relative rounded-2xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] p-6">
                 <div className="mb-4 flex items-center gap-3">
-                  <span className="text-5xl font-black text-zinc-800">{step.step}</span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.08] text-white/80 border border-white/15">
+                  <span className="text-5xl font-black text-white/10">{step.step}</span>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.1] text-white/80 border border-white/20">
                     <step.icon size={18} />
                   </div>
                 </div>
                 <h3 className="text-xl font-bold text-zinc-100 mb-2">{step.title}</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed mb-4">{step.desc}</p>
+                <p className="text-sm text-zinc-300 leading-relaxed mb-4">{step.desc}</p>
                 <ul className="space-y-2">
                   {step.items.map(item => (
-                    <li key={item.text} className="flex items-center gap-2.5 text-sm text-zinc-500">
-                      <item.icon size={13} className="shrink-0 text-white/80" />
+                    <li key={item.text} className="flex items-center gap-2.5 text-sm text-zinc-400">
+                      <item.icon size={13} className="shrink-0 text-white/70" />
                       {item.text}
                     </li>
                   ))}
@@ -783,16 +783,16 @@ export function LandingPage() {
                 items: [{ icon: Download, text: 'ZIP by category' }, { icon: PenLine, text: 'Revision requests' }, { icon: CheckCircle, text: 'Or just download' }],
               },
             ].map(s => (
-              <div key={s.stage} className={`rounded-2xl border p-6 ${s.border} ${s.bg}`}>
+              <div key={s.stage} className="rounded-2xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] p-6">
                 <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${s.color} mb-3`}>
                   <s.icon size={14} />
                   {s.stage} — {s.title}
                 </div>
-                <p className="text-sm text-zinc-400 leading-relaxed mb-4">{s.desc}</p>
+                <p className="text-sm text-zinc-300 leading-relaxed mb-4">{s.desc}</p>
                 <ul className="space-y-2">
                   {s.items.map(item => (
-                    <li key={item.text} className="flex items-center gap-2 text-xs text-zinc-500">
-                      <item.icon size={12} className="shrink-0 text-zinc-600" />
+                    <li key={item.text} className="flex items-center gap-2 text-xs text-zinc-400">
+                      <item.icon size={12} className={`shrink-0 ${s.color}`} />
                       {item.text}
                     </li>
                   ))}
