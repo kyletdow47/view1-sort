@@ -342,6 +342,11 @@ export function DashboardClientLayout({
     userInitials,
   }
 
+  // The main dashboard uses a full-screen v2 design with its own nav — bypass the sidebar/header
+  if (pathname === '/dashboard') {
+    return <>{children}</>
+  }
+
   return (
     <div className="flex min-h-screen bg-background text-on-surface">
 
