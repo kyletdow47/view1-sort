@@ -117,7 +117,7 @@ function WaitlistForm({ size = 'default' }: { size?: 'default' | 'large' }) {
 function ScreenPlaceholder({ label, aspect = '16/9', className = '' }: { label: string; aspect?: string; className?: string }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-white/15 bg-white/[0.04] backdrop-blur-xl ${className}`}
+      className={`relative overflow-hidden rounded-2xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] ${className}`}
       style={{ aspectRatio: aspect }}
     >
       <div className="absolute inset-x-0 top-0 flex h-8 items-center gap-1.5 border-b border-white/10 px-3">
@@ -274,7 +274,7 @@ function FeatureTabs() {
           const depths = [1.2, 1.5, 1, 1.3, 1.6]
           return (
             <ScrollCard key={f.title} rotation={rotations[i % rotations.length]} depth={depths[i % depths.length]}>
-              <div className="group rounded-2xl border border-white/15 bg-white/5 backdrop-blur-xl p-6 shadow-xl shadow-black/20 transition-all hover:border-white/25 hover:bg-white/8">
+              <div className="group rounded-2xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all hover:border-white/30 hover:bg-white/[0.12] hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white/80 transition-all group-hover:bg-white/15">
                   <f.icon size={18} />
                 </div>
@@ -402,7 +402,7 @@ function UseCaseTabs() {
       {/* Content */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 items-start">
         {/* Left — details */}
-        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] p-8">
+        <div className="rounded-2xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] p-8">
           <div className="flex items-center gap-3 mb-5">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[0.08] text-white/80 border border-white/15">
               <uc.icon size={18} />
@@ -530,7 +530,7 @@ export function LandingPage() {
       </section>
 
       {/* ── MARQUEE ── */}
-      <section className="border-y border-white/10 bg-white/[0.03] py-4 overflow-hidden">
+      <section className="border-y border-white/15 bg-white/[0.06] backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.2)] py-4 overflow-hidden">
         <div className="flex gap-3 whitespace-nowrap" style={{ animation: 'marquee 35s linear infinite' }}>
           {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
             <span
@@ -579,7 +579,7 @@ export function LandingPage() {
               { icon: ClipboardList, text: 'Building shot lists in Notes.app and losing them on set' },
               { icon: FileText, text: 'Copy-pasting client details into contracts, invoices, and emails separately' },
             ].map(pain => (
-              <div key={pain.text} className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-4">
+              <div key={pain.text} className="flex items-start gap-3 rounded-xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] p-4">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-400 mt-0.5">
                   <pain.icon size={13} />
                 </div>
@@ -600,7 +600,7 @@ export function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-white/[0.09] bg-white/[0.04] backdrop-blur-xl p-8">
+            <div className="rounded-2xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] p-8">
               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">Everyone Else</p>
               <div className="space-y-3">
                 {['Reject blurry images', 'Reject closed eyes', 'Reject bad exposure', 'Sort by quality score', 'Ignore context and emotion'].map(item => (
@@ -613,7 +613,7 @@ export function LandingPage() {
                 ))}
               </div>
             </div>
-            <div className="rounded-2xl border border-white/20 bg-white/[0.05] backdrop-blur-xl p-8">
+            <div className="rounded-2xl border border-white/30 bg-white/[0.1] backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] p-8">
               <p className="text-xs font-semibold uppercase tracking-widest text-white/80 mb-4">View1 Sort</p>
               <div className="space-y-3">
                 {[
@@ -716,7 +716,7 @@ export function LandingPage() {
                 Chat with the AI to build a sorting preset that matches your exact aesthetic. It asks about your niche, priorities, what mood you&apos;re going for, and what you always reject. The result? A personal preset that sorts like <em className="text-zinc-200 not-italic font-medium">you</em>.
               </p>
 
-              <div className="mt-8 rounded-2xl border border-white/[0.09] bg-white/[0.04] backdrop-blur-xl p-5 space-y-3">
+              <div className="mt-8 rounded-2xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] p-5 space-y-3">
                 {[
                   { role: 'ai', msg: 'What kind of shoot is this?' },
                   { role: 'user', msg: 'Luxury real estate in Miami. Ocean-facing penthouse, lots of golden hour light.' },
@@ -858,7 +858,7 @@ export function LandingPage() {
               { icon: Bell, title: 'Status notifications', desc: 'Email + SMS updates at every milestone automatically.' },
               { icon: Smartphone, title: 'Full mobile experience', desc: 'Complete gallery, selection, comments, and download on mobile.' },
             ].map(f => (
-              <div key={f.title} className="flex items-start gap-4 rounded-2xl border border-white/[0.09] bg-white/[0.04] backdrop-blur-xl p-5">
+              <div key={f.title} className="flex items-start gap-4 rounded-2xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] p-5">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/[0.08] text-white/80">
                   <f.icon size={16} />
                 </div>
@@ -911,7 +911,7 @@ export function LandingPage() {
               { icon: ClipboardList, title: 'Booking Forms', desc: 'Tailored forms for every niche. Submissions create client profiles and draft projects automatically.', rot: -3, dep: 1 },
             ].map(f => (
               <ScrollCard key={f.title} rotation={f.rot} depth={f.dep}>
-                <div className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur-xl p-6 shadow-xl shadow-black/20">
+                <div className="rounded-2xl border border-white/20 bg-white/[0.08] backdrop-blur-2xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)]">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white/80 mb-4">
                     <f.icon size={18} />
                   </div>
@@ -988,7 +988,7 @@ export function LandingPage() {
               },
             ].map(plan => (
               <ScrollCard key={plan.name} rotation={plan.rot} depth={plan.dep}>
-                <div className={`rounded-2xl border p-7 flex flex-col relative backdrop-blur-xl shadow-xl shadow-black/20 ${plan.highlight ? 'border-white/30 bg-white/10' : 'border-white/15 bg-white/5'}`}>
+                <div className={`rounded-2xl border p-7 flex flex-col relative backdrop-blur-2xl ${plan.highlight ? 'border-white/30 bg-white/[0.1] shadow-[0_12px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15)]' : 'border-white/20 bg-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.1)]'}`}>
                   {plan.highlight && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-0.5 text-xs font-bold text-zinc-900">Most Popular</div>
                   )}
