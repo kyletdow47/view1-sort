@@ -158,3 +158,68 @@ This repo is the **product** only. It does NOT contain:
 - Strategy docs, competitive analysis, or business plans (that is `~/view1-studio/docs/`)
 
 Stay focused on building the product. Do not create dashboard HTML pages or bot scripts here.
+
+---
+## Agent System Rules (view1-sort v7)
+
+### Model discipline — non-negotiable
+- Haiku:  telegram-operator, design-extractor, task-sync, day-assistant, sec-scanner
+- Sonnet: coordinator, ui-builder, logic-builder, db-agent, ai-builder, browser-tester
+- Opus:   pencil-writer (ALWAYS — every write), sec-auditor (once/week max)
+
+### Credit rules
+- /compact after every 3 tasks
+- @file references only — never paste file contents
+- Max 10 files in context at once
+- Never start a task without checking 2-minute window buffer
+- Update spend avg in STATE.md every 3 tasks
+
+### Guardrails
+- Read STATE.md before every session — no exceptions
+- Never touch files marked "DO NOT TOUCH" in STATE.md
+- Phase 1 only — Phase 2 features are BLOCKED
+- One task per commit — no batching
+- Design questions held overnight — sent in 8am morning sequence only
+- Pencil write-back: always Opus, always delete old Built frame first
+
+### Start command (paste this at 10pm)
+Read STATE.md and SPEC.md. Run the 10pm startup sequence.
+Generate/refresh the Asana queue. Read Pencil for design changes.
+Fix broken items first. Build until 8am. Send morning check-in at 8am.
+Halt only on CRITICAL security or two consecutive failures on same file.
+
+---
+## Agent System Rules (view1-sort v7)
+
+### Model discipline — non-negotiable
+- Haiku:  telegram-operator, design-extractor, task-sync, day-assistant, sec-scanner
+- Sonnet: coordinator, ui-builder, logic-builder, db-agent, ai-builder, browser-tester
+- Opus:   pencil-writer (ALWAYS — every write), sec-auditor (once/week max)
+
+### Credit rules
+- /compact after every 3 tasks
+- @file references only — never paste file contents
+- Max 10 files in context at once
+- Never start a task without checking 2-minute window buffer
+- Update spend avg in STATE.md every 3 tasks
+
+### Guardrails
+- Read STATE.md before every session — no exceptions
+- Never touch files marked "DO NOT TOUCH" in STATE.md
+- Phase 1 only — Phase 2 features are BLOCKED
+- One task per commit — no batching
+- Design questions held overnight — sent in 8am morning sequence only
+- Pencil write-back: always Opus, always delete old Built frame first
+
+### Architecture reference docs (read at session start)
+- STATE.md — nightly state, broken items, tonight's instructions
+- SPEC.md — product spec and Phase 1 feature list
+- docs/strategy/ARCHITECTURE-DECISIONS.md — resolved decisions on fonts, AI arch, status enum, charts, drag-drop, e-signature, 17 new DB tables, hardcoded colors fix
+- docs/strategy/APP-ARCHITECTURE.html — full 12-page app layout and component map
+- docs/strategy/FEATURE-ROADMAP.html — competitive feature roadmap
+
+### Start command (paste this at 10pm)
+Read STATE.md, SPEC.md, and docs/strategy/ARCHITECTURE-DECISIONS.md. Run the 10pm startup sequence.
+Generate/refresh the Asana queue from docs/strategy/APP-ARCHITECTURE.html. Read Pencil for design changes.
+Fix broken items first (hardcoded colors in DashboardV2 is priority zero). Build until 8am. Send morning check-in at 8am.
+Halt only on CRITICAL security or two consecutive failures on same file.
