@@ -1,10 +1,10 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { DashboardV2 } from '@/components/features/dashboard-v2/DashboardV2'
+import type { Project } from '@/types/supabase'
 
 export const dynamic = 'force-dynamic'
-import { DashboardShell } from '@/components/features/workspace/DashboardShell'
-import type { Project, UserTier } from '@/types/supabase'
 
 // Mock data for demo mode
 const demoProject = (id: string, name: string, preset: string, status: 'active' | 'published' | 'archived'): Project => ({
@@ -27,12 +27,11 @@ export default async function DashboardPage() {
 
   if (isDemo) {
     return (
-      <DashboardShell
+      <DashboardV2
+        userName="Kyle"
         projects={DEMO_PROJECTS}
         photoCounts={{ 'demo-1': 847, 'demo-2': 156, 'demo-3': 432, 'demo-4': 64 }}
-        workspaceId="demo-ws"
         activeProjectCount={2}
-        tier={'pro' as UserTier}
       />
     )
   }
@@ -44,7 +43,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('tier')
+    .select('tier, display_name')
     .eq('id', user.id)
     .single()
 
@@ -87,13 +86,14 @@ export default async function DashboardPage() {
     (p) => p.status === 'active' || p.status === 'published'
   ).length
 
+  const userName = profile?.display_name ?? user.email?.split('@')[0] ?? 'there'
+
   return (
-    <DashboardShell
+    <DashboardV2
+      userName={userName}
       projects={projectList}
       photoCounts={photoCounts}
-      workspaceId={workspace.id}
       activeProjectCount={activeProjectCount}
-      tier={(profile?.tier ?? 'free') as UserTier}
     />
   )
 }

@@ -1,0 +1,44 @@
+'use client'
+
+import { ArrowUpRight } from 'lucide-react'
+import { GlassPanel } from './GlassPanel'
+
+const activities = [
+  { color: 'bg-green-400', text: 'Johnson Wedding gallery published', time: '2 hours ago' },
+  { color: 'bg-indigo-400', text: 'AI sorted 156 photos — Oak Street', time: '5 hours ago' },
+  { color: 'bg-amber-400', text: 'Client viewed Portugal Travel gallery', time: 'Yesterday' },
+  { color: 'bg-red-400', text: 'Payment received — $1,200', time: '2 days ago' },
+  { color: 'bg-indigo-400', text: 'New project created — Corporate Headshots', time: '3 days ago' },
+]
+
+export function RecentActivity() {
+  return (
+    <GlassPanel className="flex h-full flex-col gap-3 p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <span className="font-headline text-[14px] font-semibold text-white">
+          Recent Activity
+        </span>
+        <ArrowUpRight className="h-4 w-4 text-white/[0.67]" />
+      </div>
+
+      {/* Activity List */}
+      <div className="flex flex-col gap-1.5">
+        {activities.map((item, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-2.5 rounded-xl bg-white/[0.03] px-3 py-2.5 border border-white/[0.06]"
+          >
+            <div className={`h-2 w-2 shrink-0 rounded-full ${item.color}`} />
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="truncate text-xs font-medium text-white/[0.87]">
+                {item.text}
+              </span>
+              <span className="text-[10px] text-white/40">{item.time}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </GlassPanel>
+  )
+}
