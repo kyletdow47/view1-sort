@@ -78,11 +78,16 @@ const config: Config = {
           from: { opacity: '0', transform: 'translateY(4px)' },
           to:   { opacity: '1', transform: 'translateY(0)' },
         },
+        'scroll-bg': {
+          '0%':   { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
 
       animation: {
         marquee:  'marquee 30s linear infinite',
         'fade-in': 'fade-in 0.2s ease-out',
+        'scroll-bg': 'scroll-bg 60s linear infinite',
       },
     },
   },
