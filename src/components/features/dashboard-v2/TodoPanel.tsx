@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CheckSquare } from 'lucide-react'
 
 const tasks = [
@@ -22,6 +22,17 @@ interface TodoDropdownProps {
 
 export function TodoDropdown({ open, onClose, anchorRef }: TodoDropdownProps) {
   const panelRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  // Animate in/out
+  useEffect(() => {
+    if (open) {
+      // Trigger enter animation on next frame
+      requestAnimationFrame(() => setVisible(true))
+    } else {
+      setVisible(false)
+    }
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -46,49 +57,70 @@ export function TodoDropdown({ open, onClose, anchorRef }: TodoDropdownProps) {
   return (
     <div
       ref={panelRef}
-      className="absolute right-0 top-full mt-2 z-50 flex w-[322px] flex-col gap-5 rounded-3xl border border-white/10 p-6 pt-8 backdrop-blur-[40px] bg-gradient-to-b from-white/[0.12] to-white/[0.04] shadow-[0_16px_48px_-4px_rgba(0,0,0,0.35),0_2px_8px_rgba(255,255,255,0.03),0_1px_0_rgba(255,255,255,0.13)]"
+      className="absolute right-0 top-full mt-3 z-50 flex w-[322px] flex-col gap-4 rounded-2xl border border-white/15 p-5 pt-6 transition-all duration-200 ease-out"
+      style={{
+        background: 'linear-gradient(165deg, rgba(30, 40, 80, 0.97) 0%, rgba(20, 25, 60, 0.98) 100%)',
+        backdropFilter: 'blur(24px)',
+        boxShadow: '0 20px 60px -8px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(-8px)',
+      }}
     >
-      {/* Top highlight */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-3xl bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+      {/* Top highlight edge */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-2xl bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <span className="text-lg font-bold text-white/[0.93]" style={{ fontFamily: 'var(--font-inter)' }}>
-          To-do List:
+        <span className="text-base font-bold text-white" style={{ fontFamily: 'var(--font-inter)' }}>
+          To-do List
         </span>
-        <span className="text-[28px] font-bold text-white/[0.38]" style={{ fontFamily: 'var(--font-inter)' }}>
+        <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-semibold text-white/70" style={{ fontFamily: 'var(--font-inter)' }}>
           {COMPLETED}/{TOTAL}
         </span>
       </div>
 
       {/* Divider */}
-      <div className="h-px w-full bg-white/[0.08]" />
+      <div className="h-px w-full bg-white/10" />
 
       {/* Task List */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         {tasks.map((task, i) => (
           <div
             key={i}
-            className={`flex items-center gap-3 rounded-xl px-4 py-3 ${
-              task.title === 'Send Project' ? 'bg-white/[0.08]' : 'bg-white/[0.04]'
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${
+              task.title === 'Send Project'
+                ? 'bg-white/10 ring-1 ring-white/10'
+                : 'bg-white/[0.05] hover:bg-white/[0.08]'
             }`}
           >
-            <div className="h-9 w-9 shrink-0 rounded-full" style={{ background: task.iconBg }} />
+            <div
+              className="h-8 w-8 shrink-0 rounded-full"
+              style={{
+                background: task.iconBg,
+                boxShadow: task.active ? `0 0 12px ${task.iconBg}40` : 'none',
+              }}
+            />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span
-                className={`text-sm font-semibold ${task.active ? 'text-white/[0.93]' : 'text-white/[0.56]'}`}
+                className={`text-[13px] font-semibold leading-tight ${task.active ? 'text-white' : 'text-white/50'}`}
                 style={{ fontFamily: 'var(--font-inter)' }}
               >
                 {task.title}
               </span>
               <span
-                className={`text-[11px] ${task.active ? 'text-white/[0.38]' : 'text-white/25'}`}
+                className={`text-[11px] leading-tight ${task.active ? 'text-white/40' : 'text-white/25'}`}
                 style={{ fontFamily: 'var(--font-inter)' }}
               >
                 {task.time}
               </span>
             </div>
-            <div className={`h-7 w-7 shrink-0 rounded-full ${task.statusColor}`} />
+            <div
+              className={`h-6 w-6 shrink-0 rounded-full border ${
+                task.active
+                  ? 'border-white/20 bg-white/10'
+                  : 'border-white/10 bg-white/[0.04]'
+              }`}
+            />
           </div>
         ))}
       </div>
