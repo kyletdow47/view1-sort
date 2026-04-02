@@ -74,11 +74,11 @@ interface TodoItem {
 /* ------------------------------------------------------------------ */
 
 const ACTIVITIES: ActivityItem[] = [
-  { id: 1, text: 'Johnson Wedding gallery published', time: '2 hours ago', dotColor: '#34D399' },
-  { id: 2, text: 'AI sorted 156 photos \u2014 Oak Street', time: '5 hours ago', dotColor: '#A78BFA' },
-  { id: 3, text: 'Client viewed Portugal Travel gallery', time: 'Yesterday', dotColor: '#FBBF24' },
-  { id: 4, text: 'Payment received \u2014 $1,200', time: '2 days ago', dotColor: '#F87171' },
-  { id: 5, text: 'New project created \u2014 Corporate Headshots', time: '3 days ago', dotColor: '#A78BFA' },
+  { id: 1, text: 'Johnson Wedding gallery published', time: '2 hours ago', dotColor: 'var(--chart-emerald)' },
+  { id: 2, text: 'AI sorted 156 photos \u2014 Oak Street', time: '5 hours ago', dotColor: 'var(--chart-violet)' },
+  { id: 3, text: 'Client viewed Portugal Travel gallery', time: 'Yesterday', dotColor: 'var(--chart-amber)' },
+  { id: 4, text: 'Payment received \u2014 $1,200', time: '2 days ago', dotColor: 'var(--chart-red)' },
+  { id: 5, text: 'New project created \u2014 Corporate Headshots', time: '3 days ago', dotColor: 'var(--chart-violet)' },
 ]
 
 const PROJECTS: ProjectCard[] = [
@@ -88,29 +88,29 @@ const PROJECTS: ProjectCard[] = [
 ]
 
 const STAT_RINGS: StatRing[] = [
-  { label: 'Unfinished Tasks', value: 12, icon: CircleCheck, sweepDeg: 216, gradientFrom: '#FF8E53', gradientTo: '#FF6B6B' },
-  { label: 'Active Projects', value: 4, icon: FolderOpen, sweepDeg: 288, gradientFrom: '#4ECDC4', gradientTo: '#44CF6C' },
-  { label: 'Shoots Pending', value: 3, icon: Camera, sweepDeg: 108, gradientFrom: '#C77DFF', gradientTo: '#7B2FBE' },
-  { label: 'Shoots this Month', value: 8, icon: CalendarDays, sweepDeg: 241, gradientFrom: '#FFD93D', gradientTo: '#FF9F43' },
+  { label: 'Unfinished Tasks', value: 12, icon: CircleCheck, sweepDeg: 216, gradientFrom: 'var(--chart-orange)', gradientTo: 'var(--chart-coral)' },
+  { label: 'Active Projects', value: 4, icon: FolderOpen, sweepDeg: 288, gradientFrom: 'var(--chart-teal)', gradientTo: 'var(--chart-mint)' },
+  { label: 'Shoots Pending', value: 3, icon: Camera, sweepDeg: 108, gradientFrom: 'var(--chart-purple)', gradientTo: 'var(--chart-deep-purple)' },
+  { label: 'Shoots this Month', value: 8, icon: CalendarDays, sweepDeg: 241, gradientFrom: 'var(--chart-gold)', gradientTo: 'var(--chart-tangerine)' },
 ]
 
 const DELIVERIES: DeliveryRow[] = [
-  { id: 1, client: 'Johnson', gallery: 'Wedding Gallery', status: 'Delivered', statusColor: '#34D399', dotColor: '#34D399' },
-  { id: 2, client: 'Smith Corp', gallery: 'Headshots', status: 'Pending', statusColor: '#FBBF24', dotColor: '#FBBF24' },
-  { id: 3, client: 'Travel Blog', gallery: 'Portugal Set', status: 'Processing', statusColor: '#60A5FA', dotColor: '#60A5FA' },
+  { id: 1, client: 'Johnson', gallery: 'Wedding Gallery', status: 'Delivered', statusColor: 'var(--chart-emerald)', dotColor: 'var(--chart-emerald)' },
+  { id: 2, client: 'Smith Corp', gallery: 'Headshots', status: 'Pending', statusColor: 'var(--chart-amber)', dotColor: 'var(--chart-amber)' },
+  { id: 3, client: 'Travel Blog', gallery: 'Portugal Set', status: 'Processing', statusColor: 'var(--chart-blue)', dotColor: 'var(--chart-blue)' },
 ]
 
 const INBOX: InboxMessage[] = [
-  { id: 1, name: 'Sarah Mitchell', preview: 'Hey, I got the proofs back! They look amazing...', time: '2m', avatarColor: '#7C3AED', unread: true },
-  { id: 2, name: 'James & Lily W.', preview: 'Can we reschedule to the 20th? We have a...', time: '18m', avatarColor: '#E11D48', unread: true },
-  { id: 3, name: 'TechCorp Inc.', preview: 'The brand photos are exactly what we needed!', time: '2h', avatarColor: '#D97706', unread: false },
-  { id: 4, name: 'Miller Family', preview: "Thank you so much for yesterday's session!", time: '1d', avatarColor: '#0D9488', unread: false },
+  { id: 1, name: 'Sarah Mitchell', preview: 'Hey, I got the proofs back! They look amazing...', time: '2m', avatarColor: 'var(--chart-indigo)', unread: true },
+  { id: 2, name: 'James & Lily W.', preview: 'Can we reschedule to the 20th? We have a...', time: '18m', avatarColor: 'var(--chart-rose)', unread: true },
+  { id: 3, name: 'TechCorp Inc.', preview: 'The brand photos are exactly what we needed!', time: '2h', avatarColor: 'var(--brand-sienna)', unread: false },
+  { id: 4, name: 'Miller Family', preview: "Thank you so much for yesterday's session!", time: '1d', avatarColor: 'var(--chart-dark-teal)', unread: false },
 ]
 
 const TODOS: TodoItem[] = [
-  { id: 1, title: 'Complete Sorting', time: 'Sep 13, 08:30', color: '#2DD4BF', completed: false },
-  { id: 2, title: 'Confirm New Booking', time: 'Sep 13, 10:30', color: '#FBBF24', completed: false },
-  { id: 3, title: 'Send Project', time: 'Sep 13, 15:00', color: '#A78BFA', completed: false },
+  { id: 1, title: 'Complete Sorting', time: 'Sep 13, 08:30', color: 'var(--chart-cyan)', completed: false },
+  { id: 2, title: 'Confirm New Booking', time: 'Sep 13, 10:30', color: 'var(--chart-amber)', completed: false },
+  { id: 3, title: 'Send Project', time: 'Sep 13, 15:00', color: 'var(--chart-violet)', completed: false },
   { id: 4, title: 'Complete Project', time: 'Sep 13, 14:45', color: '#FFFFFF18', completed: true },
   { id: 5, title: 'Review Payment', time: 'Sep 13, 16:30', color: '#FFFFFF18', completed: true },
 ]
@@ -234,7 +234,7 @@ function TopNav({ activeNav }: { activeNav: string }) {
       <div className="flex items-center gap-2">
         <div
           className="flex h-[30px] w-[30px] items-center justify-center rounded-lg"
-          style={{ background: 'linear-gradient(180deg, #6366F1, #4F46E5)' }}
+          style={{ background: 'linear-gradient(180deg, rgb(var(--t-primary-dim)), rgb(var(--t-primary)))' }}
         >
           <Aperture size={18} className="text-white" />
         </div>
@@ -267,7 +267,7 @@ function TopNav({ activeNav }: { activeNav: string }) {
         <div
           className="h-8 w-8 rounded-full"
           style={{
-            backgroundColor: '#4F46E5',
+            backgroundColor: 'rgb(var(--t-primary))',
             border: '2px solid rgba(255,255,255,0.25)',
           }}
         />
@@ -297,7 +297,7 @@ function WelcomeSection() {
         </span>
         <button
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-          style={{ background: 'linear-gradient(180deg, #F59E0B, #D97706)' }}
+          style={{ background: 'linear-gradient(180deg, var(--chart-amber), var(--brand-sienna))' }}
         >
           <ArrowRight size={16} className="text-white" />
         </button>
@@ -366,7 +366,7 @@ function RecentProjectsWidget() {
             {/* Action button */}
             <button
               className="flex h-10 w-10 items-center justify-center rounded-full"
-              style={{ backgroundColor: '#F59E0B' }}
+              style={{ backgroundColor: 'var(--chart-amber)' }}
             >
               <ArrowRight size={14} className="text-white" />
             </button>
@@ -406,7 +406,7 @@ function CalendarWidget() {
   const weeks = [days.slice(0, 7), days.slice(7, 14), days.slice(14, 21), days.slice(21, 28)]
 
   function dayStyle(d: number): string {
-    if (CAL_SHOOT_DAYS.includes(d)) return 'bg-[#FBBF24] text-[#1A1A0A] font-bold'
+    if (CAL_SHOOT_DAYS.includes(d)) return 'bg-chart-amber text-black font-bold'
     if (d === CAL_TODAY) return 'border-2 border-white/65 text-white font-bold'
     if (CAL_SCHEDULED_DAYS.includes(d)) return 'bg-white/[.13] text-white/80 font-semibold border border-white/[.19]'
     return 'text-white/35'
@@ -461,7 +461,7 @@ function CalendarWidget() {
           <span className="text-[9px] text-white/40">Current day</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="h-2 w-2 rounded-full bg-[#FBBF24]" />
+          <div className="h-2 w-2 rounded-full bg-chart-amber" />
           <span className="text-[9px] text-white/40">Done</span>
         </div>
         <div className="flex items-center gap-1">
@@ -522,7 +522,7 @@ function InboxWidget() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm font-bold text-white/[.93]">Inbox</span>
-          <span className="flex items-center justify-center rounded-full bg-[#FBBF24] px-[7px] py-0.5 text-[10px] font-bold text-[#1A1A0A]">
+          <span className="flex items-center justify-center rounded-full bg-chart-amber px-[7px] py-0.5 text-[10px] font-bold text-black">
             3
           </span>
         </div>
@@ -538,7 +538,7 @@ function InboxWidget() {
             </div>
             <div className="flex flex-col items-center gap-1">
               <span className="text-[9px] text-white/30">{msg.time}</span>
-              {msg.unread && <div className="h-[7px] w-[7px] rounded-full bg-[#FBBF24]" />}
+              {msg.unread && <div className="h-[7px] w-[7px] rounded-full bg-chart-amber" />}
             </div>
           </div>
         ))}

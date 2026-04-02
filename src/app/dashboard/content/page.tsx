@@ -21,11 +21,11 @@ import { GlassCard } from '@/components/features/dashboard-v2/GlassCard'
 const platformTabs = ['All', 'Instagram', 'Facebook', 'TikTok'] as const
 
 const stats = [
-  { label: 'Total Posts', value: '156', icon: Camera, color: '#818cf8' },
-  { label: 'Avg Engagement', value: '4.2%', icon: TrendingUp, color: '#34D399' },
-  { label: 'Total Engagement', value: '2.4K', icon: Heart, color: '#F472B6' },
-  { label: 'Scheduled', value: '8', icon: Camera, color: '#60A5FA' },
-  { label: 'Drafts', value: '7', icon: Camera, color: '#FBBF24' },
+  { label: 'Total Posts', value: '156', icon: Camera, color: 'var(--chart-soft-indigo)' },
+  { label: 'Avg Engagement', value: '4.2%', icon: TrendingUp, color: 'var(--chart-emerald)' },
+  { label: 'Total Engagement', value: '2.4K', icon: Heart, color: 'var(--chart-pink)' },
+  { label: 'Scheduled', value: '8', icon: Camera, color: 'var(--chart-blue)' },
+  { label: 'Drafts', value: '7', icon: Camera, color: 'var(--chart-amber)' },
 ]
 
 const topPosts = [

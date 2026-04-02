@@ -60,34 +60,34 @@ interface CalEvent {
 
 const EVENTS: CalEvent[] = [
   // March 2026
-  { id: 1, year: 2026, month: 2, day: 2, title: 'Torres Engagement', client: 'Sofia & Marco Torres', time: '16:00-19:00', location: 'Napa Vineyards', type: 'shoot', dotColor: '#4ECDC4' },
-  { id: 2, year: 2026, month: 2, day: 5, title: 'Johnson Wedding', client: 'Emily & Ryan Johnson', time: '14:00-22:00', location: 'Sonoma Valley Estate', type: 'shoot', dotColor: '#FF8E53' },
-  { id: 3, year: 2026, month: 2, day: 7, title: 'Nike Campaign Delivery', client: 'Nike Brand Studio', time: '17:00', location: 'Remote', type: 'delivery', dotColor: '#C77DFF' },
-  { id: 4, year: 2026, month: 2, day: 10, title: 'Smith Family Portraits', client: 'David Smith', time: '09:00-11:00', location: 'Golden Gate Park', type: 'shoot', dotColor: '#FFD93D' },
-  { id: 5, year: 2026, month: 2, day: 12, title: 'Meridian Hotel Proofing', client: 'Meridian Hotels Group', time: '15:00', location: 'Zoom', type: 'meeting', dotColor: '#FF6B6B' },
-  { id: 6, year: 2026, month: 2, day: 14, title: 'Johnson Gallery Deadline', client: 'Emily & Ryan Johnson', time: 'EOD', location: 'Online', type: 'deadline', dotColor: '#4ECDC4', daysLeft: 0 },
-  { id: 7, year: 2026, month: 2, day: 17, title: 'Vogue Editorial Shoot', client: 'Conde Nast', time: '10:00-18:00', location: 'Studio B, SoMa', type: 'shoot', dotColor: '#FF8E53' },
-  { id: 8, year: 2026, month: 2, day: 19, title: 'Chen Family Session', client: 'Wei & Lily Chen', time: '10:00-12:00', location: 'Presidio', type: 'shoot', dotColor: '#C77DFF' },
-  { id: 9, year: 2026, month: 2, day: 21, title: 'Coastal RE Delivery', client: 'Pacific Properties', time: 'EOD', location: 'Remote', type: 'delivery', dotColor: '#FFD93D' },
-  { id: 10, year: 2026, month: 2, day: 24, title: 'Nike Campaign Shoot', client: 'Nike Brand Studio', time: '07:00-15:00', location: 'Crissy Field', type: 'shoot', dotColor: '#FF6B6B' },
-  { id: 11, year: 2026, month: 2, day: 26, title: 'Client Review Meeting', client: 'Meridian Hotels Group', time: '11:00-12:00', location: 'Zoom', type: 'meeting', dotColor: '#4ECDC4' },
-  { id: 12, year: 2026, month: 2, day: 28, title: 'Vogue Gallery Deadline', client: 'Conde Nast', time: 'EOD', location: 'Online', type: 'deadline', dotColor: '#FF8E53', daysLeft: 3 },
-  { id: 13, year: 2026, month: 2, day: 30, title: 'Torres Delivery', client: 'Sofia & Marco Torres', time: 'EOD', location: 'Remote', type: 'delivery', dotColor: '#C77DFF' },
+  { id: 1, year: 2026, month: 2, day: 2, title: 'Torres Engagement', client: 'Sofia & Marco Torres', time: '16:00-19:00', location: 'Napa Vineyards', type: 'shoot', dotColor: 'var(--chart-teal)' },
+  { id: 2, year: 2026, month: 2, day: 5, title: 'Johnson Wedding', client: 'Emily & Ryan Johnson', time: '14:00-22:00', location: 'Sonoma Valley Estate', type: 'shoot', dotColor: 'var(--chart-orange)' },
+  { id: 3, year: 2026, month: 2, day: 7, title: 'Nike Campaign Delivery', client: 'Nike Brand Studio', time: '17:00', location: 'Remote', type: 'delivery', dotColor: 'var(--chart-purple)' },
+  { id: 4, year: 2026, month: 2, day: 10, title: 'Smith Family Portraits', client: 'David Smith', time: '09:00-11:00', location: 'Golden Gate Park', type: 'shoot', dotColor: 'var(--chart-gold)' },
+  { id: 5, year: 2026, month: 2, day: 12, title: 'Meridian Hotel Proofing', client: 'Meridian Hotels Group', time: '15:00', location: 'Zoom', type: 'meeting', dotColor: 'var(--chart-coral)' },
+  { id: 6, year: 2026, month: 2, day: 14, title: 'Johnson Gallery Deadline', client: 'Emily & Ryan Johnson', time: 'EOD', location: 'Online', type: 'deadline', dotColor: 'var(--chart-teal)', daysLeft: 0 },
+  { id: 7, year: 2026, month: 2, day: 17, title: 'Vogue Editorial Shoot', client: 'Conde Nast', time: '10:00-18:00', location: 'Studio B, SoMa', type: 'shoot', dotColor: 'var(--chart-orange)' },
+  { id: 8, year: 2026, month: 2, day: 19, title: 'Chen Family Session', client: 'Wei & Lily Chen', time: '10:00-12:00', location: 'Presidio', type: 'shoot', dotColor: 'var(--chart-purple)' },
+  { id: 9, year: 2026, month: 2, day: 21, title: 'Coastal RE Delivery', client: 'Pacific Properties', time: 'EOD', location: 'Remote', type: 'delivery', dotColor: 'var(--chart-gold)' },
+  { id: 10, year: 2026, month: 2, day: 24, title: 'Nike Campaign Shoot', client: 'Nike Brand Studio', time: '07:00-15:00', location: 'Crissy Field', type: 'shoot', dotColor: 'var(--chart-coral)' },
+  { id: 11, year: 2026, month: 2, day: 26, title: 'Client Review Meeting', client: 'Meridian Hotels Group', time: '11:00-12:00', location: 'Zoom', type: 'meeting', dotColor: 'var(--chart-teal)' },
+  { id: 12, year: 2026, month: 2, day: 28, title: 'Vogue Gallery Deadline', client: 'Conde Nast', time: 'EOD', location: 'Online', type: 'deadline', dotColor: 'var(--chart-orange)', daysLeft: 3 },
+  { id: 13, year: 2026, month: 2, day: 30, title: 'Torres Delivery', client: 'Sofia & Marco Torres', time: 'EOD', location: 'Remote', type: 'delivery', dotColor: 'var(--chart-purple)' },
   // April 2026
-  { id: 14, year: 2026, month: 3, day: 3, title: 'Walsh Corporate Headshots', client: 'Walsh & Partners LLP', time: '09:00-13:00', location: 'Client Office, FiDi', type: 'shoot', dotColor: '#FFD93D' },
-  { id: 15, year: 2026, month: 3, day: 7, title: 'Spring Lookbook', client: 'Bloom Apparel', time: '08:00-16:00', location: 'Botanical Gardens', type: 'shoot', dotColor: '#FF6B6B' },
-  { id: 16, year: 2026, month: 3, day: 11, title: 'Walsh Delivery', client: 'Walsh & Partners LLP', time: 'EOD', location: 'Remote', type: 'delivery', dotColor: '#4ECDC4' },
-  { id: 17, year: 2026, month: 3, day: 14, title: 'Budget Review', client: 'Internal', time: '14:00', location: 'Zoom', type: 'meeting', dotColor: '#FF8E53' },
-  { id: 18, year: 2026, month: 3, day: 18, title: 'Reyes Quinceañera', client: 'Isabella Reyes', time: '13:00-21:00', location: 'Fairmont Hotel', type: 'shoot', dotColor: '#C77DFF' },
+  { id: 14, year: 2026, month: 3, day: 3, title: 'Walsh Corporate Headshots', client: 'Walsh & Partners LLP', time: '09:00-13:00', location: 'Client Office, FiDi', type: 'shoot', dotColor: 'var(--chart-gold)' },
+  { id: 15, year: 2026, month: 3, day: 7, title: 'Spring Lookbook', client: 'Bloom Apparel', time: '08:00-16:00', location: 'Botanical Gardens', type: 'shoot', dotColor: 'var(--chart-coral)' },
+  { id: 16, year: 2026, month: 3, day: 11, title: 'Walsh Delivery', client: 'Walsh & Partners LLP', time: 'EOD', location: 'Remote', type: 'delivery', dotColor: 'var(--chart-teal)' },
+  { id: 17, year: 2026, month: 3, day: 14, title: 'Budget Review', client: 'Internal', time: '14:00', location: 'Zoom', type: 'meeting', dotColor: 'var(--chart-orange)' },
+  { id: 18, year: 2026, month: 3, day: 18, title: 'Reyes Quinceañera', client: 'Isabella Reyes', time: '13:00-21:00', location: 'Fairmont Hotel', type: 'shoot', dotColor: 'var(--chart-purple)' },
 ]
 
 /** Upcoming shoot days for the list view card (Pencil frame U1Kew) */
 const SHOOT_DAYS = [
-  { id: 101, title: 'Wedding Ceremony', client: 'Sarah & James', time: 'All day', date: 'Jun 4', dotColor: '#4ECDC4' },
-  { id: 102, title: 'Real Estate Shoot', client: 'Premier Properties', time: '10am', date: 'Jun 7', dotColor: '#FF8E53' },
-  { id: 103, title: 'Brand Portraits', client: 'TechCorp Inc', time: '2pm', date: 'Jun 12', dotColor: '#C77DFF' },
-  { id: 104, title: 'Travel Portfolio Shoot', client: 'Self', time: '9am-5pm', date: 'Jun 18', dotColor: '#FFD93D' },
-  { id: 105, title: 'Newborn Session', client: 'Miller Family', time: '1pm', date: 'Jun 22', dotColor: '#FF6B6B' },
+  { id: 101, title: 'Wedding Ceremony', client: 'Sarah & James', time: 'All day', date: 'Jun 4', dotColor: 'var(--chart-teal)' },
+  { id: 102, title: 'Real Estate Shoot', client: 'Premier Properties', time: '10am', date: 'Jun 7', dotColor: 'var(--chart-orange)' },
+  { id: 103, title: 'Brand Portraits', client: 'TechCorp Inc', time: '2pm', date: 'Jun 12', dotColor: 'var(--chart-purple)' },
+  { id: 104, title: 'Travel Portfolio Shoot', client: 'Self', time: '9am-5pm', date: 'Jun 18', dotColor: 'var(--chart-gold)' },
+  { id: 105, title: 'Newborn Session', client: 'Miller Family', time: '1pm', date: 'Jun 22', dotColor: 'var(--chart-coral)' },
 ]
 
 const TODAY = { year: 2026, month: 2, day: 30 }

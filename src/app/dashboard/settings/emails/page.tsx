@@ -96,7 +96,7 @@ function EmailIcon({ templateId }: { templateId: string }) {
     case 'payment-received':
       return <CreditCard size={size} className="text-emerald-400" />
     case 'payment-failed':
-      return <AlertTriangle size={size} className="text-[#e7765f]" />
+      return <AlertTriangle size={size} className="text-brand-coral" />
     default:
       return <Mail size={size} className={iconClass} />
   }
@@ -129,7 +129,7 @@ function MiniEmailPreview({ template }: { template: EmailTemplate }) {
 export default function EmailTemplatesPage() {
   const [fromName, setFromName] = useState('View1 Studio')
   const [replyTo, setReplyTo] = useState('hello@view1.studio')
-  const [brandColor, setBrandColor] = useState('#ffb780')
+  const [brandColor, setBrandColor] = useState('var(--brand-amber)')
 
   return (
     <div className="space-y-6">
@@ -181,7 +181,7 @@ export default function EmailTemplatesPage() {
                     <Pencil size={12} />
                     Edit Template
                   </button>
-                  <button className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-surface-container px-3 py-2 text-xs font-medium text-on-surface-variant ring-1 ring-outline-variant/40 transition-colors hover:ring-[#95d1d1]/30 hover:text-emerald-400">
+                  <button className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-surface-container px-3 py-2 text-xs font-medium text-on-surface-variant ring-1 ring-outline-variant/40 transition-colors hover:ring-brand-teal/30 hover:text-emerald-400">
                     <Send size={12} />
                     Send Test
                   </button>

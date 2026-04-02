@@ -33,19 +33,19 @@ Current mode: standby — run coordinator to begin
 - [ ] Settings page — AI workspace setup wizard, branding, integrations
 
 ## Currently Broken (fix before new features)
-- DashboardV2 has hardcoded hex colors — MUST migrate to CSS variable tokens BEFORE design-extractor runs. grep src/app/dashboard/ for #[0-9a-fA-F], replace with var(--color-*) or Tailwind tokens, commit as "chore: migrate dashboard hardcoded colors to tokens"
-- upload progress bar does not reflect real tus progress
-- media card drag-and-drop crashes on mobile
+- [x] DashboardV2 hardcoded hex colors — migrated ~130 instances across 18 files to CSS variable tokens (--chart-*, --brand-*) and Tailwind semantic classes. themes/page.tsx left as-is (swatch data). A few theme-preset bg values (#f5f3f0, #1a1a1a, #1d1916) left as unique light-mode swatches.
+- [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
+- [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
 
 ## Session Budget
-Window:             Not started
-Started:            —
+Window:             Manual session (2026-04-02)
+Started:            now
 Resets:             —
 Auto-resume:        —
-Tasks done:         0
+Tasks done:         3
 Avg tokens/task:    — (update every 3 tasks)
 % window remaining: 100%
-Tasks fit:          unknown
+Tasks fit:          3 fix tasks
 Budget mode:        NORMAL
 Weekly cap:         OK
 

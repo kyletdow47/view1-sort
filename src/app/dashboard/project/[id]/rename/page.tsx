@@ -198,7 +198,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
         <h1 className="font-headline text-3xl italic font-extrabold text-on-surface">
           Batch Rename
         </h1>
-        <p className="mt-1 text-sm text-[#d9c2b4]">
+        <p className="mt-1 text-sm text-on-surface-variant">
           Build a naming template and preview how your files will be renamed
         </p>
       </div>
@@ -238,7 +238,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                     <button
                       key={token.value}
                       onClick={() => insertToken(token.value)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#2c2928] px-3 py-1.5 text-xs font-medium text-primary ring-1 ring-outline-variant/40 transition-all hover:bg-[#373433] hover:ring-primary/30 active:scale-95"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-surface-container-high px-3 py-1.5 text-xs font-medium text-primary ring-1 ring-outline-variant/40 transition-all hover:bg-surface-container-highest hover:ring-primary/30 active:scale-95"
                     >
                       {token.icon}
                       <span>{token.label}</span>
@@ -317,7 +317,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                         className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                           padding === p
                             ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary'
-                            : 'bg-background text-[#d9c2b4] ring-1 ring-outline-variant/40 hover:ring-primary/30'
+                            : 'bg-background text-on-surface-variant ring-1 ring-outline-variant/40 hover:ring-primary/30'
                         }`}
                       >
                         {p} digits
@@ -339,7 +339,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                         className={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                           caseOption === opt
                             ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary'
-                            : 'bg-background text-[#d9c2b4] ring-1 ring-outline-variant/40 hover:ring-primary/30'
+                            : 'bg-background text-on-surface-variant ring-1 ring-outline-variant/40 hover:ring-primary/30'
                         }`}
                       >
                         {opt}
@@ -357,7 +357,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                     <button
                       onClick={() => setIncludeExtension(!includeExtension)}
                       className={`relative h-6 w-11 rounded-full transition-colors ${
-                        includeExtension ? 'bg-primary' : 'bg-[#373433]'
+                        includeExtension ? 'bg-primary' : 'bg-surface-container-highest'
                       }`}
                     >
                       <span
@@ -366,7 +366,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                         }`}
                       />
                     </button>
-                    <span className="text-sm text-[#d9c2b4]">
+                    <span className="text-sm text-on-surface-variant">
                       {includeExtension ? 'Appending extension' : 'No extension'}
                     </span>
                   </div>
@@ -378,7 +378,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
             <div className="rounded-2xl border border-outline-variant/30 bg-surface-container p-6">
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
-                  <RotateCcw size={16} className="text-[#95d1d1]" />
+                  <RotateCcw size={16} className="text-brand-teal" />
                   <span className="text-sm text-on-surface">
                     Renaming{' '}
                     <span className="font-bold text-primary">{media.length}</span>{' '}
@@ -422,7 +422,7 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                 </button>
                 <Link
                   href={`/dashboard/project/${id}`}
-                  className="rounded-xl border border-outline-variant/40 px-8 py-3 text-sm font-medium text-[#d9c2b4] transition-colors hover:border-primary/30 hover:text-primary"
+                  className="rounded-xl border border-outline-variant/40 px-8 py-3 text-sm font-medium text-on-surface-variant transition-colors hover:border-primary/30 hover:text-primary"
                 >
                   Cancel
                 </Link>
@@ -467,13 +467,13 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#a18d80]/40 shrink-0" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-on-surface-variant/40 shrink-0" />
                         <span className="text-xs font-mono text-on-surface-variant truncate">
                           {file.before}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#95d1d1] shrink-0" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-brand-teal shrink-0" />
                         <span className="text-xs font-mono text-on-surface truncate">
                           {file.after}
                         </span>
@@ -499,9 +499,9 @@ export default function BatchRenamePage({ params }: RenamePageProps) {
                     {categoryBreakdown.map(([name, count]) => (
                       <span
                         key={name}
-                        className="inline-flex items-center gap-1.5 rounded-md bg-[#2c2928] px-2.5 py-1 text-[11px]"
+                        className="inline-flex items-center gap-1.5 rounded-md bg-surface-container-high px-2.5 py-1 text-[11px]"
                       >
-                        <span className="text-[#d9c2b4]">{name}</span>
+                        <span className="text-on-surface-variant">{name}</span>
                         <span className="text-on-surface-variant">{count}</span>
                       </span>
                     ))}

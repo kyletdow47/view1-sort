@@ -16,10 +16,10 @@ interface SettingsPageProps {
 }
 
 const GALLERY_THEMES = [
-  { id: 'dark-room', name: 'Dark Room', bg: '#151312', accent: '#ffb780' },
-  { id: 'minimal-light', name: 'Minimal Light', bg: '#f5f0ec', accent: '#2c2928' },
-  { id: 'editorial', name: 'Editorial', bg: '#1d1b1a', accent: '#95d1d1' },
-  { id: 'amber-glow', name: 'Amber Glow', bg: '#211f1e', accent: '#d48441' },
+  { id: 'dark-room', name: 'Dark Room', bg: 'rgb(var(--t-bg))', accent: 'var(--brand-amber)' },
+  { id: 'minimal-light', name: 'Minimal Light', bg: '#f5f0ec', accent: 'rgb(var(--t-surface-high))' },
+  { id: 'editorial', name: 'Editorial', bg: '#1d1b1a', accent: 'var(--brand-teal)' },
+  { id: 'amber-glow', name: 'Amber Glow', bg: 'rgb(var(--t-surface-container))', accent: 'var(--brand-sienna)' },
 ]
 
 export default function ProjectSettingsPage({ params }: SettingsPageProps) {
@@ -265,7 +265,7 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
                 <button
                   onClick={() => setPreviewAccess(!previewAccess)}
                   className={`relative w-11 h-6 rounded-full transition-colors ${
-                    previewAccess ? 'bg-primary' : 'bg-[#373433]'
+                    previewAccess ? 'bg-primary' : 'bg-surface-container-highest'
                   }`}
                 >
                   <div
@@ -287,7 +287,7 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
                 <button
                   onClick={() => setProofingAccess(!proofingAccess)}
                   className={`relative w-11 h-6 rounded-full transition-colors ${
-                    proofingAccess ? 'bg-primary' : 'bg-[#373433]'
+                    proofingAccess ? 'bg-primary' : 'bg-surface-container-highest'
                   }`}
                 >
                   <div
@@ -309,7 +309,7 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
                 <button
                   onClick={() => setDeliveredAccess(!deliveredAccess)}
                   className={`relative w-11 h-6 rounded-full transition-colors ${
-                    deliveredAccess ? 'bg-primary' : 'bg-[#373433]'
+                    deliveredAccess ? 'bg-primary' : 'bg-surface-container-highest'
                   }`}
                 >
                   <div
@@ -338,7 +338,7 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
               </div>
               <button
                 onClick={handleCopy}
-                className="shrink-0 w-10 h-10 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center text-[#d9c2b4] hover:text-primary hover:border-primary/40 transition-colors"
+                className="shrink-0 w-10 h-10 rounded-xl bg-surface-container border border-outline-variant flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary/40 transition-colors"
               >
                 {copied ? <Check size={16} /> : <Copy size={16} />}
               </button>
@@ -404,7 +404,7 @@ export default function ProjectSettingsPage({ params }: SettingsPageProps) {
       <div className="flex items-center justify-between mt-8 pt-6 border-t border-outline-variant">
         <button
           onClick={handleArchive}
-          className="flex items-center gap-2 rounded-xl border border-[#e7765f]/30 bg-[#e7765f]/10 px-5 py-2.5 text-sm text-[#ffb4a5] hover:bg-[#e7765f]/20 transition-colors"
+          className="flex items-center gap-2 rounded-xl border border-brand-coral/30 bg-brand-coral/10 px-5 py-2.5 text-sm text-brand-peach hover:bg-brand-coral/20 transition-colors"
         >
           <Archive size={16} />
           Archive Project

@@ -27,10 +27,10 @@ import { GlassCard } from '@/components/features/dashboard-v2/GlassCard'
 const subTabs = ['Overview', 'Content', 'Finance', 'Bookings'] as const
 
 const stats = [
-  { label: 'Total Revenue', value: '$8,240', sub: '+12% vs last month', icon: DollarSign, color: '#34D399' },
-  { label: 'Gallery Views', value: '1,847', sub: 'this month', icon: Eye, color: '#60A5FA' },
-  { label: 'Conversion Rate', value: '68%', sub: 'inquiry → booked', icon: TrendingUp, color: '#FBBF24' },
-  { label: 'AI Hours Saved', value: '142h', sub: 'this quarter', icon: Clock, color: '#A78BFA' },
+  { label: 'Total Revenue', value: '$8,240', sub: '+12% vs last month', icon: DollarSign, color: 'var(--chart-emerald)' },
+  { label: 'Gallery Views', value: '1,847', sub: 'this month', icon: Eye, color: 'var(--chart-blue)' },
+  { label: 'Conversion Rate', value: '68%', sub: 'inquiry → booked', icon: TrendingUp, color: 'var(--chart-amber)' },
+  { label: 'AI Hours Saved', value: '142h', sub: 'this quarter', icon: Clock, color: 'var(--chart-violet)' },
 ]
 
 const revenueData = [
@@ -147,7 +147,7 @@ export default function AnalyticsPage() {
           {/* Revenue Chart */}
           <GlassCard className="col-span-2">
             <div className="mb-4 flex items-center gap-2">
-              <TrendingUp size={14} style={{ color: '#34D399' }} />
+              <TrendingUp size={14} style={{ color: 'var(--chart-emerald)' }} />
               <h3 className="text-sm font-semibold text-white/95">Booking &amp; Revenue Trends</h3>
               <span className="ml-auto text-[11px] text-white/40">6-month view</span>
             </div>
@@ -157,7 +157,7 @@ export default function AnalyticsPage() {
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.50)' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.50)' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} />
                 <Tooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="revenue" fill="#34D399" radius={[4, 4, 0, 0]} name="Revenue" />
+                <Bar dataKey="revenue" fill="var(--chart-emerald)" radius={[4, 4, 0, 0]} name="Revenue" />
               </BarChart>
             </ResponsiveContainer>
           </GlassCard>

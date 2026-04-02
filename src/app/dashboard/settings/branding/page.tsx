@@ -108,9 +108,9 @@ function ColorPicker({
 /* ------------------------------------------------------------------ */
 
 export default function BrandingPage() {
-  const [primaryColor, setPrimaryColor] = useState('#ffb780')
-  const [secondaryColor, setSecondaryColor] = useState('#95d1d1')
-  const [bgColor, setBgColor] = useState('#151312')
+  const [primaryColor, setPrimaryColor] = useState('var(--brand-amber)')
+  const [secondaryColor, setSecondaryColor] = useState('var(--brand-teal)')
+  const [bgColor, setBgColor] = useState('rgb(var(--t-bg))')
   const [headingFont, setHeadingFont] = useState('playfair')
   const [bodyFont, setBodyFont] = useState('inter')
   const [watermarkText, setWatermarkText] = useState('Aperture Studios')
@@ -286,7 +286,7 @@ export default function BrandingPage() {
                   max={100}
                   value={watermarkOpacity}
                   onChange={(e) => setWatermarkOpacity(Number(e.target.value))}
-                  className="w-full accent-[#d48441]"
+                  className="w-full accent-brand-sienna"
                 />
                 <div className="flex justify-between text-[10px] text-on-surface-variant/50">
                   <span>Subtle</span>
@@ -311,7 +311,7 @@ export default function BrandingPage() {
                         title={positionLabels[pos]}
                       >
                         {pos === watermarkPosition ? (
-                          <div className="h-2 w-2 rounded-full bg-[#4e2600] mx-auto" />
+                          <div className="h-2 w-2 rounded-full bg-on-primary mx-auto" />
                         ) : (
                           <div className="h-1.5 w-1.5 rounded-full bg-on-surface-variant/20 mx-auto" />
                         )}
@@ -352,12 +352,12 @@ export default function BrandingPage() {
                     />
                     <span
                       className="text-sm font-bold"
-                      style={{ color: '#e7e1df' }}
+                      style={{ color: 'rgb(var(--t-on-surface))' }}
                     >
                       {watermarkText || 'Your Studio'}
                     </span>
                   </div>
-                  <p className="text-[10px]" style={{ color: '#a18d80' }}>
+                  <p className="text-[10px]" style={{ color: 'rgb(var(--t-on-surface-variant))' }}>
                     Sarah & James Wedding Collection
                   </p>
                 </div>
@@ -396,7 +396,7 @@ export default function BrandingPage() {
 
                 {/* Gallery footer */}
                 <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
-                  <span className="text-[9px]" style={{ color: '#a18d80' }}>
+                  <span className="text-[9px]" style={{ color: 'rgb(var(--t-on-surface-variant))' }}>
                     48 photos &middot; $12/photo
                   </span>
                   <div

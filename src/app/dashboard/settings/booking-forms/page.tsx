@@ -240,7 +240,7 @@ export default function BookingFormsPage() {
 
           {/* Phone mockup — compact */}
           <div className="mx-auto w-[280px]">
-            <div className="rounded-[2rem] border-[3px] border-[#373433] bg-background p-1.5 shadow-2xl">
+            <div className="rounded-[2rem] border-[3px] border-surface-container-highest bg-background p-1.5 shadow-2xl">
               {/* Notch */}
               <div className="mx-auto mb-1.5 h-4 w-24 rounded-full bg-background border border-outline-variant/20" />
 

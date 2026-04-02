@@ -26,9 +26,9 @@ const statusConfig: Record<BookingStatus, {
   bg: string
 }> = {
   pending: { label: 'Pending', color: 'text-primary', icon: AlertCircle, bg: 'bg-primary/15' },
-  confirmed: { label: 'Confirmed', color: 'text-[#95d1d1]', icon: CheckCircle2, bg: 'bg-[#95d1d1]/15' },
+  confirmed: { label: 'Confirmed', color: 'text-brand-teal', icon: CheckCircle2, bg: 'bg-brand-teal/15' },
   completed: { label: 'Completed', color: 'text-emerald-400', icon: CheckCircle2, bg: 'bg-emerald-500/15' },
-  cancelled: { label: 'Cancelled', color: 'text-[#e7765f]', icon: XCircle, bg: 'bg-[#e7765f]/15' },
+  cancelled: { label: 'Cancelled', color: 'text-brand-coral', icon: XCircle, bg: 'bg-brand-coral/15' },
 }
 
 const pipelineColumns: BookingStatus[] = ['pending', 'confirmed', 'completed', 'cancelled']
@@ -184,7 +184,7 @@ function MiniCalendar({
                 isToday
                   ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary font-bold'
                   : isBooked
-                  ? 'bg-[#95d1d1]/15 text-[#95d1d1]'
+                  ? 'bg-brand-teal/15 text-brand-teal'
                   : isPending
                   ? 'bg-primary/10 text-primary'
                   : 'text-on-surface-variant/60 hover:bg-surface-container'
@@ -202,7 +202,7 @@ function MiniCalendar({
           <span className="text-[10px] text-on-surface-variant/50">Today</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-full bg-[#95d1d1]" />
+          <div className="h-2.5 w-2.5 rounded-full bg-brand-teal" />
           <span className="text-[10px] text-on-surface-variant/50">Confirmed</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -263,7 +263,7 @@ export default async function BookingsPage() {
     <div className="space-y-6">
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Upcoming" value={upcoming} icon={CalendarDays} color="bg-[#95d1d1]/15 text-[#95d1d1]" />
+        <StatCard label="Upcoming" value={upcoming} icon={CalendarDays} color="bg-brand-teal/15 text-brand-teal" />
         <StatCard label="Pending" value={pending} icon={Clock} color="bg-primary/15 text-primary" />
         <StatCard label="Completed" value={completed} icon={CheckCircle2} color="bg-emerald-500/15 text-emerald-400" />
       </div>

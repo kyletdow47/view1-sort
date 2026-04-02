@@ -26,10 +26,10 @@ import { GlassCard } from '@/components/features/dashboard-v2/GlassCard'
 const subTabs = ['Overview', 'Content', 'Finance', 'Bookings'] as const
 
 const stats = [
-  { label: 'Total Revenue', value: '$24,850', sub: 'year to date', icon: DollarSign, color: '#34D399' },
-  { label: 'Outstanding', value: '$3,200', sub: '4 unpaid invoices', icon: AlertTriangle, color: '#FBBF24' },
-  { label: 'Next Tax Month', value: '$8,400', sub: 'estimated Q2', icon: FileText, color: '#60A5FA' },
-  { label: 'Avg Project Value', value: '$1,850', sub: 'per project', icon: DollarSign, color: '#A78BFA' },
+  { label: 'Total Revenue', value: '$24,850', sub: 'year to date', icon: DollarSign, color: 'var(--chart-emerald)' },
+  { label: 'Outstanding', value: '$3,200', sub: '4 unpaid invoices', icon: AlertTriangle, color: 'var(--chart-amber)' },
+  { label: 'Next Tax Month', value: '$8,400', sub: 'estimated Q2', icon: FileText, color: 'var(--chart-blue)' },
+  { label: 'Avg Project Value', value: '$1,850', sub: 'per project', icon: DollarSign, color: 'var(--chart-violet)' },
 ]
 
 const invoices = [
@@ -164,7 +164,7 @@ export default function FinancesPage() {
                   <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.40)' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.40)' }} axisLine={false} tickLine={false} />
                   <Tooltip content={<ChartTooltipContent />} />
-                  <Area type="monotone" dataKey="revenue" stroke="#818cf8" fill="rgba(129,140,248,0.15)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="revenue" stroke="var(--chart-soft-indigo)" fill="rgba(129,140,248,0.15)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </GlassCard>
