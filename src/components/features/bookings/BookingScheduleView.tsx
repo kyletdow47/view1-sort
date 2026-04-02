@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Search, Plus, ExternalLink } from 'lucide-react'
+import { CalListView } from '@/components/features/bookings/CalListView'
 import type { Booking } from '@/types/supabase'
 
 interface EventType {
@@ -118,8 +119,28 @@ export function BookingScheduleView({ bookings, workspaceId }: BookingScheduleVi
         </a>
       </div>
 
-      {/* 3-column layout */}
-      <div className="flex flex-1 overflow-hidden gap-4 px-6 py-5">
+      {/* Pipeline tab: Cal List View */}
+      {activeTab === 'Pipeline' && (
+        <div className="flex flex-1 items-start gap-4 overflow-hidden px-6 py-5">
+          <CalListView />
+          <div
+            className="flex flex-1 items-center justify-center rounded-2xl"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            <p className="text-[13px] text-white/30">Pipeline view — coming soon</p>
+          </div>
+        </div>
+      )}
+
+      {/* Packages / Photo Page placeholder tabs */}
+      {(activeTab === 'Packages' || activeTab === 'Photo Page') && (
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-[13px] text-white/30">{activeTab} — coming soon</p>
+        </div>
+      )}
+
+      {/* 3-column layout (Schedule tab) */}
+      {activeTab === 'Schedule' && <div className="flex flex-1 overflow-hidden gap-4 px-6 py-5">
 
         {/* Left: Inquiries */}
         <div
@@ -284,7 +305,7 @@ export function BookingScheduleView({ bookings, workspaceId }: BookingScheduleVi
             + New Type
           </button>
         </div>
-      </div>
+      </div>}
     </div>
   )
 }
