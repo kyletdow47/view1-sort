@@ -41,36 +41,24 @@ export function DashboardV2({
         <TopNav />
 
         {/* Main layout */}
-        <div className="flex flex-1 items-start justify-center overflow-hidden">
+        <div className="flex flex-1 items-start justify-center overflow-y-auto overflow-x-hidden">
           {/* Center content column */}
-          <div className="relative flex w-full flex-col gap-6 px-[85px] pb-[85px] pt-8">
+          <div className="relative flex w-full max-w-[1280px] flex-col gap-5 px-10 pb-10 pt-8">
             {/* Welcome / chat */}
             <WelcomeSection userName={userName} />
 
-            {/* Row 1: Activity + Projects + Quick Stats */}
-            <div className="flex h-[290px] gap-4 overflow-x-auto">
-              <div className="w-[284px] shrink-0">
-                <RecentActivity />
-              </div>
-              <div className="flex-1">
-                <RecentProjects projects={projects} photoCounts={photoCounts} />
-              </div>
-              <div className="w-[239px] shrink-0">
-                <QuickStats />
-              </div>
+            {/* Row 1: Activity + Projects + Quick Stats — 1:2:1 ratio */}
+            <div className="grid min-h-[290px] grid-cols-[1fr_2fr_1fr] gap-4">
+              <RecentActivity />
+              <RecentProjects projects={projects} photoCounts={photoCounts} />
+              <QuickStats />
             </div>
 
-            {/* Row 2: Calendar + Deliveries + Inbox */}
-            <div className="flex flex-1 gap-4 overflow-x-auto">
-              <div className="w-[283px] shrink-0">
-                <CalendarWidget />
-              </div>
-              <div className="w-[375px] shrink-0">
-                <ProjectDeliveries />
-              </div>
-              <div className="w-[238px] shrink-0">
-                <InboxWidget />
-              </div>
+            {/* Row 2: Calendar + Deliveries + Inbox — same 1:2:1 ratio */}
+            <div className="grid min-h-[280px] grid-cols-[1fr_2fr_1fr] gap-4">
+              <CalendarWidget />
+              <ProjectDeliveries />
+              <InboxWidget />
             </div>
           </div>
         </div>
