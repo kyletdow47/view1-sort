@@ -1,11 +1,11 @@
 'use client'
 
 const tasks = [
-  { title: 'Complete Sorting', time: 'Sep 13, 08:30', iconColor: 'bg-white', statusColor: 'bg-white/[0.08]', active: true },
-  { title: 'Confirm New Booking', time: 'Sep 13, 10:30', iconColor: 'bg-white', statusColor: 'bg-white/[0.08]', active: true },
-  { title: 'Send Project', time: 'Sep 13, 15:00', iconColor: 'bg-white', statusColor: 'bg-white/[0.08]', active: true },
-  { title: 'Complete Project', time: 'Sep 13, 14:45', iconColor: 'bg-white/[0.09]', statusColor: 'bg-white/[0.06]', active: false },
-  { title: 'Review Payment', time: 'Sep 13, 16:30', iconColor: 'bg-white/[0.09]', statusColor: 'bg-white/[0.06]', active: false },
+  { title: 'Complete Sorting', time: 'Sep 13, 08:30', iconBg: '#2DD4BF', statusColor: 'bg-white/[0.08]', active: true },
+  { title: 'Confirm New Booking', time: 'Sep 13, 10:30', iconBg: '#60A5FA', statusColor: 'bg-white/[0.08]', active: true },
+  { title: 'Send Project', time: 'Sep 13, 15:00', iconBg: '#A78BFA', statusColor: 'bg-white/[0.08]', active: true },
+  { title: 'Complete Project', time: 'Sep 13, 14:45', iconBg: 'rgba(255,255,255,0.09)', statusColor: 'bg-white/[0.06]', active: false },
+  { title: 'Review Payment', time: 'Sep 13, 16:30', iconBg: 'rgba(255,255,255,0.09)', statusColor: 'bg-white/[0.06]', active: false },
 ]
 
 export function TodoPanel() {
@@ -36,7 +36,7 @@ export function TodoPanel() {
               task.title === 'Send Project' ? 'bg-white/[0.08]' : 'bg-white/[0.04]'
             }`}
           >
-            <div className={`h-9 w-9 shrink-0 rounded-full ${task.iconColor}`} />
+            <div className="h-9 w-9 shrink-0 rounded-full" style={{ background: task.iconBg }} />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span
                 className={`text-sm font-semibold ${
