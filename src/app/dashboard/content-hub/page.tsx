@@ -4,8 +4,6 @@ import { useState } from 'react'
 import {
   Plus,
   Globe,
-  Instagram,
-  Facebook,
   TrendingUp,
   Users,
   Heart,
