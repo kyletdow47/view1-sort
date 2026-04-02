@@ -206,9 +206,9 @@ function ContractsTab() {
   const selected = contracts.find((c) => c.id === selectedId) ?? null
 
   return (
-    <div className="flex flex-1 gap-4 overflow-hidden">
+    <div className="flex flex-col md:flex-row flex-1 gap-4 overflow-hidden">
       {/* Left list */}
-      <div className="flex w-[280px] shrink-0 flex-col gap-2 overflow-y-auto">
+      <div className="flex w-full md:w-[280px] shrink-0 flex-col gap-2 overflow-y-auto">
         <button
           onClick={addContract}
           className="flex items-center gap-2 rounded-xl border border-dashed border-white/15 px-4 py-3 text-[13px] font-medium text-white/50 transition-colors hover:border-indigo-400/40 hover:text-indigo-300"

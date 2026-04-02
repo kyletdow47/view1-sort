@@ -390,9 +390,9 @@ export default function ContentHubPage() {
       </div>
 
       {/* Main content: Top Posts + Calendar + Create Post */}
-      <div className="flex flex-1 gap-4 overflow-hidden px-6 py-4">
+      <div className="flex flex-col lg:flex-row flex-1 gap-4 overflow-hidden px-6 py-4">
         {/* Left: Top Posts */}
-        <div className="flex w-[340px] shrink-0 flex-col gap-3">
+        <div className="flex w-full lg:w-[340px] shrink-0 flex-col gap-3">
           <span className="text-[13px] font-semibold text-white/80">Top Posts</span>
           {TOP_POSTS.map((post) => (
             <GlassCard key={post.id} className="overflow-hidden">
@@ -433,7 +433,7 @@ export default function ContentHubPage() {
         </div>
 
         {/* Right: Create Post */}
-        <div className="w-[260px] shrink-0">
+        <div className="w-full lg:w-[260px] shrink-0">
           <CreatePostPanel />
         </div>
       </div>

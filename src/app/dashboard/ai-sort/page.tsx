@@ -107,7 +107,7 @@ function SortSettingsPanel({
 
   return (
     <div
-      className="flex w-[320px] shrink-0 flex-col gap-5 rounded-3xl p-5"
+      className="flex w-full md:w-[320px] shrink-0 flex-col gap-5 rounded-3xl p-5"
       style={{
         background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)',
         backdropFilter: 'blur(32px)',
@@ -718,7 +718,7 @@ export default function AISortPage() {
 
       {/* Content area */}
       {!showPhaseContent && activeTab === 'upload' && (
-        <div className="flex flex-1 gap-6 overflow-hidden px-10 py-6">
+        <div className="flex flex-col md:flex-row flex-1 gap-6 overflow-hidden px-10 py-6">
           <UploadZone onFiles={handleFiles} fileCount={files.length} />
           <SortSettingsPanel
             confidence={confidence}

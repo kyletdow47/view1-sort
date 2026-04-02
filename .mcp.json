@@ -1,0 +1,36 @@
+{
+  "mcpServers": {
+    "pencil": {
+      "type": "stdio",
+      "command": "/Applications/Pencil.app/Contents/Resources/app.asar.unpacked/out/mcp-server-darwin-arm64",
+      "args": ["--app", "standalone"],
+      "env": {},
+      "description": "Pencil design canvas — read and write designs"
+    },
+    "asana": {
+      "type": "url",
+      "url": "https://mcp.asana.com/sse",
+      "description": "Asana — task management"
+    },
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PAT}"
+      },
+      "description": "GitHub — commits, branches, PRs"
+    },
+    "vercel": {
+      "type": "url",
+      "url": "https://mcp.vercel.com",
+      "description": "Vercel — deployments and preview URLs"
+    },
+    "browsermcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@browsermcp/mcp@latest"],
+      "description": "Browser MCP — navigate, click, screenshot, test deployments"
+    }
+  }
+}
