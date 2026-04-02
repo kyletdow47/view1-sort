@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { GlassPanel } from './GlassPanel'
 
@@ -45,7 +46,9 @@ export function InboxWidget() {
             <span className="text-[10px] font-bold text-[#1A1A0A]">3</span>
           </div>
         </div>
-        <ArrowUpRight className="h-4 w-4 text-white/[0.67]" />
+        <Link href="/dashboard/messages" className="text-white/[0.67] transition-colors hover:text-white">
+          <ArrowUpRight className="h-4 w-4" />
+        </Link>
       </div>
 
       {/* Message List */}

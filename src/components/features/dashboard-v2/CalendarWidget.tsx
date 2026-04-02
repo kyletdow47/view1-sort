@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { ChevronDown, Calendar, List, ArrowUpRight } from 'lucide-react'
 import { GlassPanel } from './GlassPanel'
 import { cn } from '@/lib/utils'
@@ -94,7 +95,9 @@ export function CalendarWidget() {
               <span className="text-[9px] font-medium text-white/50">List</span>
             </button>
           </div>
-          <ArrowUpRight className="h-4 w-4 text-white/[0.67]" />
+          <Link href="/dashboard/bookings" className="text-white/[0.67] transition-colors hover:text-white">
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
         </div>
       </div>
 

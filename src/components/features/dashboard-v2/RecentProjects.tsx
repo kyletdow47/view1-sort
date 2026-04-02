@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { GlassPanel } from './GlassPanel'
@@ -44,12 +45,9 @@ export function RecentProjects({ projects = [], photoCounts = {} }: RecentProjec
         <span className="font-headline text-[14px] font-semibold text-white">
           Recent Projects
         </span>
-        <button
-          onClick={() => router.push('/dashboard/projects')}
-          className="text-white/[0.67] transition-colors hover:text-white"
-        >
+        <Link href="/dashboard/projects" className="text-white/[0.67] transition-colors hover:text-white">
           <ArrowUpRight className="h-4 w-4" />
-        </button>
+        </Link>
       </div>
 
       {/* Project Cards */}

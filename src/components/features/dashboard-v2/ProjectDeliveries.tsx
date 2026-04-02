@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import { GlassPanel } from './GlassPanel'
 
@@ -35,7 +36,9 @@ export function ProjectDeliveries() {
         <span className="font-headline text-[14px] font-semibold text-white">
           Project Deliveries
         </span>
-        <ArrowUpRight className="h-4 w-4 text-white/[0.67]" />
+        <Link href="/dashboard/manager" className="text-white/[0.67] transition-colors hover:text-white">
+          <ArrowUpRight className="h-4 w-4" />
+        </Link>
       </div>
 
       {/* Rows */}

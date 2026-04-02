@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { CheckCircle, FolderOpen, Camera, CalendarDays, ArrowUpRight } from 'lucide-react'
 import { GlassPanel } from './GlassPanel'
 import { ProgressRing } from './ProgressRing'
@@ -46,7 +47,9 @@ export function QuickStats() {
         <span className="text-[14px] font-semibold tracking-[0.5px] text-white/[0.67]">
           Quick Stats
         </span>
-        <ArrowUpRight className="h-4 w-4 text-white/[0.67]" />
+        <Link href="/dashboard/analytics" className="text-white/[0.67] transition-colors hover:text-white">
+          <ArrowUpRight className="h-4 w-4" />
+        </Link>
       </div>
 
       {/* 2x2 Grid */}
