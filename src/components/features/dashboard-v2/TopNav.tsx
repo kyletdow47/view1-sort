@@ -2,11 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useRef, useState } from 'react'
 import {
   Aperture,
   Bell,
   Settings,
 } from 'lucide-react'
+import { TodoTrigger, TodoDropdown } from './TodoPanel'
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard/v2' },
@@ -28,6 +30,8 @@ interface TopNavProps {
 
 export function TopNav({ activeNav }: TopNavProps) {
   const pathname = usePathname()
+  const [todoOpen, setTodoOpen] = useState(false)
+  const todoButtonRef = useRef<HTMLButtonElement>(null)
 
   function isActive(item: { label: string; href: string }) {
     if (activeNav) return item.label === activeNav
@@ -35,7 +39,7 @@ export function TopNav({ activeNav }: TopNavProps) {
   }
 
   return (
-    <nav className="flex h-14 w-full items-center justify-between border-b border-white/[0.09] bg-white/[0.04] px-6 md:px-10 lg:px-[85px]">
+    <nav className="relative flex h-14 w-full items-center justify-between border-b border-white/[0.09] bg-white/[0.04] px-6 md:px-10 lg:px-[85px]">
       {/* Left: Brand */}
       <Link href="/dashboard/v2" className="flex items-center gap-2">
         <div className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-gradient-to-b from-indigo-400 to-indigo-600">
@@ -67,14 +71,26 @@ export function TopNav({ activeNav }: TopNavProps) {
       </div>
 
       {/* Right: Icons + Avatar */}
-      <div className="flex items-center gap-3">
+      <div className="relative flex items-center gap-3">
         <button className="text-white/[0.67] transition-colors hover:text-white">
           <Bell className="h-[18px] w-[18px]" />
         </button>
+        <TodoTrigger
+          open={todoOpen}
+          onToggle={() => setTodoOpen((v) => !v)}
+          buttonRef={todoButtonRef}
+        />
         <Link href="/dashboard/settings" className="text-white/[0.67] transition-colors hover:text-white">
           <Settings className="h-[18px] w-[18px]" />
         </Link>
         <div className="h-8 w-8 rounded-full bg-indigo-600 ring-2 ring-white/25" />
+
+        {/* Todo dropdown — anchored to the right icons container */}
+        <TodoDropdown
+          open={todoOpen}
+          onClose={() => setTodoOpen(false)}
+          anchorRef={todoButtonRef}
+        />
       </div>
     </nav>
   )

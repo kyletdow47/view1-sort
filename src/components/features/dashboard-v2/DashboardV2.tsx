@@ -8,7 +8,6 @@ import { QuickStats } from './QuickStats'
 import { CalendarWidget } from './CalendarWidget'
 import { ProjectDeliveries } from './ProjectDeliveries'
 import { InboxWidget } from './InboxWidget'
-import { TodoPanel } from './TodoPanel'
 import type { Project } from '@/types/supabase'
 
 export interface DashboardV2Props {
@@ -56,8 +55,6 @@ export function DashboardV2({
           </div>
         </div>
 
-        {/* Floating To-do Panel */}
-        <TodoPanel />
       </div>
     </V2Shell>
   )
