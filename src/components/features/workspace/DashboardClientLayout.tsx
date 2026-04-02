@@ -184,8 +184,10 @@ export function DashboardClientLayout({
         markRead={markRead}
       />
 
-      <main className="relative flex-1 overflow-auto">
-        {children}
+      <main className="relative flex flex-1 flex-col overflow-auto">
+        <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 pb-10 pt-6 md:px-10">
+          {children}
+        </div>
       </main>
     </div>
   )

@@ -690,7 +690,7 @@ export default function AISortPage() {
   const showPhaseContent = phase !== 'upload'
 
   return (
-    <div className="flex h-[calc(100vh-56px)] flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Page Header */}
       <div className="flex flex-col gap-4 px-10 pb-0 pt-6">
         <h1 className="text-[28px] font-bold text-white">AI Sort</h1>

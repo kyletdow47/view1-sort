@@ -319,7 +319,7 @@ export default function ContentHubPage() {
   const [activeTab, setActiveTab] = useState<PlatformTab>('All')
 
   return (
-    <div className="flex h-[calc(100vh-56px)] flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Header */}
       <div
         className="flex shrink-0 items-center justify-between px-8 py-4"

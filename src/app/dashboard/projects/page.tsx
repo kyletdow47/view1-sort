@@ -603,7 +603,7 @@ export default function ProjectsPage() {
   const deliveredCount = projects.filter(p => p.status === 'published').length
 
   return (
-    <div className="space-y-6 px-10 py-8">
+    <div className="space-y-6">
       {/* ── Page header ────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>

@@ -93,7 +93,7 @@ export function BookingScheduleView({ bookings, workspaceId }: BookingScheduleVi
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
 
   return (
-    <div className="flex h-[calc(100vh-56px)] flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Tab bar */}
       <div
         className="flex shrink-0 items-center justify-between px-10 py-3"

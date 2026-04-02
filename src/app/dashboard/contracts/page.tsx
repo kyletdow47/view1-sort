@@ -365,7 +365,7 @@ export default function ContractsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('Contracts')
 
   return (
-    <div className="flex h-[calc(100vh-56px)] flex-col gap-0">
+    <div className="flex min-h-0 flex-1 flex-col gap-0">
       {/* Tab bar */}
       <div
         className="flex shrink-0 items-center justify-between px-8 py-3"

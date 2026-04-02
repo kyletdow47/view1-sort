@@ -640,7 +640,7 @@ export default function AIWorkspacePage() {
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex h-[calc(100vh-56px)] flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
 
       {/* ── Project Header ─────────────────────────────────────────────────── */}
       <div
