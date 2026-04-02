@@ -1,255 +1,159 @@
 'use client'
 
-import React, { useState } from 'react'
 import Link from 'next/link'
 import {
-  Star,
-  Download,
-  Eye,
-  Clock,
-  CheckCircle2,
-  Camera,
   Bell,
-  MessageSquare,
+  Camera,
   ChevronRight,
-  Calendar,
-  AlertCircle,
-  Sparkles,
+  Download,
+  FileText,
+  Image as ImageIcon,
+  MessageSquare,
 } from 'lucide-react'
 
-/* ─── Types ─────────────────────────────────────────────────────────────── */
+/* ─── Mock Data ───────────────────────────────────────────────────────────── */
 
-type ProjectStatus =
-  | 'awaiting_selection'
-  | 'in_editing'
-  | 'ready_to_download'
-  | 'preselection_sent'
-  | 'delivered'
-  | 'revision_requested'
-
-interface ClientProject {
-  id: string
-  name: string
-  photographerName: string
-  shootDate: string
-  photoCount: number
-  selectedCount: number
-  status: ProjectStatus
-  coverHue: number
-  hasPendingAction: boolean
-  pendingActionText?: string
-  lastActivity: string
-}
-
-/* ─── Mock data ──────────────────────────────────────────────────────────── */
-
-const MOCK_PROJECTS: ClientProject[] = [
-  {
-    id: 'proj-1',
-    name: 'Johnson Wedding',
-    photographerName: 'Alex Rivera',
-    shootDate: 'March 15, 2026',
-    photoCount: 428,
-    selectedCount: 0,
-    status: 'awaiting_selection',
-    coverHue: 25,
-    hasPendingAction: true,
-    pendingActionText: 'Your selection is needed',
-    lastActivity: '2 hours ago',
-  },
-  {
-    id: 'proj-2',
-    name: 'Engagement Session',
-    photographerName: 'Alex Rivera',
-    shootDate: 'January 22, 2026',
-    photoCount: 180,
-    selectedCount: 45,
-    status: 'in_editing',
-    coverHue: 200,
-    hasPendingAction: false,
-    lastActivity: '3 days ago',
-  },
-  {
-    id: 'proj-3',
-    name: 'Family Portraits',
-    photographerName: 'Alex Rivera',
-    shootDate: 'November 8, 2025',
-    photoCount: 94,
-    selectedCount: 30,
-    status: 'ready_to_download',
-    coverHue: 120,
-    hasPendingAction: true,
-    pendingActionText: 'Finals are ready to download',
-    lastActivity: '1 day ago',
-  },
+const galleries = [
+  { name: 'Autumn Wedding', date: 'Sep 16', photos: 512, progress: 85, color: 'bg-emerald-400' },
+  { name: 'Engagement Session', date: 'Mar 12', photos: 228, progress: 60, color: 'bg-amber-400' },
+  { name: 'Bridal Portraits', date: 'Aug 12', photos: 14, progress: 20, color: 'bg-violet-400' },
 ]
 
-const ACTIVITY_FEED = [
-  { id: 'a1', text: 'Alex Rivera uploaded edited finals for Family Portraits', time: '1 day ago', icon: CheckCircle2, color: 'text-emerald-400' },
-  { id: 'a2', text: 'Your Johnson Wedding gallery is ready for selection', time: '2 hours ago', icon: Star, color: 'text-amber-400' },
-  { id: 'a3', text: 'Alex Rivera replied to your comment on DSC_4821.ARW', time: '4 hours ago', icon: MessageSquare, color: 'text-primary' },
-  { id: 'a4', text: 'Engagement Session is currently in editing', time: '3 days ago', icon: Camera, color: 'text-sky-400' },
+const actions = [
+  { title: 'Invoice #INV-047', desc: 'Wedding Montage · $1,450 due', btn: 'Pay Now', btnColor: 'bg-red-500' },
+  { title: 'Sign Contract', desc: 'F26 Wedding Agreement', btn: 'Sign Now', btnColor: 'bg-indigo-600' },
+  { title: 'Fill Questionnaire', desc: 'Wedding Day Timeline', btn: 'Open', btnColor: 'bg-indigo-600' },
 ]
 
-/* ─── Status badge ───────────────────────────────────────────────────────── */
+const documents = [
+  { name: 'Wedding Contract', status: 'Signed', statusColor: 'text-emerald-400' },
+  { name: 'Invoice #INV-046', status: 'Paid', statusColor: 'text-emerald-400' },
+  { name: 'Invoice #INV-047', status: 'Pending', statusColor: 'text-amber-400' },
+]
 
-const STATUS_MAP: Record<ProjectStatus, { label: string; color: string; icon: React.ElementType }> = {
-  awaiting_selection: { label: 'Select your favorites', color: 'bg-amber-400/10 text-amber-400', icon: Star },
-  in_editing:         { label: 'In editing', color: 'bg-sky-400/10 text-sky-400', icon: Camera },
-  ready_to_download:  { label: 'Ready to download', color: 'bg-emerald-400/10 text-emerald-400', icon: Download },
-  preselection_sent:  { label: 'Preview ready', color: 'bg-violet-400/10 text-violet-400', icon: Eye },
-  delivered:          { label: 'Delivered', color: 'bg-emerald-400/10 text-emerald-400', icon: CheckCircle2 },
-  revision_requested: { label: 'Revision requested', color: 'bg-orange-400/10 text-orange-400', icon: AlertCircle },
-}
+const favoriteColors = ['bg-rose-500', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500', 'bg-violet-500', 'bg-cyan-500', 'bg-pink-500', 'bg-lime-500']
 
-function StatusBadge({ status }: { status: ProjectStatus }) {
-  const cfg = STATUS_MAP[status]
+/* ─── GlassCard (inline since this page doesn't use V2Shell) ──────────────── */
+
+function GlassCard({ children, className = '', noPad = false }: { children: React.ReactNode; className?: string; noPad?: boolean }) {
   return (
-    <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-widest ${cfg.color}`}>
-      <cfg.icon className="w-3 h-3" />
-      {cfg.label}
-    </span>
+    <div className={`rounded-3xl backdrop-blur-[32px] ${noPad ? '' : 'p-4'} ${className}`}
+      style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%)', border: '1px solid rgba(255,255,255,0.18)', boxShadow: '0 8px 32px rgba(0,0,0,0.16)' }}>
+      {children}
+    </div>
   )
 }
 
-/* ─── Project card ───────────────────────────────────────────────────────── */
+/* ─── Page ────────────────────────────────────────────────────────────────── */
 
-function ProjectCard({ project }: { project: ClientProject }) {
+export default function ClientPortalPage() {
   return (
-    <Link
-      href={`/gallery/${project.id}`}
-      className="block bg-surface-container rounded-2xl overflow-hidden border border-outline-variant/10 hover:border-outline-variant/30 transition-all group"
-    >
-      {/* Cover */}
-      <div
-        className="h-40 relative"
-        style={{ background: `linear-gradient(135deg, hsl(${project.coverHue},40%,14%) 0%, hsl(${project.coverHue},55%,22%) 100%)` }}
-      >
-        {/* Pending action banner */}
-        {project.hasPendingAction && (
-          <div className="absolute top-3 left-3 right-3 flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-xl px-3 py-2">
-            <AlertCircle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-            <p className="text-[10px] font-mono font-bold text-amber-400">{project.pendingActionText}</p>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #1A3A8F 0%, #2D60D4 20%, #3B7DE8 40%, #5A6FE8 60%, #7B5EA7 80%, #1E2FA8 100%)' }}>
+      {/* Client Nav */}
+      <nav className="flex h-14 items-center justify-between border-b border-white/10 px-10">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-b from-indigo-400 to-indigo-600">
+            <Camera className="h-4 w-4 text-white" />
           </div>
-        )}
-
-        {/* Photo count */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-lg px-2 py-1">
-          <Camera className="w-3 h-3 text-white/60" />
-          <span className="text-[10px] font-mono text-white/70">{project.photoCount} photos</span>
+          <span className="font-headline text-sm font-bold text-white">Kyle Dow Photography</span>
         </div>
-      </div>
-
-      <div className="p-4 space-y-3">
-        <div>
-          <h3 className="font-headline font-bold text-on-surface group-hover:text-primary transition-colors">
-            {project.name}
-          </h3>
-          <p className="text-xs text-on-surface-variant/50 mt-0.5 flex items-center gap-1.5">
-            <Calendar className="w-3 h-3" />
-            {project.shootDate} · {project.photographerName}
-          </p>
+        <div className="flex items-center gap-1 rounded-xl bg-white/8 p-1">
+          {['My Galleries', 'Documents', 'Downloads'].map((tab, i) => (
+            <button key={tab} className={`rounded-lg px-4 py-1.5 text-xs font-medium ${i === 0 ? 'bg-white/15 text-white' : 'text-white/60 hover:text-white'}`}>{tab}</button>
+          ))}
         </div>
-
-        <StatusBadge status={project.status} />
-
-        {project.selectedCount > 0 && (
-          <p className="text-[10px] font-mono text-on-surface-variant/50">
-            {project.selectedCount} photos selected
-          </p>
-        )}
-      </div>
-    </Link>
-  )
-}
-
-/* ─── Page ───────────────────────────────────────────────────────────────── */
-
-export default function ClientDashboard() {
-  const pendingProjects = MOCK_PROJECTS.filter((p) => p.hasPendingAction)
-  const otherProjects = MOCK_PROJECTS.filter((p) => !p.hasPendingAction)
-
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Nav */}
-      <header className="sticky top-0 z-10 border-b border-outline-variant/10 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <span className="font-headline font-bold text-on-surface">View1</span>
-            <span className="text-on-surface-variant/30 mx-1">·</span>
-            <span className="text-sm text-on-surface-variant/60">Client Portal</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-xl hover:bg-surface-container transition-colors">
-              <Bell className="w-5 h-5 text-on-surface-variant/60" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-400" />
-            </button>
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-xs font-mono font-bold text-primary">S</span>
-            </div>
-          </div>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-white/80">Sarah Mitchell</span>
+          <div className="h-8 w-8 rounded-full bg-rose-500" />
+          <button className="rounded-xl border border-white/20 px-3 py-1.5 text-xs text-white/70 hover:text-white">Contact Photographer</button>
         </div>
-      </header>
+      </nav>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      <div className="px-10 py-8 space-y-6 max-w-[1280px] mx-auto">
         {/* Welcome */}
         <div>
-          <h1 className="text-3xl font-headline font-extrabold tracking-tighter text-on-surface italic">
-            Hi Sarah 👋
-          </h1>
-          <p className="text-on-surface-variant/60 mt-1">
-            {pendingProjects.length > 0
-              ? `You have ${pendingProjects.length} project${pendingProjects.length > 1 ? 's' : ''} that need your attention.`
-              : 'All caught up! Your photographer will update you when something is ready.'}
-          </p>
+          <h1 className="font-headline text-4xl font-bold text-white">Welcome back, Sarah</h1>
+          <p className="mt-1 text-sm text-white/60">Your galleries are ready to view — 2 pending actions</p>
         </div>
 
-        {/* Pending actions */}
-        {pendingProjects.length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-on-surface-variant/50 flex items-center gap-2">
-              <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
-              Action needed
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {pendingProjects.map((p) => <ProjectCard key={p.id} project={p} />)}
-            </div>
-          </div>
-        )}
+        {/* Action items */}
+        <div className="flex gap-3 overflow-x-auto">
+          {actions.map((a) => (
+            <GlassCard key={a.title} className="flex min-w-[220px] items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-white truncate">{a.title}</p>
+                <p className="text-[10px] text-white/40 truncate">{a.desc}</p>
+              </div>
+              <button className={`shrink-0 rounded-lg ${a.btnColor} px-3 py-1.5 text-[10px] font-semibold text-white`}>{a.btn}</button>
+            </GlassCard>
+          ))}
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* All projects */}
-          <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-on-surface-variant/50">
-              All projects
-            </h2>
-            <div className="space-y-3">
-              {otherProjects.map((p) => <ProjectCard key={p.id} project={p} />)}
+        <div className="grid grid-cols-3 gap-4">
+          {/* Galleries */}
+          <GlassCard className="col-span-2 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">Your Galleries</h3>
+              <span className="text-[10px] text-white/30">3 galleries</span>
             </div>
-          </div>
+            {galleries.map((g) => (
+              <div key={g.name} className="flex items-center gap-3 rounded-xl bg-white/5 p-3 hover:bg-white/8 cursor-pointer transition-colors">
+                <div className={`h-3 w-3 rounded-full ${g.color}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white">{g.name}</p>
+                  <p className="text-[10px] text-white/40">{g.date} — {g.photos} photos</p>
+                </div>
+                <div className="w-24 h-1.5 rounded-full bg-white/10">
+                  <div className={`h-full rounded-full ${g.color}`} style={{ width: `${g.progress}%` }} />
+                </div>
+                <ChevronRight className="h-4 w-4 text-white/30" />
+              </div>
+            ))}
+          </GlassCard>
 
-          {/* Activity feed */}
+          {/* Right column */}
           <div className="space-y-4">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-on-surface-variant/50">
-              Recent activity
-            </h2>
-            <div className="space-y-1">
-              {ACTIVITY_FEED.map((item) => (
-                <div key={item.id} className="flex items-start gap-3 p-3 rounded-xl hover:bg-surface-container transition-colors">
-                  <div className="w-7 h-7 rounded-xl bg-surface-container flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
+            <GlassCard>
+              <h3 className="text-sm font-semibold text-white">Downloads</h3>
+              <div className="mt-3 flex items-center gap-3">
+                <p className="font-mono text-3xl font-bold text-white">45</p>
+                <div className="flex-1">
+                  <div className="h-2 rounded-full bg-white/10">
+                    <div className="h-full w-3/4 rounded-full bg-emerald-400" />
                   </div>
-                  <div>
-                    <p className="text-xs text-on-surface leading-snug">{item.text}</p>
-                    <p className="text-[10px] font-mono text-on-surface-variant/40 mt-0.5">{item.time}</p>
+                  <p className="mt-1 text-[10px] text-white/40">64,321 photos</p>
+                </div>
+              </div>
+              <button className="mt-3 w-full rounded-lg bg-indigo-600 py-2 text-xs font-medium text-white hover:bg-indigo-700">
+                <Download className="mr-1.5 inline h-3 w-3" /> Download
+              </button>
+            </GlassCard>
+
+            <GlassCard className="space-y-2">
+              <h3 className="text-sm font-semibold text-white">Documents</h3>
+              {documents.map((d) => (
+                <div key={d.name} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-3.5 w-3.5 text-white/40" />
+                    <span className="text-xs text-white/80">{d.name}</span>
                   </div>
+                  <span className={`text-[10px] font-medium ${d.statusColor}`}>{d.status}</span>
                 </div>
               ))}
-            </div>
+            </GlassCard>
           </div>
         </div>
-      </main>
+
+        {/* Favorite Photos */}
+        <div>
+          <h3 className="mb-3 text-sm font-semibold text-white">Favorite Photos</h3>
+          <div className="flex gap-2">
+            {favoriteColors.map((c, i) => (
+              <div key={i} className={`h-16 w-16 rounded-xl ${c}`} />
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

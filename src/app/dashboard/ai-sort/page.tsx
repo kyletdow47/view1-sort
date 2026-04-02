@@ -22,6 +22,7 @@ import {
 import { analyzeFile, type CullResult } from '@/lib/ai/culling'
 import { getAllPresets, type SortPreset } from '@/lib/ai/presets'
 import type { WorkerResponse } from '@/lib/ai/worker'
+import { V2Shell } from '@/components/features/dashboard-v2/V2Shell'
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
@@ -789,13 +790,14 @@ export default function AISortPage() {
   }, [])
 
   return (
-    <div className="space-y-8 pb-12">
+    <V2Shell activeNav="AI Sort">
+    <div className="space-y-8 pb-12 mx-auto max-w-[1280px]">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-4xl font-headline font-extrabold tracking-tighter text-on-surface italic flex items-center gap-3">
-            <Sparkles className="w-8 h-8 text-primary" />
-            AI Neural Sort
+          <h1 className="text-4xl font-headline font-extrabold tracking-tighter text-white italic flex items-center gap-3">
+            <Sparkles className="w-8 h-8 text-indigo-400" />
+            AI Sort
           </h1>
           <p className="text-on-surface-variant/60 font-body mt-1 text-sm">
             Automatically categorize your shoot using computer vision — entirely in your browser.
@@ -841,5 +843,6 @@ export default function AISortPage() {
       )}
       {phase === 'results' && <ResultsPhase files={files} />}
     </div>
+    </V2Shell>
   )
 }

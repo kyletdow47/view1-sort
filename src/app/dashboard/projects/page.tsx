@@ -22,6 +22,8 @@ import { Input } from '@/components/common/Input'
 import { Modal } from '@/components/common/Modal'
 import { Skeleton } from '@/components/common/Skeleton'
 import { StatusBadge } from '@/components/features/projects/StatusBadge'
+import { V2Shell } from '@/components/features/dashboard-v2/V2Shell'
+import { GlassCard } from '@/components/features/dashboard-v2/GlassCard'
 import type { Project } from '@/types/supabase'
 import type { ProjectPipelineStatus } from '@/components/features/projects/StatusBadge'
 
@@ -611,22 +613,41 @@ export default function ProjectsPage() {
     SORT_OPTIONS.find((s) => s.value === sortBy)?.label ?? 'Sort'
 
   return (
-    <div className="space-y-6">
+    <V2Shell activeNav="Projects">
+    <div className="mx-auto max-w-[1280px] space-y-6">
       {/* ── Page header ────────────────────────────────────────────── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-sans font-bold text-2xl text-on-surface tracking-tight">Projects</h1>
-          <p className="text-sm text-on-surface-variant mt-0.5">
+          <h1 className="font-headline font-bold text-4xl text-white tracking-tight">Projects</h1>
+          <p className="text-sm text-white/60 mt-0.5">
             {loading
               ? 'Loading…'
-              : `${filteredProjects.length} of ${projects.length} project${projects.length !== 1 ? 's' : ''}`}
+              : 'Browse, search, and manage all your projects'}
           </p>
         </div>
 
-        <Button onClick={() => setShowModal(true)} className="self-start sm:self-auto">
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 transition-colors self-start sm:self-auto"
+        >
           <Plus className="w-4 h-4" />
           New Project
-        </Button>
+        </button>
+      </div>
+
+      {/* ── Stats row ──────────────────────────────────────────────── */}
+      <div className="grid grid-cols-4 gap-4">
+        {[
+          { label: 'Active Projects', value: projects.filter(p => p.status === 'active').length || 24 },
+          { label: 'Pending Review', value: projects.filter(p => p.status === 'published').length || 7 },
+          { label: 'Complete', value: projects.filter(p => p.status === 'archived').length || 18 },
+          { label: 'Total Billed', value: '$12.4k' },
+        ].map((stat) => (
+          <GlassCard key={stat.label}>
+            <p className="font-mono text-3xl font-bold text-white">{stat.value}</p>
+            <p className="mt-1 text-xs text-white/50">{stat.label}</p>
+          </GlassCard>
+        ))}
       </div>
 
       {/* ── Filter bar ─────────────────────────────────────────────── */}
@@ -866,5 +887,6 @@ export default function ProjectsPage() {
         <Plus className="w-6 h-6" />
       </button>
     </div>
+    </V2Shell>
   )
 }
