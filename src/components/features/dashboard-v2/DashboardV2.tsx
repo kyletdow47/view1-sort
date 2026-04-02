@@ -28,14 +28,14 @@ export function DashboardV2({
       <WelcomeSection userName={userName} />
 
       {/* Row 1: Activity + Projects + Quick Stats */}
-      <div className="grid min-h-[290px] grid-cols-3 gap-4">
+      <div className="grid h-[320px] grid-cols-3 gap-4">
         <RecentActivity />
         <RecentProjects projects={projects} photoCounts={photoCounts} />
         <QuickStats />
       </div>
 
       {/* Row 2: Calendar + Deliveries + Inbox */}
-      <div className="grid min-h-[280px] grid-cols-3 gap-4">
+      <div className="grid h-[310px] grid-cols-3 gap-4">
         <CalendarWidget />
         <ProjectDeliveries />
         <InboxWidget />
