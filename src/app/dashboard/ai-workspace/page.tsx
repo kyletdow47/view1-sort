@@ -624,13 +624,310 @@ export default function AIWorkspacePage() {
 
   const activeFiltersCount = (starFilter > 0 ? 1 : 0) + (colorFilter !== 'none' ? 1 : 0)
 
+  // Columns for kanban view
+  const KANBAN_COLUMNS: Array<{ id: SceneTabId; label: string; color: string }> = [
+    { id: 'ceremony', label: 'Ceremony', color: '#34D399' },
+    { id: 'portraits', label: 'Portraits', color: '#60A5FA' },
+    { id: 'reception', label: 'Reception', color: '#F472B6' },
+    { id: 'details', label: 'Details', color: '#FBBF24' },
+  ]
+
+  const PRIMARY_TABS = ['AI Sort', 'Review', 'Shot List', 'Gallery', 'Cull', 'Details']
+  const SUB_TABS = ['Upload', 'Workspace', 'Preferences', 'Vibe Presets']
+  const [primaryTab, setPrimaryTab] = useState('AI Sort')
+  const [subTab, setSubTab] = useState('Workspace')
+
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex gap-5 h-[calc(100vh-80px)] min-h-0">
+    <div className="flex h-[calc(100vh-56px)] flex-col">
 
-      {/* ── Left panel (70%) ──────────────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 min-w-0 gap-3">
+      {/* ── Project Header ─────────────────────────────────────────────────── */}
+      <div
+        className="flex h-14 shrink-0 items-center justify-between px-10"
+        style={{ background: 'rgba(255,255,255,0.04)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+      >
+        <div className="flex items-center gap-2 text-[13px]">
+          <span className="text-white/40">Projects</span>
+          <span className="text-white/30">/</span>
+          <span className="font-semibold text-white/90">Autumn Wedding — Sarah &amp; James</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="flex h-9 items-center gap-2 rounded-xl px-5 text-[13px] font-semibold text-white"
+            style={{ background: 'linear-gradient(180deg, #34D399 0%, #10B981 100%)' }}
+          >
+            <Zap className="h-4 w-4" />
+            Run AI Sort
+          </button>
+          <button
+            type="button"
+            className="flex h-9 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 text-[13px] font-semibold text-white backdrop-blur-sm hover:bg-white/15 transition-colors"
+          >
+            <Scissors className="h-4 w-4" />
+            Publish Gallery
+          </button>
+        </div>
+      </div>
+
+      {/* ── Primary Tab Bar ────────────────────────────────────────────────── */}
+      <div
+        className="flex shrink-0 items-center justify-between px-10 py-2"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <div
+          className="flex items-center gap-1 rounded-2xl p-1"
+          style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.18)' }}
+        >
+          {PRIMARY_TABS.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setPrimaryTab(tab)}
+              className={`rounded-xl px-4 py-1.5 text-[13px] font-medium transition-colors ${primaryTab === tab ? 'bg-white/[0.15] font-semibold text-white' : 'text-white/60 hover:text-white/80'}`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+        <span className="text-[13px] font-medium text-white/50">{photos.length} photos</span>
+      </div>
+
+      {/* ── Sub-tab row ───────────────────────────────────────────────────── */}
+      <div className="flex shrink-0 items-center justify-between px-10 py-2">
+        <div className="flex items-center gap-2">
+          {SUB_TABS.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setSubTab(tab)}
+              className={`rounded-xl px-4 py-1.5 text-[12px] font-medium transition-colors ${subTab === tab ? 'bg-white/[0.15] text-white font-semibold' : 'text-white/50 hover:text-white/70'}`}
+            >
+              {tab}
+            </button>
+          ))}
+          <div className="mx-2 h-4 w-px bg-white/15" />
+          <button type="button" className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/[0.06] px-3 py-1 text-[12px] font-medium text-white/70 hover:bg-white/10 transition-colors">
+            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" /> Full Approve <span className="font-bold text-white">20</span>
+          </button>
+          <button type="button" className="flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/[0.06] px-3 py-1 text-[12px] font-medium text-white/70 hover:bg-white/10 transition-colors">
+            <Eye className="h-3.5 w-3.5 text-sky-300" /> No-Blur <span className="font-bold text-white">21</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Main Content: Kanban + AI Analysis ────────────────────────────── */}
+      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden px-6 pb-2">
+
+        {/* Category kanban columns */}
+        <div className="flex flex-1 gap-3 overflow-x-auto">
+          {KANBAN_COLUMNS.map((col) => {
+            const colPhotos = photos.filter((p) => p.sceneTab === col.id)
+            const count = colPhotos.length
+            return (
+              <div key={col.id} className="flex w-[220px] shrink-0 flex-col gap-2">
+                {/* Column header */}
+                <div className="flex items-center justify-between px-2">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: col.color }} />
+                    <span className="text-[13px] font-semibold text-white/90">{col.label}</span>
+                  </div>
+                  <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-medium text-white/50">{count}</span>
+                </div>
+                {/* Photo cards */}
+                <div
+                  className="flex flex-1 flex-col gap-1.5 overflow-y-auto rounded-2xl p-2"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  {colPhotos.slice(0, 12).map((photo) => (
+                    <button
+                      key={photo.id}
+                      type="button"
+                      onClick={() => handleSelect(photo.id, false)}
+                      className={`group flex items-center gap-2 rounded-xl p-2 text-left transition-all hover:bg-white/10 ${selectedIds.has(photo.id) ? 'bg-white/[0.12] ring-1 ring-indigo-400/50' : ''}`}
+                    >
+                      <div className="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-white/[0.08]">
+                        {photo.thumbnail_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={photo.thumbnail_url} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center">
+                            <span className="text-[9px] font-bold text-white/20">{photo.id.slice(-3)}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[11px] font-medium text-white/80">{photo.filename}</p>
+                        <div className="mt-0.5 flex items-center gap-1">
+                          {photo.isBlurry && <span className="text-[9px] font-bold text-amber-300">Blur</span>}
+                          {photo.isDuplicate && <span className="text-[9px] font-bold text-violet-300">Dup</span>}
+                          {photo.starRating > 0 && <Star className="h-2.5 w-2.5 fill-yellow-300 text-yellow-300" />}
+                        </div>
+                      </div>
+                      <div className="h-2 w-2 shrink-0 rounded-full opacity-70" style={{ background: col.color }} />
+                    </button>
+                  ))}
+                  {count > 12 && (
+                    <p className="px-2 py-1 text-[11px] text-white/30">+{count - 12} more</p>
+                  )}
+                  {count === 0 && (
+                    <div className="flex h-20 items-center justify-center">
+                      <p className="text-[12px] text-white/20">No photos</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* ── AI Analysis Panel ─────────────────────────────────────────────── */}
+        <div
+          className="flex w-[260px] shrink-0 flex-col gap-4 overflow-y-auto rounded-3xl p-4"
+          style={{
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%)',
+            backdropFilter: 'blur(40px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            boxShadow: '0 8px 32px -4px rgba(0,0,0,0.25), 0 1px 0 rgba(255,255,255,0.15)',
+          }}
+        >
+          <span className="text-[15px] font-semibold text-white/90">AI Analysis</span>
+
+          {/* Quality Dimensions */}
+          <div className="flex flex-col gap-3">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Quality Dimensions</span>
+            {[
+              { label: 'Sharpness', value: 82, color: '#6366F1' },
+              { label: 'Exposure', value: 67, color: '#F59E0B' },
+              { label: 'Composition', value: 91, color: '#10B981' },
+              { label: 'Subject Focus', value: 75, color: '#60A5FA' },
+            ].map((dim) => (
+              <div key={dim.label} className="flex flex-col gap-1">
+                <div className="flex justify-between">
+                  <span className="text-[12px] text-white/70">{dim.label}</span>
+                  <span className="text-[12px] font-semibold text-white">{dim.value}%</span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full rounded-full transition-all" style={{ width: `${dim.value}%`, background: dim.color }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="h-px w-full bg-white/10" />
+
+          {/* Flagged Issues */}
+          <div className="flex flex-col gap-3">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-white/40">Flagged Issues</span>
+            <div
+              className="flex items-center justify-between rounded-xl px-3 py-2"
+              style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.2)' }}
+            >
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-300" />
+                <span className="text-[12px] text-white/80">Blur detected</span>
+              </div>
+              <span className="text-[12px] font-bold text-amber-300">{stats.blurry}</span>
+            </div>
+            <div
+              className="flex items-center justify-between rounded-xl px-3 py-2"
+              style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.2)' }}
+            >
+              <div className="flex items-center gap-2">
+                <Copy className="h-3.5 w-3.5 text-violet-300" />
+                <span className="text-[12px] text-white/80">Duplicates</span>
+              </div>
+              <span className="text-[12px] font-bold text-violet-300">{stats.duplicates}</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[0.08] text-[13px] font-semibold text-white hover:bg-white/15 transition-colors"
+          >
+            <Eye className="h-4 w-4" />
+            Review Flags
+          </button>
+
+          <div className="h-px w-full bg-white/10" />
+
+          {/* Classifier status */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] text-white/60">Classified</span>
+              <span className="text-[12px] font-semibold text-white">{classifiedCount} / {totalCount}</span>
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div className="h-full rounded-full bg-indigo-400 transition-all" style={{ width: `${(classifiedCount / totalCount) * 100}%` }} />
+            </div>
+            {classifierStatus === 'loading' && (
+              <p className="text-[11px] text-white/40">Loading AI model… {loadProgress}%</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Cull Slider Bar ──────────────────────────────────────────────────── */}
+      <div
+        className="flex shrink-0 items-center justify-between px-10 py-3"
+        style={{ background: 'rgba(255,255,255,0.04)', borderTop: '1px solid rgba(255,255,255,0.08)' }}
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-[12px] text-white/50">Focus View</span>
+          <span className="text-[13px] font-semibold text-white">{visiblePhotos.filter(p => p.cullStatus !== 'cull').length}</span>
+          <span className="text-[12px] text-white/30">/ {photos.length}</span>
+          <div className="relative h-1.5 w-32 overflow-hidden rounded-full bg-white/15">
+            <div className="h-full rounded-full bg-indigo-400" style={{ width: `${(visiblePhotos.filter(p => p.cullStatus !== 'cull').length / photos.length) * 100}%` }} />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setCullMode(!cullMode)}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors ${cullMode ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'border border-white/20 text-white/50 hover:text-white/70'}`}
+          >
+            <Scissors className="h-3.5 w-3.5" />
+            Cull Mode {cullMode ? 'On' : 'Off'}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Selection Toolbar ───────────────────────────────────────────────── */}
+      {selectedIds.size > 0 && (
+        <div className="flex shrink-0 items-center justify-center px-10 pb-4">
+          <div
+            className="flex items-center gap-4 rounded-3xl px-6 py-2.5"
+            style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 8px 32px -4px rgba(0,0,0,0.25)' }}
+          >
+            <span className="text-[13px] font-semibold text-white">{selectedIds.size} selected</span>
+            <div className="h-4 w-px bg-white/20" />
+            <button type="button" onClick={() => selectedIds.forEach(id => setStarRating(id, 5))}
+              className="flex items-center gap-1.5 text-[12px] font-medium text-white/70 hover:text-white transition-colors">
+              <Star className="h-4 w-4" /> Star
+            </button>
+            <button type="button" onClick={() => selectedIds.forEach(id => toggleCullStatus(id))}
+              className="flex items-center gap-1.5 text-[12px] font-medium text-red-300 hover:text-red-200 transition-colors">
+              <X className="h-4 w-4" /> Reject
+            </button>
+            <button type="button" onClick={() => selectedIds.forEach(id => toggleKeepStatus(id))}
+              className="flex items-center gap-1.5 text-[12px] font-medium text-emerald-300 hover:text-emerald-200 transition-colors">
+              <CheckCircle2 className="h-4 w-4" /> Approve
+            </button>
+            <button type="button"
+              className="flex items-center gap-1.5 text-[12px] font-medium text-white/70 hover:text-white transition-colors">
+              <ChevronDown className="h-4 w-4" /> Move To…
+            </button>
+            <div className="h-4 w-px bg-white/20" />
+            <button type="button" onClick={clearSelection}
+              className="text-[12px] font-medium text-white/40 hover:text-white/70 transition-colors">
+              Archive
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden: keep original left panel structure for logic ─────────────── */}
+      <div className="hidden">
+        <div className="flex flex-col flex-1 min-w-0 gap-3">
 
         {/* Scene tabs */}
         <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
@@ -1147,5 +1444,6 @@ export default function AIWorkspacePage() {
         </div>
       </div>
     </div>
+  </div>
   )
 }
