@@ -185,7 +185,7 @@ function ListView({ shoots }: { shoots: Shoot[] }) {
   const sorted = [...shoots].sort((a, b) => a.day - b.day)
 
   return (
-    <div className="flex flex-1 flex-col gap-1 overflow-y-auto">
+    <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
       {sorted.map((shoot, i) => (
         <div
           key={i}
@@ -236,7 +236,7 @@ export function CalendarWidget() {
   }, [month])
 
   return (
-    <GlassPanel variant="subtle" className="flex h-full flex-col gap-2 px-4 pb-3 pt-4">
+    <GlassPanel variant="subtle" className="flex h-full min-h-0 flex-col gap-2 overflow-hidden px-4 pb-3 pt-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold text-white/90" style={{ fontFamily: 'var(--font-inter)' }}>
