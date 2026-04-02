@@ -122,6 +122,21 @@ export default function SettingsPage() {
   const [autoSync, setAutoSync] = useState(true)
   const [portalLoading, setPortalLoading] = useState(false)
 
+  // AI Preferences state
+  const [shootingStyles, setShootingStyles] = useState<Set<string>>(new Set(['Wedding', 'Portrait']))
+  const [autoSortCategories, setAutoSortCategories] = useState<Set<string>>(
+    new Set(['Bridal', 'Ceremony', 'Reception', 'Portraits', 'Details'])
+  )
+  const [cullingFrequency, setCullingFrequency] = useState(65)
+  const [confidenceThreshold, setConfidenceThreshold] = useState(70)
+  const [autoRejectFilters, setAutoRejectFilters] = useState<Set<string>>(
+    new Set(['Blur', 'Eyes Closed'])
+  )
+  const [faceFamilySorting, setFaceFamilySorting] = useState(true)
+  const [kwInput, setKwInput] = useState('')
+  const [minKeywords, setMinKeywords] = useState<string[]>(['Golden Hour', 'Details', 'Candid'])
+  const [deliveryAuto, setDeliveryAuto] = useState(false)
+
   // Load profile + workspace on mount
   useEffect(() => {
     if (!user) return
@@ -460,6 +475,226 @@ export default function SettingsPage() {
                     }`}
                   />
                 </button>
+              </div>
+            </div>
+          </Card>
+
+          {/* AI Preferences */}
+          <Card>
+            <div className="flex items-center gap-2 mb-6">
+              <Zap size={18} className="text-primary" />
+              <h2 className="font-headline font-bold text-lg text-on-surface">AI Preferences</h2>
+            </div>
+
+            <div className="space-y-6">
+              {/* Shooting Style */}
+              <div className="space-y-2">
+                <SectionLabel>Shooting Style</SectionLabel>
+                <div className="flex flex-wrap gap-2">
+                  {['Wedding', 'Events', 'Portrait', 'Commercial', 'Landscape', 'Other'].map((s) => {
+                    const active = shootingStyles.has(s)
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => setShootingStyles((prev) => {
+                          const next = new Set(prev)
+                          if (next.has(s)) next.delete(s)
+                          else next.add(s)
+                          return next
+                        })}
+                        className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                          active
+                            ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary'
+                            : 'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/20 hover:ring-primary/30'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Auto-Sort Categories */}
+              <div className="space-y-2">
+                <SectionLabel>Auto-Sort Categories</SectionLabel>
+                <div className="grid grid-cols-3 gap-2">
+                  {['Bridal', 'Groom', 'Ceremony', 'Reception', 'Portraits', 'Group', 'Venue', 'Details', 'BTS'].map((cat) => {
+                    const active = autoSortCategories.has(cat)
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setAutoSortCategories((prev) => {
+                          const next = new Set(prev)
+                          if (next.has(cat)) next.delete(cat)
+                          else next.add(cat)
+                          return next
+                        })}
+                        className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                          active
+                            ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
+                            : 'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/20'
+                        }`}
+                      >
+                        <span className={`h-3.5 w-3.5 rounded flex items-center justify-center ${active ? 'bg-primary' : 'bg-surface-container-highest'}`}>
+                          {active && <Check size={9} className="text-on-primary" />}
+                        </span>
+                        {cat}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Culling Frequency */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <SectionLabel>Culling Frequency</SectionLabel>
+                  <span className="text-xs font-medium text-primary">{cullingFrequency}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={cullingFrequency}
+                  onChange={(e) => setCullingFrequency(Number(e.target.value))}
+                  className="w-full accent-[#6366F1]"
+                />
+                <div className="flex justify-between text-[10px] text-on-surface-variant/50">
+                  <span>Keep Most</span>
+                  <span>Aggressive Cull</span>
+                </div>
+              </div>
+
+              {/* Auto-Reject Filters */}
+              <div className="space-y-2">
+                <SectionLabel>Auto-Reject Filters</SectionLabel>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Blur', 'Eyes Closed', 'Blinks', 'Obstruction', 'Misc'].map((filter) => {
+                    const active = autoRejectFilters.has(filter)
+                    return (
+                      <div key={filter} className="flex items-center justify-between rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
+                        <span className="text-sm text-on-surface">{filter}</span>
+                        <button
+                          onClick={() => setAutoRejectFilters((prev) => {
+                            const next = new Set(prev)
+                            if (next.has(filter)) next.delete(filter)
+                            else next.add(filter)
+                            return next
+                          })}
+                          className={`relative h-5 w-9 rounded-full transition-colors ${active ? 'bg-primary' : 'bg-surface-container-highest'}`}
+                        >
+                          <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${active ? 'left-[18px]' : 'left-0.5'}`} />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Face Family Sorting + Confidence */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
+                  <span className="text-sm text-on-surface">Face Family Sorting</span>
+                  <button
+                    onClick={() => setFaceFamilySorting(!faceFamilySorting)}
+                    className={`relative h-5 w-9 rounded-full transition-colors ${faceFamilySorting ? 'bg-primary' : 'bg-surface-container-highest'}`}
+                  >
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${faceFamilySorting ? 'left-[18px]' : 'left-0.5'}`} />
+                  </button>
+                </div>
+                {faceFamilySorting && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <SectionLabel>Confidence Threshold</SectionLabel>
+                      <span className="text-xs font-medium text-primary">{confidenceThreshold}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={50}
+                      max={100}
+                      value={confidenceThreshold}
+                      onChange={(e) => setConfidenceThreshold(Number(e.target.value))}
+                      className="w-full accent-[#6366F1]"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Min Keywords */}
+              <div className="space-y-2">
+                <SectionLabel>Min Keywords</SectionLabel>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {minKeywords.map((kw) => (
+                    <span
+                      key={kw}
+                      className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary ring-1 ring-primary/20"
+                    >
+                      {kw}
+                      <button
+                        onClick={() => setMinKeywords((prev) => prev.filter((k) => k !== kw))}
+                        className="text-primary/60 hover:text-primary"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={kwInput}
+                    onChange={(e) => setKwInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && kwInput.trim()) {
+                        setMinKeywords((prev) => [...prev, kwInput.trim()])
+                        setKwInput('')
+                      }
+                    }}
+                    placeholder="Add keyword…"
+                    className="flex-1 rounded-lg bg-surface-container px-4 py-2 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20 focus:ring-primary/50"
+                  />
+                  <button
+                    onClick={() => {
+                      if (kwInput.trim()) {
+                        setMinKeywords((prev) => [...prev, kwInput.trim()])
+                        setKwInput('')
+                      }
+                    }}
+                    className="rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Delivery Schedule */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
+                  <span className="text-sm text-on-surface">Auto-Delivery Schedule</span>
+                  <button
+                    onClick={() => setDeliveryAuto(!deliveryAuto)}
+                    className={`relative h-5 w-9 rounded-full transition-colors ${deliveryAuto ? 'bg-primary' : 'bg-surface-container-highest'}`}
+                  >
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${deliveryAuto ? 'left-[18px]' : 'left-0.5'}`} />
+                  </button>
+                </div>
+                {deliveryAuto && (
+                  <div className="flex gap-3">
+                    <select className="flex-1 rounded-lg bg-surface-container px-3 py-2 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20">
+                      <option>Monday</option>
+                      <option>Wednesday</option>
+                      <option>Friday</option>
+                      <option>Saturday</option>
+                    </select>
+                    <select className="flex-1 rounded-lg bg-surface-container px-3 py-2 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20">
+                      <option>9:00 AM</option>
+                      <option>12:00 PM</option>
+                      <option>3:00 PM</option>
+                      <option>6:00 PM</option>
+                    </select>
+                  </div>
+                )}
               </div>
             </div>
           </Card>

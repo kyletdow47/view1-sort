@@ -25,7 +25,7 @@ export function DashboardV2({
   activeProjectCount = 0,
 }: DashboardV2Props) {
   return (
-    <div className="relative h-screen w-[1440px] mx-auto overflow-hidden rounded-2xl border border-white/[0.13]"
+    <div className="relative h-screen w-full max-w-[1440px] mx-auto overflow-x-hidden rounded-2xl border border-white/[0.13]"
       style={{
         background: 'linear-gradient(135deg, #1A3A8F 0%, #2D60D4 20%, #3B7DE8 40%, #5A6FE8 60%, #7B5EA7 80%, #1E2FA8 100%)',
       }}
@@ -44,12 +44,12 @@ export function DashboardV2({
         {/* Main layout */}
         <div className="flex flex-1 items-start justify-center overflow-hidden">
           {/* Center content column */}
-          <div className="relative flex w-[1438px] shrink-0 flex-col gap-6 px-[85px] pb-[85px] pt-8">
+          <div className="relative flex w-full flex-col gap-6 px-[85px] pb-[85px] pt-8">
             {/* Welcome / chat */}
             <WelcomeSection userName={userName} />
 
             {/* Row 1: Activity + Projects + Quick Stats */}
-            <div className="flex h-[290px] gap-4">
+            <div className="flex h-[290px] gap-4 overflow-x-auto">
               <div className="w-[284px] shrink-0">
                 <RecentActivity />
               </div>
@@ -62,7 +62,7 @@ export function DashboardV2({
             </div>
 
             {/* Row 2: Calendar + Deliveries + Inbox */}
-            <div className="flex flex-1 gap-4">
+            <div className="flex flex-1 gap-4 overflow-x-auto">
               <div className="w-[283px] shrink-0">
                 <CalendarWidget />
               </div>
