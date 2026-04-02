@@ -72,7 +72,7 @@ export default function FinancesPage() {
   const [activeTab, setActiveTab] = useState<string>('Finance')
 
   return (
-    <V2Shell activeNav="Finances">
+    <V2Shell>
       <div className="mx-auto max-w-[1280px] space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">

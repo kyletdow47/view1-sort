@@ -49,7 +49,7 @@ export default function GalleryPage() {
   const [activeTheme, setActiveTheme] = useState('Minimal Grid')
 
   return (
-    <V2Shell activeNav="Gallery">
+    <V2Shell>
       <div className="mx-auto max-w-[1280px] space-y-6">
         {/* Sub-tabs */}
         <div className="flex items-center gap-2">

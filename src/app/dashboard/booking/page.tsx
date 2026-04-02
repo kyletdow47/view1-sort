@@ -57,7 +57,7 @@ export default function BookingPage() {
   })
 
   return (
-    <V2Shell activeNav="Booking">
+    <V2Shell>
       <div className="mx-auto max-w-[1400px] space-y-6">
         {/* Sub-tabs */}
         <div className="flex items-center gap-2">

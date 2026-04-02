@@ -4,15 +4,13 @@ import { TopNav } from './TopNav'
 
 interface V2ShellProps {
   children: React.ReactNode
-  /** Which nav item is currently active */
-  activeNav?: string
 }
 
 /**
  * Shared shell for all v2 dashboard pages.
  * Provides the blue gradient background, floating TopNav, and scrollable content area.
  */
-export function V2Shell({ children, activeNav = 'Dashboard' }: V2ShellProps) {
+export function V2Shell({ children }: V2ShellProps) {
   return (
     <div
       className="relative min-h-screen w-full overflow-x-hidden"
@@ -32,7 +30,7 @@ export function V2Shell({ children, activeNav = 'Dashboard' }: V2ShellProps) {
 
       {/* Content */}
       <div className="relative flex min-h-screen flex-col">
-        <TopNav activeNav={activeNav} />
+        <TopNav />
         <main className="flex-1 overflow-y-auto px-6 pb-10 pt-6 md:px-10 lg:px-[85px]">
           {children}
         </main>

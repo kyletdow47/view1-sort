@@ -51,7 +51,7 @@ export default function ContentHubPage() {
   const [activePlatform, setActivePlatform] = useState('All')
 
   return (
-    <V2Shell activeNav="Content Hub">
+    <V2Shell>
       <div className="mx-auto max-w-[1280px] space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">
