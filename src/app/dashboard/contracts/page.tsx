@@ -6,14 +6,12 @@ import {
   Plus,
   Send,
   Download,
-  Bell,
   CheckCircle2,
   Clock,
   AlertTriangle,
-  FileSignature,
-  ReceiptText,
   X,
-  ChevronRight,
+  FileQuestion,
+  LayoutTemplate,
 } from 'lucide-react'
 
 /* ------------------------------------------------------------------ */
@@ -21,7 +19,7 @@ import {
 /* ------------------------------------------------------------------ */
 
 type ContractStatus = 'Draft' | 'Sent' | 'Signed' | 'Expired'
-type InvoiceStatus = 'Unpaid' | 'Paid' | 'Overdue'
+type Tab = 'Contracts' | 'Templates' | 'Questionnaires'
 
 interface Contract {
   id: string
@@ -30,18 +28,8 @@ interface Contract {
   status: ContractStatus
   sentDate: string | null
   signedDate: string | null
+  type: string
   body: string
-}
-
-interface Invoice {
-  id: string
-  invoiceNumber: string
-  project: string
-  clientName: string
-  amount: number
-  status: InvoiceStatus
-  dueDate: string
-  paidDate: string | null
 }
 
 /* ------------------------------------------------------------------ */
@@ -51,12 +39,13 @@ interface Invoice {
 const INITIAL_CONTRACTS: Contract[] = [
   {
     id: 'c-1',
-    projectName: 'Johnson Wedding',
-    clientName: 'Sarah & Tom Johnson',
+    projectName: 'Smith Wedding Photography',
+    clientName: 'Sarah & Tom Smith',
     status: 'Signed',
     sentDate: 'Mar 1, 2026',
     signedDate: 'Mar 3, 2026',
-    body: `This Photography Services Agreement ("Agreement") is entered into as of March 1, 2026, between Aperture Studios ("Photographer") and Sarah & Tom Johnson ("Client").\n\n1. SERVICES\nPhotographer agrees to provide wedding photography services for the event scheduled on June 14, 2026. Coverage includes 8 hours of photography, two photographers, and delivery of 800+ fully edited digital images.\n\n2. PAYMENT\nClient agrees to pay a total of $3,200 USD. A 50% retainer of $1,600 is due upon signing. The remaining balance is due 14 days before the event date.\n\n3. DELIVERABLES\nPhotographer will deliver an online gallery within 6 weeks of the event date.\n\n4. CANCELLATION\nCancellations made fewer than 30 days before the event forfeit the retainer.`,
+    type: 'Wedding Contract',
+    body: `This Photography Services Agreement ("Agreement") is entered into as of March 1, 2026, between Kyle Dow Photography ("Photographer") and Sarah & Tom Smith ("Client").\n\n1. SERVICES\nPhotographer agrees to provide wedding photography services for the event scheduled on June 14, 2026. Coverage includes 8 hours of photography, two photographers, and delivery of 800+ fully edited digital images.\n\n2. PAYMENT\nClient agrees to pay a total of $3,200 USD. A 50% retainer of $1,600 is due upon signing. The remaining balance is due 14 days before the event date.\n\n3. DELIVERABLES\nPhotographer will deliver an online gallery within 6 weeks of the event date.\n\n4. CANCELLATION\nCancellations made fewer than 30 days before the event forfeit the retainer.`,
   },
   {
     id: 'c-2',
@@ -65,7 +54,8 @@ const INITIAL_CONTRACTS: Contract[] = [
     status: 'Sent',
     sentDate: 'Mar 20, 2026',
     signedDate: null,
-    body: `This Photography Services Agreement is entered into as of March 20, 2026, between Aperture Studios ("Photographer") and Meridian Hotel Group ("Client").\n\n1. SERVICES\nPhotographer will provide commercial photography services for a half-day brand shoot on April 5, 2026, including product, lifestyle, and team photography.\n\n2. PAYMENT\nClient agrees to pay $1,800 USD net-30 upon delivery of final images.\n\n3. LICENSE\nClient receives a perpetual commercial license for all delivered images for use in digital and print marketing materials.`,
+    type: 'Commercial Contract',
+    body: `This Photography Services Agreement is entered into as of March 20, 2026, between Kyle Dow Photography ("Photographer") and Meridian Hotel Group ("Client").\n\n1. SERVICES\nPhotographer will provide commercial photography services for a half-day brand shoot on April 5, 2026.\n\n2. PAYMENT\nClient agrees to pay $1,800 USD net-30 upon delivery of final images.\n\n3. LICENSE\nClient receives a perpetual commercial license for all delivered images.`,
   },
   {
     id: 'c-3',
@@ -74,139 +64,119 @@ const INITIAL_CONTRACTS: Contract[] = [
     status: 'Draft',
     sentDate: null,
     signedDate: null,
-    body: `This Photography Services Agreement is being prepared for a portrait session with Maria Torres, scheduled for April 12, 2026.\n\n1. SERVICES\nPhotographer will provide a 90-minute portrait session and deliver 30 fully edited digital images.\n\n2. PAYMENT\nSession fee of $450 USD due upon booking.\n\n3. USAGE\nImages are licensed for personal use only. Commercial usage requires a separate licensing agreement.`,
+    type: 'Portrait Contract',
+    body: `This Photography Services Agreement is being prepared for a portrait session with Maria Torres, scheduled for April 12, 2026.\n\n1. SERVICES\nPhotographer will provide a 90-minute portrait session and deliver 30 fully edited digital images.\n\n2. PAYMENT\nSession fee of $450 USD due upon booking.\n\n3. USAGE\nImages are licensed for personal use only.`,
   },
 ]
 
-const INITIAL_INVOICES: Invoice[] = [
-  {
-    id: 'inv-1',
-    invoiceNumber: 'INV-0042',
-    project: 'Johnson Wedding',
-    clientName: 'Sarah & Tom Johnson',
-    amount: 1600,
-    status: 'Paid',
-    dueDate: 'Mar 10, 2026',
-    paidDate: 'Mar 8, 2026',
-  },
-  {
-    id: 'inv-2',
-    invoiceNumber: 'INV-0043',
-    project: 'Meridian Hotel Brand',
-    clientName: 'Alex Torres',
-    amount: 1800,
-    status: 'Unpaid',
-    dueDate: 'Apr 20, 2026',
-    paidDate: null,
-  },
-  {
-    id: 'inv-3',
-    invoiceNumber: 'INV-0041',
-    project: 'Coastal Real Estate',
-    clientName: 'Property Pros LLC',
-    amount: 920,
-    status: 'Overdue',
-    dueDate: 'Mar 15, 2026',
-    paidDate: null,
-  },
+const MOCK_TEMPLATES = [
+  { id: 't-1', name: 'Wedding Photography Contract', category: 'Wedding', lastUsed: 'Mar 2026' },
+  { id: 't-2', name: 'Portrait Session Agreement', category: 'Portrait', lastUsed: 'Feb 2026' },
+  { id: 't-3', name: 'Commercial License Agreement', category: 'Commercial', lastUsed: 'Jan 2026' },
+  { id: 't-4', name: 'Event Photography Contract', category: 'Events', lastUsed: 'Dec 2025' },
+]
+
+const MOCK_QUESTIONNAIRES = [
+  { id: 'q-1', name: 'Wedding Pre-Shoot Questionnaire', responses: 12, category: 'Wedding' },
+  { id: 'q-2', name: 'Portrait Session Details', responses: 8, category: 'Portrait' },
+  { id: 'q-3', name: 'Commercial Brief', responses: 3, category: 'Commercial' },
 ]
 
 /* ------------------------------------------------------------------ */
-/*  Status configs                                                      */
+/*  Status config                                                       */
 /* ------------------------------------------------------------------ */
 
-const CONTRACT_STATUS: Record<ContractStatus, { label: string; className: string; icon: React.ElementType }> = {
-  Draft:   { label: 'Draft',  className: 'bg-surface-container-high text-on-surface-variant border-outline-variant/30', icon: FileText },
-  Sent:    { label: 'Sent',   className: 'bg-sky-400/10 text-sky-400 border-sky-400/20', icon: Send },
-  Signed:  { label: 'Signed', className: 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20', icon: CheckCircle2 },
-  Expired: { label: 'Expired',className: 'bg-error/10 text-error border-error/20', icon: AlertTriangle },
-}
-
-const INVOICE_STATUS: Record<InvoiceStatus, { label: string; className: string; icon: React.ElementType }> = {
-  Unpaid:  { label: 'Unpaid',  className: 'bg-amber-400/10 text-amber-400 border-amber-400/20', icon: Clock },
-  Paid:    { label: 'Paid',    className: 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20', icon: CheckCircle2 },
-  Overdue: { label: 'Overdue', className: 'bg-error/10 text-error border-error/20', icon: AlertTriangle },
+const CONTRACT_STATUS: Record<ContractStatus, { label: string; bg: string; text: string }> = {
+  Draft:   { label: 'Draft',   bg: 'rgba(255,255,255,0.08)',  text: '#FFFFFF80' },
+  Sent:    { label: 'Sent',    bg: 'rgba(96,165,250,0.18)',   text: '#60A5FA'   },
+  Signed:  { label: 'Signed',  bg: 'rgba(52,211,153,0.18)',   text: '#34D399'   },
+  Expired: { label: 'Expired', bg: 'rgba(248,113,113,0.18)',  text: '#F87171'   },
 }
 
 /* ------------------------------------------------------------------ */
-/*  Shared primitives                                                   */
-/* ------------------------------------------------------------------ */
-
-function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-2xl border border-outline-variant/30 bg-surface-container-low ${className}`}>
-      {children}
-    </div>
-  )
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
-      {children}
-    </span>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Contract preview panel                                             */
+/*  Contract preview                                                    */
 /* ------------------------------------------------------------------ */
 
 function ContractPreview({ contract, onClose }: { contract: Contract; onClose: () => void }) {
   const [body, setBody] = useState(contract.body)
 
   return (
-    <Card className="flex flex-col h-full">
-      <div className="flex items-center justify-between p-5 border-b border-outline-variant/20">
+    <div
+      className="flex h-full flex-col rounded-2xl"
+      style={{
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)',
+        backdropFilter: 'blur(32px)',
+        border: '1px solid rgba(255,255,255,0.15)',
+      }}
+    >
+      {/* Preview header */}
+      <div className="flex items-start justify-between p-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <div>
-          <h3 className="font-headline font-extrabold text-on-surface">{contract.projectName}</h3>
-          <p className="text-xs text-on-surface-variant mt-0.5">{contract.clientName}</p>
-        </div>
-        <button onClick={onClose} className="rounded-lg p-1.5 text-on-surface-variant hover:bg-surface-container-high transition-colors">
-          <X size={15} />
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
-        <div className="space-y-1.5">
-          <SectionLabel>Contract Body</SectionLabel>
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            rows={16}
-            className="w-full rounded-xl bg-background px-4 py-3 text-sm text-on-surface font-body leading-relaxed outline-none ring-1 ring-outline-variant/30 focus:ring-primary/50 resize-none"
-          />
-        </div>
-
-        {/* Signature blocks */}
-        <div className="space-y-1.5">
-          <SectionLabel>Signature Blocks</SectionLabel>
-          <div className="grid grid-cols-2 gap-4">
-            {['Photographer', 'Client'].map((party) => (
-              <div key={party} className="rounded-xl border border-outline-variant/20 bg-surface-container p-4 space-y-3">
-                <p className="text-xs font-medium text-on-surface-variant">{party}</p>
-                <div className="h-12 rounded-lg border border-dashed border-outline-variant/30 flex items-center justify-center">
-                  <span className="text-[10px] text-on-surface-variant/40 uppercase tracking-wider">Signature</span>
-                </div>
-                <div className="h-px bg-outline-variant/20" />
-                <p className="text-[10px] text-on-surface-variant/50">Date: ______________</p>
-              </div>
-            ))}
+          <h3 className="text-[15px] font-bold text-white">{contract.projectName}</h3>
+          <p className="mt-0.5 text-[12px] text-white/50">{contract.clientName}</p>
+          <div className="mt-2 flex items-center gap-3 text-[11px] text-white/40">
+            <span>{contract.type}</span>
+            {contract.sentDate && <span>· Sent {contract.sentDate}</span>}
+            {contract.signedDate && <span className="text-emerald-400">· Signed {contract.signedDate}</span>}
           </div>
         </div>
+        <button
+          onClick={onClose}
+          className="rounded-lg p-1.5 text-white/40 transition-colors hover:bg-white/10 hover:text-white/80"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
-      <div className="p-5 border-t border-outline-variant/20 flex gap-3">
-        <button className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity">
-          <Send size={14} />
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        <textarea
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          rows={14}
+          className="w-full rounded-xl px-4 py-3 text-[13px] leading-relaxed text-white/80 outline-none resize-none"
+          style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.10)' }}
+        />
+
+        {/* Signature blocks */}
+        <div className="grid grid-cols-2 gap-3">
+          {['Photographer', 'Client'].map((party) => (
+            <div
+              key={party}
+              className="rounded-xl p-4 space-y-3"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <p className="text-[11px] font-semibold text-white/50 uppercase tracking-wide">{party}</p>
+              <div
+                className="flex h-10 items-center justify-center rounded-lg"
+                style={{ border: '1px dashed rgba(255,255,255,0.15)' }}
+              >
+                <span className="text-[10px] text-white/20 uppercase tracking-wider">Signature</span>
+              </div>
+              <div className="h-px bg-white/[0.06]" />
+              <p className="text-[10px] text-white/30">Date: ______________</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-3 p-5" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+        <button
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}
+        >
+          <Send className="h-3.5 w-3.5" />
           Send to Client
         </button>
-        <button className="flex items-center gap-2 rounded-xl border border-outline-variant/30 px-4 py-2.5 text-sm font-medium text-on-surface-variant hover:border-primary/30 hover:text-primary transition-colors">
-          <Download size={14} />
-          PDF
+        <button
+          className="flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2.5 text-[13px] font-medium text-white/60 transition-colors hover:bg-white/10 hover:text-white/90"
+        >
+          <Download className="h-3.5 w-3.5" />
+          Download PDF
         </button>
       </div>
-    </Card>
+    </div>
   )
 }
 
@@ -221,75 +191,79 @@ function ContractsTab() {
   function addContract() {
     const newContract: Contract = {
       id: `c-${Date.now()}`,
-      projectName: 'New Project',
+      projectName: 'New Contract',
       clientName: 'Client Name',
       status: 'Draft',
       sentDate: null,
       signedDate: null,
+      type: 'Photography Contract',
       body: 'Start writing your contract here...',
     }
     setContracts([newContract, ...contracts])
     setSelectedId(newContract.id)
   }
 
-  const selectedContract = contracts.find((c) => c.id === selectedId) ?? null
+  const selected = contracts.find((c) => c.id === selectedId) ?? null
 
   return (
-    <div className="flex gap-5 min-h-[520px]">
-      {/* List */}
-      <div className="flex flex-col gap-3 w-full max-w-sm shrink-0">
+    <div className="flex flex-1 gap-4 overflow-hidden">
+      {/* Left list */}
+      <div className="flex w-[280px] shrink-0 flex-col gap-2 overflow-y-auto">
         <button
           onClick={addContract}
-          className="flex items-center gap-2 rounded-xl border border-dashed border-outline-variant/40 px-4 py-3 text-sm font-medium text-on-surface-variant hover:border-primary/40 hover:text-primary transition-colors"
+          className="flex items-center gap-2 rounded-xl border border-dashed border-white/15 px-4 py-3 text-[13px] font-medium text-white/50 transition-colors hover:border-indigo-400/40 hover:text-indigo-300"
         >
-          <Plus size={15} />
+          <Plus className="h-4 w-4" />
           New Contract
         </button>
 
         {contracts.map((contract) => {
           const cfg = CONTRACT_STATUS[contract.status]
-          const StatusIcon = cfg.icon
           const isSelected = selectedId === contract.id
-
           return (
             <button
               key={contract.id}
               onClick={() => setSelectedId(isSelected ? null : contract.id)}
-              className={`text-left rounded-2xl border p-4 transition-all ${
-                isSelected
-                  ? 'border-primary/40 bg-surface-container'
-                  : 'border-outline-variant/30 bg-surface-container-low hover:border-outline-variant/50'
-              }`}
+              className="rounded-xl p-4 text-left transition-all"
+              style={{
+                background: isSelected ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${isSelected ? 'rgba(99,102,241,0.40)' : 'rgba(255,255,255,0.10)'}`,
+              }}
             >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-on-surface truncate">{contract.projectName}</p>
-                <span className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${cfg.className}`}>
-                  <StatusIcon size={9} />
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-[13px] font-semibold text-white/90 leading-tight">{contract.projectName}</p>
+                <span
+                  className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                  style={{ background: cfg.bg, color: cfg.text }}
+                >
                   {cfg.label}
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-on-surface-variant truncate">{contract.clientName}</p>
-              <div className="mt-2 flex items-center gap-3 text-[10px] text-on-surface-variant/50">
+              <p className="mt-1 text-[11px] text-white/40 truncate">{contract.clientName}</p>
+              <p className="mt-1 text-[10px] text-white/30">{contract.type}</p>
+              <div className="mt-2 flex items-center gap-2 text-[10px] text-white/30">
                 {contract.sentDate && <span>Sent {contract.sentDate}</span>}
-                {contract.signedDate && <span className="text-emerald-400">Signed {contract.signedDate}</span>}
-                {!contract.sentDate && <span>Not sent</span>}
+                {contract.signedDate && <span className="text-emerald-400/80">· Signed {contract.signedDate}</span>}
+                {!contract.sentDate && <span>Not yet sent</span>}
               </div>
-              {isSelected && <ChevronRight size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-primary" />}
             </button>
           )
         })}
       </div>
 
-      {/* Preview */}
+      {/* Right preview */}
       <div className="flex-1 min-w-0">
-        {selectedContract ? (
-          <ContractPreview contract={selectedContract} onClose={() => setSelectedId(null)} />
+        {selected ? (
+          <ContractPreview contract={selected} onClose={() => setSelectedId(null)} />
         ) : (
-          <Card className="flex flex-col items-center justify-center h-full py-16">
-            <FileSignature size={40} className="text-on-surface-variant/20 mb-3" />
-            <p className="text-sm font-medium text-on-surface">Select a contract to preview</p>
-            <p className="text-xs text-on-surface-variant mt-1">Or create a new one to get started</p>
-          </Card>
+          <div
+            className="flex h-full flex-col items-center justify-center rounded-2xl"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            <FileText className="h-10 w-10 text-white/15 mb-3" />
+            <p className="text-[13px] font-medium text-white/40">Select a contract to preview</p>
+            <p className="mt-1 text-[11px] text-white/25">Or create a new one to get started</p>
+          </div>
         )}
       </div>
     </div>
@@ -297,136 +271,82 @@ function ContractsTab() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Invoices tab                                                        */
+/*  Templates tab                                                       */
 /* ------------------------------------------------------------------ */
 
-function InvoicesTab() {
-  const [invoices, setInvoices] = useState<Invoice[]>(INITIAL_INVOICES)
-
-  function markPaid(id: string) {
-    setInvoices(invoices.map((inv) =>
-      inv.id === id
-        ? { ...inv, status: 'Paid', paidDate: 'Mar 30, 2026' }
-        : inv
-    ))
-  }
-
-  function addInvoice() {
-    const newInvoice: Invoice = {
-      id: `inv-${Date.now()}`,
-      invoiceNumber: `INV-${String(Math.floor(Math.random() * 9000) + 1000)}`,
-      project: 'New Project',
-      clientName: 'Client Name',
-      amount: 0,
-      status: 'Unpaid',
-      dueDate: 'Apr 30, 2026',
-      paidDate: null,
-    }
-    setInvoices([...invoices, newInvoice])
-  }
-
-  const totalUnpaid = invoices.filter((i) => i.status !== 'Paid').reduce((s, i) => s + i.amount, 0)
-  const totalPaid = invoices.filter((i) => i.status === 'Paid').reduce((s, i) => s + i.amount, 0)
-
+function TemplatesTab() {
   return (
-    <div className="space-y-4">
-      {/* Summary bar */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {[
-          { label: 'Outstanding', value: `$${totalUnpaid.toLocaleString()}`, accent: 'text-amber-400' },
-          { label: 'Collected', value: `$${totalPaid.toLocaleString()}`, accent: 'text-emerald-400' },
-          { label: 'Total Invoices', value: String(invoices.length), accent: 'text-primary' },
-        ].map(({ label, value, accent }) => (
-          <div key={label} className="rounded-2xl border border-outline-variant/30 bg-surface-container-low p-4">
-            <SectionLabel>{label}</SectionLabel>
-            <p className={`font-headline text-2xl font-extrabold mt-1 ${accent}`}>{value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* New invoice button */}
-      <div className="flex justify-end">
+    <div className="flex flex-1 flex-col gap-4 overflow-hidden">
+      <div className="flex items-center justify-between">
+        <p className="text-[13px] text-white/50">{MOCK_TEMPLATES.length} templates available</p>
         <button
-          onClick={addInvoice}
-          className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-primary to-primary-dim px-4 py-2.5 text-sm font-bold text-on-primary hover:opacity-90 transition-opacity"
+          className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[12px] font-semibold text-white transition-opacity hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}
         >
-          <Plus size={15} />
-          New Invoice
+          <Plus className="h-3.5 w-3.5" />
+          New Template
         </button>
       </div>
 
-      {/* Invoice list */}
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-outline-variant/20">
-                {['Invoice #', 'Project', 'Client', 'Amount', 'Status', 'Due Date', 'Actions'].map((col) => (
-                  <th key={col} className="text-left px-4 py-3 text-[10px] uppercase tracking-widest font-medium text-on-surface-variant/60">
-                    {col}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((invoice) => {
-                const cfg = INVOICE_STATUS[invoice.status]
-                const StatusIcon = cfg.icon
-                return (
-                  <tr key={invoice.id} className="border-b border-outline-variant/10 hover:bg-surface-container/50 transition-colors">
-                    <td className="px-4 py-3.5">
-                      <span className="font-mono text-sm font-medium text-on-surface">{invoice.invoiceNumber}</span>
-                    </td>
-                    <td className="px-4 py-3.5 text-sm text-on-surface">{invoice.project}</td>
-                    <td className="px-4 py-3.5 text-sm text-on-surface-variant">{invoice.clientName}</td>
-                    <td className="px-4 py-3.5">
-                      <span className="font-mono text-sm font-semibold text-on-surface">${invoice.amount.toLocaleString()}</span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-medium ${cfg.className}`}>
-                        <StatusIcon size={9} />
-                        {cfg.label}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-sm text-on-surface-variant">
-                      {invoice.paidDate ? (
-                        <span className="text-emerald-400">Paid {invoice.paidDate}</span>
-                      ) : (
-                        invoice.dueDate
-                      )}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-2">
-                        {invoice.status !== 'Paid' && (
-                          <>
-                            <button className="flex items-center gap-1 rounded-lg border border-outline-variant/30 px-2.5 py-1 text-[11px] font-medium text-on-surface-variant hover:border-primary/30 hover:text-primary transition-colors">
-                              <Bell size={10} />
-                              Remind
-                            </button>
-                            <button
-                              onClick={() => markPaid(invoice.id)}
-                              className="flex items-center gap-1 rounded-lg border border-emerald-400/30 px-2.5 py-1 text-[11px] font-medium text-emerald-400 hover:bg-emerald-400/10 transition-colors"
-                            >
-                              <CheckCircle2 size={10} />
-                              Mark Paid
-                            </button>
-                          </>
-                        )}
-                        {invoice.status === 'Paid' && (
-                          <button className="flex items-center gap-1 rounded-lg border border-outline-variant/30 px-2.5 py-1 text-[11px] font-medium text-on-surface-variant hover:border-primary/30 hover:text-primary transition-colors">
-                            <Download size={10} />
-                            Receipt
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+      <div className="grid grid-cols-2 gap-3 overflow-y-auto">
+        {MOCK_TEMPLATES.map((t) => (
+          <button
+            key={t.id}
+            className="flex flex-col gap-2 rounded-xl p-4 text-left transition-colors hover:bg-white/10"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
+          >
+            <div className="flex items-start justify-between">
+              <LayoutTemplate className="h-5 w-5 text-indigo-400 shrink-0" />
+              <span className="rounded-full bg-indigo-400/15 px-2 py-0.5 text-[10px] font-medium text-indigo-300">
+                {t.category}
+              </span>
+            </div>
+            <p className="text-[13px] font-semibold text-white/90">{t.name}</p>
+            <p className="text-[11px] text-white/35">Last used {t.lastUsed}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Questionnaires tab                                                  */
+/* ------------------------------------------------------------------ */
+
+function QuestionnairesTab() {
+  return (
+    <div className="flex flex-1 flex-col gap-4 overflow-hidden">
+      <div className="flex items-center justify-between">
+        <p className="text-[13px] text-white/50">{MOCK_QUESTIONNAIRES.length} questionnaires</p>
+        <button
+          className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[12px] font-semibold text-white transition-opacity hover:opacity-90"
+          style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}
+        >
+          <Plus className="h-3.5 w-3.5" />
+          New Questionnaire
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-2 overflow-y-auto">
+        {MOCK_QUESTIONNAIRES.map((q) => (
+          <button
+            key={q.id}
+            className="flex items-center gap-4 rounded-xl p-4 text-left transition-colors hover:bg-white/10"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
+          >
+            <FileQuestion className="h-8 w-8 shrink-0 rounded-xl bg-violet-400/15 p-1.5 text-violet-300" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-semibold text-white/90">{q.name}</p>
+              <p className="text-[11px] text-white/40">{q.category}</p>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="text-[15px] font-bold text-white/80">{q.responses}</p>
+              <p className="text-[10px] text-white/35">responses</p>
+            </div>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -435,47 +355,59 @@ function InvoicesTab() {
 /*  Page                                                                */
 /* ------------------------------------------------------------------ */
 
-type Tab = 'Contracts' | 'Invoices'
+const TABS: { key: Tab; icon: React.ElementType }[] = [
+  { key: 'Contracts', icon: FileText },
+  { key: 'Templates', icon: LayoutTemplate },
+  { key: 'Questionnaires', icon: FileQuestion },
+]
 
 export default function ContractsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('Contracts')
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2.5">
-          <FileText size={22} className="text-primary shrink-0" />
-          <h1 className="font-headline text-3xl italic font-extrabold text-on-surface">Contracts & Invoices</h1>
-        </div>
-        <p className="mt-1 text-sm text-on-surface-variant">
-          Manage agreements and billing for every project
-        </p>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex items-center gap-1 rounded-xl border border-outline-variant/30 bg-surface-container-low p-1 w-fit">
-        {(['Contracts', 'Invoices'] as Tab[]).map((tab) => {
-          const Icon = tab === 'Contracts' ? FileSignature : ReceiptText
-          return (
+    <div className="flex h-[calc(100vh-56px)] flex-col gap-0">
+      {/* Tab bar */}
+      <div
+        className="flex shrink-0 items-center justify-between px-8 py-3"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+      >
+        <div
+          className="flex items-center gap-1 rounded-2xl p-1"
+          style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.15)' }}
+        >
+          {TABS.map(({ key, icon: Icon }) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-medium transition-all ${
-                activeTab === tab
-                  ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary shadow-sm'
-                  : 'text-on-surface-variant hover:text-on-surface'
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex items-center gap-1.5 rounded-xl px-4 py-1.5 text-[13px] font-medium transition-colors ${
+                activeTab === key ? 'bg-white/[0.15] font-semibold text-white' : 'text-white/60 hover:text-white/80'
               }`}
             >
-              <Icon size={14} />
-              {tab}
+              <Icon className="h-3.5 w-3.5" />
+              {key}
             </button>
-          )
-        })}
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {activeTab === 'Contracts' && (
+            <>
+              <div className="flex items-center gap-3 text-[12px] text-white/40">
+                <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-400" /> 1 Signed</span>
+                <span className="flex items-center gap-1"><Clock className="h-3 w-3 text-blue-400" /> 1 Sent</span>
+                <span className="flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-white/30" /> 1 Draft</span>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Tab content */}
-      {activeTab === 'Contracts' ? <ContractsTab /> : <InvoicesTab />}
+      {/* Content */}
+      <div className="flex flex-1 overflow-hidden px-6 py-4">
+        {activeTab === 'Contracts' && <ContractsTab />}
+        {activeTab === 'Templates' && <TemplatesTab />}
+        {activeTab === 'Questionnaires' && <QuestionnairesTab />}
+      </div>
     </div>
   )
 }
