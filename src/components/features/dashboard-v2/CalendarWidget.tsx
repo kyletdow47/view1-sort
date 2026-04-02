@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronDown, Calendar, List } from 'lucide-react'
+import { ChevronDown, Calendar, List, ArrowUpRight } from 'lucide-react'
 import { GlassPanel } from './GlassPanel'
 import { cn } from '@/lib/utils'
 
@@ -78,20 +78,23 @@ export function CalendarWidget() {
         <span className="text-sm font-bold text-white/[0.93]" style={{ fontFamily: 'var(--font-inter)' }}>
           Upcoming shoots
         </span>
-        <div className="flex items-center gap-1">
-          <span className="text-xs font-medium text-white/50">February</span>
-          <ChevronDown className="h-3 w-3 text-white/[0.38]" />
-        </div>
-        {/* View Toggle */}
-        <div className="flex items-center gap-0.5 rounded-lg bg-white/[0.06] p-[3px]">
-          <button className="flex items-center gap-1 rounded-md bg-white/[0.13] px-2 py-1">
-            <Calendar className="h-3 w-3 text-white" />
-            <span className="text-[9px] font-semibold text-white">Cal</span>
-          </button>
-          <button className="flex items-center gap-1 rounded-md px-2 py-1">
-            <List className="h-3 w-3 text-white/50" />
-            <span className="text-[9px] font-medium text-white/50">List</span>
-          </button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <span className="text-xs font-medium text-white/50">February</span>
+            <ChevronDown className="h-3 w-3 text-white/[0.38]" />
+          </div>
+          {/* View Toggle */}
+          <div className="flex items-center gap-0.5 rounded-lg bg-white/[0.06] p-[3px]">
+            <button className="flex items-center gap-1 rounded-md bg-white/[0.13] px-2 py-1">
+              <Calendar className="h-3 w-3 text-white" />
+              <span className="text-[9px] font-semibold text-white">Cal</span>
+            </button>
+            <button className="flex items-center gap-1 rounded-md px-2 py-1">
+              <List className="h-3 w-3 text-white/50" />
+              <span className="text-[9px] font-medium text-white/50">List</span>
+            </button>
+          </div>
+          <ArrowUpRight className="h-4 w-4 text-white/[0.67]" />
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle, FolderOpen, Camera, CalendarDays } from 'lucide-react'
+import { CheckCircle, FolderOpen, Camera, CalendarDays, ArrowUpRight } from 'lucide-react'
 import { GlassPanel } from './GlassPanel'
 import { ProgressRing } from './ProgressRing'
 
@@ -42,9 +42,12 @@ const stats = [
 export function QuickStats() {
   return (
     <GlassPanel className="flex h-full w-full flex-col gap-3 p-4">
-      <span className="text-[14px] font-semibold tracking-[0.5px] text-white/[0.67]">
-        Quick Stats
-      </span>
+      <div className="flex items-center justify-between">
+        <span className="text-[14px] font-semibold tracking-[0.5px] text-white/[0.67]">
+          Quick Stats
+        </span>
+        <ArrowUpRight className="h-4 w-4 text-white/[0.67]" />
+      </div>
 
       {/* 2x2 Grid */}
       <div className="grid flex-1 grid-cols-2 gap-2">

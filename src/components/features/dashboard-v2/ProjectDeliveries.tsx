@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowUpRight } from 'lucide-react'
 import { GlassPanel } from './GlassPanel'
 
 const deliveries = [
@@ -34,9 +35,7 @@ export function ProjectDeliveries() {
         <span className="font-headline text-[14px] font-semibold text-white">
           Project Deliveries
         </span>
-        <div className="rounded-full bg-white/15 px-2.5 py-1">
-          <span className="text-[11px] font-medium text-white">3 unpaid</span>
-        </div>
+        <ArrowUpRight className="h-4 w-4 text-white/[0.67]" />
       </div>
 
       {/* Rows */}

@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { GlassPanel } from './GlassPanel'
 import type { Project } from '@/types/supabase'
@@ -46,9 +46,9 @@ export function RecentProjects({ projects = [], photoCounts = {} }: RecentProjec
         </span>
         <button
           onClick={() => router.push('/dashboard/projects')}
-          className="text-xs text-white/70 transition-colors hover:text-white"
+          className="text-white/[0.67] transition-colors hover:text-white"
         >
-          See All
+          <ArrowUpRight className="h-4 w-4" />
         </button>
       </div>
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowUpRight } from 'lucide-react'
 import { GlassPanel } from './GlassPanel'
 
 const messages = [
@@ -44,7 +45,7 @@ export function InboxWidget() {
             <span className="text-[10px] font-bold text-[#1A1A0A]">3</span>
           </div>
         </div>
-        <span className="text-[11px] text-white/[0.38]">View all</span>
+        <ArrowUpRight className="h-4 w-4 text-white/[0.67]" />
       </div>
 
       {/* Message List */}
