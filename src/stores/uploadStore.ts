@@ -73,8 +73,12 @@ export const useUploadStore = create<UploadState>((set, get) => {
         tusUploadUrl: null, // tus uses fingerprint-based resumption internally
         supabaseUrl: SUPABASE_URL,
         supabaseAnonKey: SUPABASE_ANON_KEY,
-        onProgress: (bytesUploaded) => {
-          void updateItem(task.fileHash, { bytesUploaded, status: 'uploading' })
+        onProgress: (bytesUploaded, bytesTotal) => {
+          void updateItem(task.fileHash, {
+            bytesUploaded,
+            fileSize: bytesTotal > 0 ? bytesTotal : undefined,
+            status: 'uploading',
+          })
         },
         onSuccess: () => {
           void (async () => {
