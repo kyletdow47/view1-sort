@@ -26,6 +26,7 @@ interface TopNavProps {
 export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: TopNavProps) {
   const pathname = usePathname()
   const [todoOpen, setTodoOpen] = useState(false)
+  const [completedCount, setCompletedCount] = useState(2)
   const todoButtonRef = useRef<HTMLButtonElement>(null)
 
   return (
@@ -78,6 +79,7 @@ export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: To
           open={todoOpen}
           onToggle={() => setTodoOpen((v) => !v)}
           buttonRef={todoButtonRef}
+          completedCount={completedCount}
         />
         <Link href="/dashboard/settings" className="text-white/[0.67] transition-colors hover:text-white">
           <Settings className="h-[18px] w-[18px]" />
@@ -91,6 +93,7 @@ export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: To
           open={todoOpen}
           onClose={() => setTodoOpen(false)}
           anchorRef={todoButtonRef}
+          onCountChange={setCompletedCount}
         />
       </div>
     </nav>
