@@ -4,11 +4,11 @@ import { useEffect, useRef } from 'react'
 import { CheckSquare } from 'lucide-react'
 
 const tasks = [
-  { title: 'Complete Sorting', time: 'Sep 13, 08:30', iconColor: 'bg-white', active: true },
-  { title: 'Confirm New Booking', time: 'Sep 13, 10:30', iconColor: 'bg-white', active: true },
-  { title: 'Send Project', time: 'Sep 13, 15:00', iconColor: 'bg-white', active: true },
-  { title: 'Complete Project', time: 'Sep 13, 14:45', iconColor: 'bg-white/[0.09]', active: false },
-  { title: 'Review Payment', time: 'Sep 13, 16:30', iconColor: 'bg-white/[0.09]', active: false },
+  { title: 'Complete Sorting', time: 'Sep 13, 08:30', iconBg: '#2DD4BF', statusColor: 'bg-white/[0.08]', active: true },
+  { title: 'Confirm New Booking', time: 'Sep 13, 10:30', iconBg: '#60A5FA', statusColor: 'bg-white/[0.08]', active: true },
+  { title: 'Send Project', time: 'Sep 13, 15:00', iconBg: '#A78BFA', statusColor: 'bg-white/[0.08]', active: true },
+  { title: 'Complete Project', time: 'Sep 13, 14:45', iconBg: 'rgba(255,255,255,0.09)', statusColor: 'bg-white/[0.06]', active: false },
+  { title: 'Review Payment', time: 'Sep 13, 16:30', iconBg: 'rgba(255,255,255,0.09)', statusColor: 'bg-white/[0.06]', active: false },
 ]
 
 const COMPLETED = 2
@@ -73,7 +73,7 @@ export function TodoDropdown({ open, onClose, anchorRef }: TodoDropdownProps) {
               task.title === 'Send Project' ? 'bg-white/[0.08]' : 'bg-white/[0.04]'
             }`}
           >
-            <div className={`h-9 w-9 shrink-0 rounded-full ${task.iconColor}`} />
+            <div className="h-9 w-9 shrink-0 rounded-full" style={{ background: task.iconBg }} />
             <div className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span
                 className={`text-sm font-semibold ${task.active ? 'text-white/[0.93]' : 'text-white/[0.56]'}`}
@@ -88,7 +88,7 @@ export function TodoDropdown({ open, onClose, anchorRef }: TodoDropdownProps) {
                 {task.time}
               </span>
             </div>
-            <div className={`h-7 w-7 shrink-0 rounded-full ${task.active ? 'bg-white/[0.08]' : 'bg-white/[0.06]'}`} />
+            <div className={`h-7 w-7 shrink-0 rounded-full ${task.statusColor}`} />
           </div>
         ))}
       </div>
@@ -113,7 +113,6 @@ export function TodoTrigger({
       aria-label="Toggle to-do list"
     >
       <CheckSquare className="h-[18px] w-[18px]" />
-      {/* Badge */}
       <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[9px] font-bold text-white">
         {COMPLETED}
       </span>

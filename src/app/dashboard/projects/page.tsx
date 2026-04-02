@@ -22,8 +22,6 @@ import { Input } from '@/components/common/Input'
 import { Modal } from '@/components/common/Modal'
 import { Skeleton } from '@/components/common/Skeleton'
 import { StatusBadge } from '@/components/features/projects/StatusBadge'
-import { V2Shell } from '@/components/features/dashboard-v2/V2Shell'
-import { GlassCard } from '@/components/features/dashboard-v2/GlassCard'
 import type { Project } from '@/types/supabase'
 import type { ProjectPipelineStatus } from '@/components/features/projects/StatusBadge'
 
@@ -107,12 +105,15 @@ function ProjectGridCard({ project }: ProjectGridCardProps) {
     : '—'
 
   return (
-    <div className="group relative rounded-xl overflow-hidden bg-surface border border-outline-variant/20 hover:border-outline-variant/50 transition-all duration-150">
-      {/* Cover */}
+    <div
+      className="group relative overflow-hidden rounded-2xl transition-all duration-200 hover:scale-[1.01]"
+      style={{ border: '1px solid rgba(255,255,255,0.15)' }}
+    >
+      {/* Cover — full bleed photo */}
       <Link href={`/dashboard/project/${project.id}`}>
         <div
           className={clsx(
-            'h-44 relative overflow-hidden bg-gradient-to-br',
+            'relative aspect-[4/3] overflow-hidden bg-gradient-to-br',
             !project.cover_image_url && getGradient(project.id),
           )}
         >
@@ -120,77 +121,61 @@ function ProjectGridCard({ project }: ProjectGridCardProps) {
             <img
               src={project.cover_image_url}
               alt={project.name}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-          {/* Status badge */}
-          <div className="absolute top-3 left-3">
-            <StatusBadge status={project.status} />
-          </div>
-        </div>
-      </Link>
-
-      {/* Options menu */}
-      <div className="absolute top-3 right-3" data-menu>
-        <button
-          type="button"
-          aria-label="Project options"
-          aria-expanded={menuOpen}
-          className="p-1.5 rounded-lg bg-black/40 text-white/70 hover:text-white hover:bg-black/60 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none"
-          onClick={(e) => {
-            e.stopPropagation()
-            setMenuOpen((prev) => !prev)
-          }}
-        >
-          <MoreVertical className="w-4 h-4" />
-        </button>
-
-        {menuOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-10"
-              onClick={() => setMenuOpen(false)}
-            />
-            <div className="absolute right-0 top-8 z-20 w-44 bg-surface border border-outline-variant/40 rounded-xl shadow-elev-3 overflow-hidden">
-              <Link
-                href={`/dashboard/project/${project.id}`}
-                className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-on-surface/70 hover:text-on-surface hover:bg-surface-container transition-colors"
-              >
-                <ArrowUpRight className="w-4 h-4" />
-                View project
-              </Link>
-              <button
-                type="button"
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-on-surface/70 hover:text-on-surface hover:bg-surface-container transition-colors"
-                onClick={() => setMenuOpen(false)}
-              >
-                <Share2 className="w-4 h-4" />
-                Share gallery
-              </button>
+          {/* Bottom overlay: title + badges */}
+          <div className="absolute bottom-0 left-0 right-0 p-3">
+            <h3 className="truncate text-[13px] font-semibold text-white">{project.name}</h3>
+            <div className="mt-1 flex flex-wrap items-center gap-1">
+              <StatusBadge status={project.status} />
+              {project.preset && (
+                <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-medium text-white/80">
+                  {project.preset}
+                </span>
+              )}
             </div>
-          </>
-        )}
-      </div>
+          </div>
 
-      {/* Card body */}
-      <Link href={`/dashboard/project/${project.id}`} className="block p-4 space-y-2">
-        <h3 className="font-sans font-semibold text-on-surface text-sm leading-snug truncate group-hover:text-primary transition-colors">
-          {project.name}
-        </h3>
-
-        {project.preset && (
-          <span className="inline-block text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary/70">
-            {project.preset}
-          </span>
-        )}
-
-        <div className="flex items-center justify-between pt-2 border-t border-outline-variant/20">
-          <span className="font-mono text-[11px] text-on-surface-variant">
-            {shootDate}
-          </span>
-          <ArrowUpRight className="w-3.5 h-3.5 text-on-surface-variant/40 group-hover:text-primary transition-colors" />
+          {/* Options menu */}
+          <div className="absolute right-2 top-2" data-menu>
+            <button
+              type="button"
+              aria-label="Project options"
+              aria-expanded={menuOpen}
+              className="rounded-lg bg-black/40 p-1.5 text-white/70 opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-black/60 hover:text-white focus:opacity-100 focus:outline-none"
+              onClick={(e) => { e.stopPropagation(); setMenuOpen((prev) => !prev) }}
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                <div
+                  className="absolute right-0 top-8 z-20 w-44 overflow-hidden rounded-xl"
+                  style={{ background: 'rgba(15,20,50,0.9)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.2)' }}
+                >
+                  <Link
+                    href={`/dashboard/project/${project.id}`}
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                  >
+                    <ArrowUpRight className="h-4 w-4" />
+                    View project
+                  </Link>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Share2 className="h-4 w-4" />
+                    Share gallery
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </Link>
     </div>
@@ -612,138 +597,119 @@ export default function ProjectsPage() {
   const activeSortLabel =
     SORT_OPTIONS.find((s) => s.value === sortBy)?.label ?? 'Sort'
 
-  return (
-    <V2Shell activeNav="Projects">
-    <div className="mx-auto max-w-[1280px] space-y-6">
-      {/* ── Page header ────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-headline font-bold text-4xl text-white tracking-tight">Projects</h1>
-          <p className="text-sm text-white/60 mt-0.5">
-            {loading
-              ? 'Loading…'
-              : 'Browse, search, and manage all your projects'}
-          </p>
-        </div>
+  // Stat counts
+  const activeCount = projects.filter(p => p.status === 'active').length
+  const pendingReviewCount = projects.length - activeCount
+  const deliveredCount = projects.filter(p => p.status === 'published').length
 
+  return (
+    <div className="space-y-6 px-10 py-8">
+      {/* ── Page header ────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-[28px] font-bold text-white">Projects</h1>
+          <p className="mt-1 text-[13px] text-white/50">Browse, search and manage all your projects</p>
+        </div>
         <button
+          type="button"
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 transition-colors self-start sm:self-auto"
+          className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-semibold text-white"
+          style={{ background: 'linear-gradient(180deg, #6366F1 0%, #4F46E5 100%)' }}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
           New Project
         </button>
       </div>
 
-      {/* ── Stats row ──────────────────────────────────────────────── */}
-      <div className="grid grid-cols-4 gap-4">
+      {/* ── Stat cards ─────────────────────────────────────────────── */}
+      <div className="grid grid-cols-4 gap-3.5">
         {[
-          { label: 'Active Projects', value: projects.filter(p => p.status === 'active').length || 24 },
-          { label: 'Pending Review', value: projects.filter(p => p.status === 'published').length || 7 },
-          { label: 'Complete', value: projects.filter(p => p.status === 'archived').length || 18 },
-          { label: 'Total Billed', value: '$12.4k' },
+          { label: 'Active Projects', value: loading ? '—' : activeCount, color: '#60A5FA' },
+          { label: 'Pending Review', value: loading ? '—' : pendingReviewCount, color: '#FBBF24' },
+          { label: 'Delivered', value: loading ? '—' : deliveredCount, color: '#34D399' },
+          { label: 'Total Value', value: '$12.4k', color: '#A78BFA' },
         ].map((stat) => (
-          <GlassCard key={stat.label}>
-            <p className="font-mono text-3xl font-bold text-white">{stat.value}</p>
-            <p className="mt-1 text-xs text-white/50">{stat.label}</p>
-          </GlassCard>
+          <div
+            key={stat.label}
+            className="rounded-2xl p-5"
+            style={{
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+            }}
+          >
+            <p className="text-[32px] font-bold text-white leading-none">{stat.value}</p>
+            <p className="mt-2 text-[13px] text-white/50">{stat.label}</p>
+          </div>
         ))}
       </div>
 
       {/* ── Filter bar ─────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px] max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-on-surface-variant/50" />
+        <div className="relative min-w-[220px]">
+          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search projects…"
-            className="w-full rounded-lg bg-surface border border-outline-variant/30 text-on-surface placeholder:text-on-surface-variant/40 text-sm pl-9 pr-8 py-2 focus:outline-none focus:ring-1 focus:ring-primary/40 hover:border-outline-variant/50 transition-colors"
+            className="h-9 w-full rounded-xl border border-white/15 bg-white/[0.07] pl-9 pr-8 text-[13px] text-white placeholder:text-white/30 outline-none focus:border-indigo-400/50 focus:ring-1 focus:ring-indigo-400/30 transition-colors"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-on-surface transition-colors"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
 
-        {/* Status dropdown */}
-        <div className="relative">
+        {/* Quick filter pills */}
+        {[
+          { label: 'All', value: '' },
+          { label: 'Active', value: 'shooting' },
+          { label: 'AI Sorting', value: 'processing' },
+          { label: 'Delivered', value: 'delivered' },
+        ].map((f) => (
           <button
+            key={f.label}
             type="button"
-            onClick={() => {
-              setStatusDropdownOpen((prev) => !prev)
-              setSortDropdownOpen(false)
-            }}
-            className="flex items-center gap-1.5 rounded-lg border border-outline-variant/30 bg-surface px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface hover:border-outline-variant/50 transition-colors"
+            onClick={() => setStatusFilter(f.value as ProjectPipelineStatus | '')}
+            className={`rounded-xl px-4 py-1.5 text-[12px] font-medium transition-colors ${statusFilter === f.value ? 'bg-white/[0.15] font-semibold text-white' : 'text-white/50 hover:text-white/80'}`}
           >
-            {activeStatusLabel}
-            <ChevronDown className="w-3.5 h-3.5" />
+            {f.label}
           </button>
-          {statusDropdownOpen && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setStatusDropdownOpen(false)} />
-              <div className="absolute left-0 top-full mt-1 z-20 w-48 rounded-xl border border-outline-variant/40 bg-surface shadow-elev-3 overflow-hidden">
-                {PIPELINE_STATUSES.map((s) => (
-                  <button
-                    key={s.value}
-                    type="button"
-                    onClick={() => {
-                      setStatusFilter(s.value)
-                      setStatusDropdownOpen(false)
-                    }}
-                    className={clsx(
-                      'w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left transition-colors',
-                      statusFilter === s.value
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container',
-                    )}
-                  >
-                    {s.value ? <StatusBadge status={s.value} /> : s.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+        ))}
 
         {/* Sort dropdown */}
-        <div className="relative">
+        <div className="relative ml-auto">
           <button
             type="button"
             onClick={() => {
               setSortDropdownOpen((prev) => !prev)
               setStatusDropdownOpen(false)
             }}
-            className="flex items-center gap-1.5 rounded-lg border border-outline-variant/30 bg-surface px-3 py-2 text-sm text-on-surface-variant hover:text-on-surface hover:border-outline-variant/50 transition-colors"
+            className="flex h-9 items-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.07] px-3 text-[12px] text-white/70 hover:bg-white/10 hover:text-white transition-colors"
           >
-            {activeSortLabel}
-            <ChevronDown className="w-3.5 h-3.5" />
+            Sort: {activeSortLabel}
+            <ChevronDown className="h-3.5 w-3.5" />
           </button>
           {sortDropdownOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setSortDropdownOpen(false)} />
-              <div className="absolute left-0 top-full mt-1 z-20 w-44 rounded-xl border border-outline-variant/40 bg-surface shadow-elev-3 overflow-hidden">
+              <div
+                className="absolute left-0 top-full z-20 mt-1 w-40 overflow-hidden rounded-xl"
+                style={{ background: 'rgba(15,20,50,0.92)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.18)' }}
+              >
                 {SORT_OPTIONS.map((s) => (
                   <button
                     key={s.value}
                     type="button"
-                    onClick={() => {
-                      setSortBy(s.value)
-                      setSortDropdownOpen(false)
-                    }}
-                    className={clsx(
-                      'w-full flex items-center px-3 py-2.5 text-sm text-left transition-colors',
-                      sortBy === s.value
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container',
-                    )}
+                    onClick={() => { setSortBy(s.value); setSortDropdownOpen(false) }}
+                    className={`w-full px-3 py-2.5 text-left text-[13px] transition-colors ${sortBy === s.value ? 'bg-white/15 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
                   >
                     {s.label}
                   </button>
@@ -754,39 +720,29 @@ export default function ProjectsPage() {
         </div>
 
         {/* View toggle */}
-        <div className="ml-auto flex items-center rounded-lg border border-outline-variant/30 overflow-hidden">
+        <div className="flex items-center overflow-hidden rounded-xl border border-white/15">
           <button
             type="button"
             onClick={() => setViewMode('grid')}
             aria-label="Grid view"
-            className={clsx(
-              'flex items-center justify-center p-2 transition-colors',
-              viewMode === 'grid'
-                ? 'bg-primary/10 text-primary'
-                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container',
-            )}
+            className={`flex items-center justify-center p-2 transition-colors ${viewMode === 'grid' ? 'bg-white/15 text-white' : 'text-white/40 hover:bg-white/10 hover:text-white'}`}
           >
-            <Grid3X3 className="w-4 h-4" />
+            <Grid3X3 className="h-4 w-4" />
           </button>
           <button
             type="button"
             onClick={() => setViewMode('list')}
             aria-label="List view"
-            className={clsx(
-              'flex items-center justify-center p-2 transition-colors',
-              viewMode === 'list'
-                ? 'bg-primary/10 text-primary'
-                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container',
-            )}
+            className={`flex items-center justify-center p-2 transition-colors ${viewMode === 'list' ? 'bg-white/15 text-white' : 'text-white/40 hover:bg-white/10 hover:text-white'}`}
           >
-            <List className="w-4 h-4" />
+            <List className="h-4 w-4" />
           </button>
         </div>
       </div>
 
       {/* ── Error state ────────────────────────────────────────────── */}
       {error && (
-        <div className="rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+        <div className="rounded-xl border border-red-400/30 bg-red-400/10 px-4 py-3 text-sm text-red-300">
           {error}
         </div>
       )}
@@ -819,20 +775,17 @@ export default function ProjectsPage() {
         <EmptyState onNewProject={() => setShowModal(true)} />
       ) : filteredProjects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-on-surface-variant text-sm mb-3">No projects match your filters.</p>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setSearchQuery('')
-              setStatusFilter('')
-            }}
+          <p className="text-sm text-white/50 mb-3">No projects match your filters.</p>
+          <button
+            type="button"
+            onClick={() => { setSearchQuery(''); setStatusFilter('') }}
+            className="rounded-xl border border-white/20 bg-white/[0.08] px-4 py-2 text-sm font-medium text-white/70 hover:bg-white/15 transition-colors"
           >
             Clear filters
-          </Button>
+          </button>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredProjects.map((project) => (
             <ProjectGridCard key={project.id} project={project} />
           ))}
@@ -841,9 +794,9 @@ export default function ProjectsPage() {
           <button
             type="button"
             onClick={() => setShowModal(true)}
-            className="group flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/30 py-16 text-on-surface-variant hover:border-primary/40 hover:text-primary transition-all"
+            className="group flex aspect-[4/3] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/20 text-white/40 transition-all hover:border-white/40 hover:text-white/60"
           >
-            <Plus className="w-8 h-8 mb-2" />
+            <Plus className="mb-2 h-8 w-8" />
             <span className="text-sm font-medium">New project</span>
           </button>
         </div>
@@ -887,6 +840,5 @@ export default function ProjectsPage() {
         <Plus className="w-6 h-6" />
       </button>
     </div>
-    </V2Shell>
   )
 }

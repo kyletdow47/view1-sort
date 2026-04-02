@@ -25,6 +25,12 @@
       "type": "url",
       "url": "https://mcp.vercel.com",
       "description": "Vercel — deployments and preview URLs"
+    },
+    "browsermcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@browsermcp/mcp@latest"],
+      "description": "Browser MCP — navigate, click, screenshot, test deployments"
     }
   }
 }

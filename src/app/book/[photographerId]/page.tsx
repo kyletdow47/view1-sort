@@ -1,206 +1,351 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  Calendar,
-  Camera,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  DollarSign,
-  Lock,
-  Mail,
-  MapPin,
-  MessageSquare,
-  Phone,
-  User,
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight, Camera, Clock, DollarSign, Check } from 'lucide-react'
 
-/* ─── Mock Data ───────────────────────────────────────────────────────────── */
+/* ------------------------------------------------------------------ */
+/*  Types & data                                                       */
+/* ------------------------------------------------------------------ */
 
-const shootTypes = [
-  { name: 'Portrait Session', desc: 'Studio or outdoor portraits', price: '$250', duration: '60 min' },
-  { name: 'Wedding Consultation', desc: 'Pre-wedding planning', price: 'Free', duration: '30 min' },
-  { name: 'Commercial Shoot', desc: 'Product & brand photography', price: '$600', duration: '120 min' },
-  { name: 'Event Coverage', desc: 'Conferences & live events', price: '$400', duration: '180 min' },
-  { name: 'Mini Session', desc: '15-minute quick session', price: '$150', duration: '30 min' },
-]
-
-const timeSlots = ['10:00 AM', '1:00 PM', '3:30 PM', '5:00 PM']
-
-const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const availableDates = [3, 7, 8, 10, 11, 14, 17, 18, 21, 24, 25, 28, 29]
-
-/* ─── GlassCard ───────────────────────────────────────────────────────────── */
-
-function GlassCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-3xl backdrop-blur-[32px] p-4 ${className}`}
-      style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%)', border: '1px solid rgba(255,255,255,0.18)' }}>
-      {children}
-    </div>
-  )
+interface Service {
+  id: string
+  name: string
+  price: string
+  duration: string
+  priceValue: number
 }
 
-/* ─── Page ────────────────────────────────────────────────────────────────── */
+const SERVICES: Service[] = [
+  { id: 's1', name: 'Portrait Session',       price: '$250',  duration: '30 min',   priceValue: 250  },
+  { id: 's2', name: 'Wedding Consultation',   price: 'Free',  duration: '30 min',   priceValue: 0    },
+  { id: 's3', name: 'Commercial Shoot',       price: '$500',  duration: '120 min',  priceValue: 500  },
+  { id: 's4', name: 'Event Coverage',         price: '$400',  duration: '90 min',   priceValue: 400  },
+  { id: 's5', name: 'Mini Session',           price: '$150',  duration: '20 min',   priceValue: 150  },
+]
+
+const TIME_SLOTS = ['10:00 AM', '1:00 PM', '3:30 PM', '5:00 PM']
+
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+// April 10, 2026 is highlighted as selected date
+const AVAILABLE_DAYS = [2, 4, 7, 9, 10, 12, 14, 16, 17, 21, 23, 24, 28, 30]
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
 
 export default function PublicBookingPage() {
-  const [selectedType, setSelectedType] = useState('Portrait Session')
-  const [selectedDate, setSelectedDate] = useState(10)
-  const [selectedTime, setSelectedTime] = useState('1:00 PM')
-  const [depositEnabled, setDepositEnabled] = useState(true)
+  const [selectedService, setSelectedService] = useState<string | null>('s1')
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 3, 1)) // April 2026
+  const [selectedDay, setSelectedDay] = useState<number | null>(10)
+  const [selectedTime, setSelectedTime] = useState<string | null>('10:00 AM')
+  const [payDeposit, setPayDeposit] = useState(true)
 
-  const year = 2026
-  const month = 3 // April
+  // Form state
+  const [fullName, setFullName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [notes, setNotes] = useState('')
+
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
+  const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const calendarDays = Array.from({ length: 42 }, (_, i) => {
-    const day = i - firstDay + 1
-    return day > 0 && day <= daysInMonth ? day : null
-  })
+
+  const cells: (number | null)[] = [
+    ...Array(firstDay).fill(null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ]
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  const selectedServiceObj = SERVICES.find((s) => s.id === selectedService)
+  const depositAmount = selectedServiceObj ? Math.round(selectedServiceObj.priceValue * 0.25) : 0
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #2D1B69 0%, #3B2D8F 25%, #4A3DA8 50%, #5A4FBF 75%, #6B61D6 100%)' }}>
-      <div className="mx-auto flex max-w-[1100px] gap-8 px-6 py-12">
-        {/* Left: Photographer Profile */}
-        <div className="w-[280px] shrink-0 space-y-6">
-          <div className="flex flex-col items-center text-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-indigo-500/30 text-3xl font-bold text-white ring-4 ring-white/10">
-              JD
-            </div>
-            <h1 className="mt-4 font-headline text-2xl font-bold text-white">Jessica Davis</h1>
-            <p className="mt-1 text-sm text-white/60">Wedding &amp; Portrait Photographer</p>
-          </div>
+    <div
+      className="min-h-screen text-white"
+      style={{
+        background: 'linear-gradient(135deg, #1A3A8F 0%, #2D60D4 20%, #3B7DE8 40%, #5A6FE8 60%, #7B5EA7 80%, #1E2FA8 100%)',
+      }}
+    >
+      <div className="mx-auto max-w-5xl px-6 py-10">
+        <div className="grid grid-cols-12 gap-6">
 
-          <div className="space-y-2">
-            <p className="text-xs text-white/40">Choose a shoot type</p>
-            {shootTypes.map((type) => (
-              <button
-                key={type.name}
-                onClick={() => setSelectedType(type.name)}
-                className={`w-full rounded-xl p-3 text-left transition-all ${
-                  selectedType === type.name
-                    ? 'bg-white/15 ring-2 ring-indigo-400/50'
-                    : 'bg-white/5 hover:bg-white/10'
-                }`}
-                style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+          {/* ===== Left: Photographer + Services ===== */}
+          <div className="col-span-12 md:col-span-4 flex flex-col gap-5">
+            {/* Photographer profile */}
+            <div className="flex flex-col items-start gap-3">
+              <div
+                className="flex h-16 w-16 items-center justify-center rounded-2xl text-[20px] font-bold text-white"
+                style={{ background: 'linear-gradient(135deg, #6366F1, #8B5CF6)' }}
               >
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-white">{type.name}</p>
-                  <span className="text-xs font-mono text-white/70">{type.price}</span>
-                </div>
-                <p className="mt-0.5 text-[10px] text-white/40">{type.desc}</p>
-                <div className="mt-1 flex items-center gap-1 text-[10px] text-white/30">
-                  <Clock className="h-2.5 w-2.5" /> {type.duration}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Calendar + Form */}
-        <div className="flex-1 space-y-6">
-          {/* Calendar */}
-          <GlassCard>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white">April 2026</h2>
-              <div className="flex gap-1">
-                <button className="rounded-lg p-1.5 text-white/40 hover:text-white hover:bg-white/10"><ChevronLeft className="h-4 w-4" /></button>
-                <button className="rounded-lg p-1.5 text-white/40 hover:text-white hover:bg-white/10"><ChevronRight className="h-4 w-4" /></button>
+                JD
+              </div>
+              <div>
+                <h1 className="text-[22px] font-bold text-white">Jessica Davis</h1>
+                <p className="text-[13px] text-white/55">Wedding &amp; Portrait Photographer</p>
               </div>
             </div>
-            <div className="grid grid-cols-7 gap-1">
-              {daysOfWeek.map((d) => (
-                <div key={d} className="py-2 text-center text-[10px] font-medium uppercase text-white/40">{d}</div>
-              ))}
-              {calendarDays.map((day, i) => {
-                const available = day ? availableDates.includes(day) : false
-                const selected = day === selectedDate
+
+            {/* Service list */}
+            <div className="flex flex-col gap-2">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-white/40">Select a service</p>
+              {SERVICES.map((service) => {
+                const active = selectedService === service.id
                 return (
                   <button
-                    key={i}
-                    disabled={!available}
-                    onClick={() => day && setSelectedDate(day)}
-                    className={`flex h-10 items-center justify-center rounded-lg text-sm transition-all ${
-                      selected
-                        ? 'bg-indigo-600 text-white font-semibold ring-2 ring-indigo-400/50'
-                        : available
-                          ? 'text-white/80 hover:bg-white/10 cursor-pointer'
-                          : day
-                            ? 'text-white/20 cursor-default'
-                            : ''
-                    }`}
+                    key={service.id}
+                    onClick={() => setSelectedService(service.id)}
+                    className="flex items-center gap-3 rounded-2xl px-4 py-3 text-left transition-all"
+                    style={{
+                      background: active ? 'rgba(99,102,241,0.20)' : 'rgba(255,255,255,0.07)',
+                      border: `1px solid ${active ? 'rgba(99,102,241,0.50)' : 'rgba(255,255,255,0.10)'}`,
+                    }}
                   >
-                    {day}
+                    {/* Selection indicator */}
+                    <span
+                      className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full"
+                      style={{
+                        background: active ? '#6366F1' : 'transparent',
+                        border: `2px solid ${active ? '#6366F1' : 'rgba(255,255,255,0.25)'}`,
+                      }}
+                    >
+                      {active && <Check className="h-2.5 w-2.5 text-white" strokeWidth={3} />}
+                    </span>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-semibold text-white/90">{service.name}</p>
+                      <div className="flex items-center gap-2 text-[11px] text-white/45">
+                        <Clock className="h-3 w-3" />
+                        <span>{service.duration}</span>
+                      </div>
+                    </div>
+
+                    <span
+                      className="shrink-0 text-[13px] font-bold"
+                      style={{ color: active ? '#A5B4FC' : 'rgba(255,255,255,0.65)' }}
+                    >
+                      {service.price}
+                    </span>
                   </button>
                 )
               })}
             </div>
-          </GlassCard>
 
-          {/* Time Slots */}
-          <div>
-            <p className="mb-2 text-sm font-medium text-white">Available times for Apr {selectedDate}</p>
-            <div className="flex gap-2">
-              {timeSlots.map((time) => (
-                <button
-                  key={time}
-                  onClick={() => setSelectedTime(time)}
-                  className={`rounded-xl px-4 py-2 text-sm transition-all ${
-                    selectedTime === time
-                      ? 'bg-indigo-600 text-white font-medium'
-                      : 'bg-white/8 text-white/70 hover:bg-white/15'
-                  }`}
-                  style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-                >
-                  {time}
-                </button>
-              ))}
+            {/* Photographer info */}
+            <div
+              className="rounded-2xl p-4"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Camera className="h-4 w-4 text-white/40" />
+                <span className="text-[12px] font-medium text-white/60">About Jessica</span>
+              </div>
+              <p className="text-[12px] text-white/45 leading-relaxed">
+                Award-winning wedding and portrait photographer based in San Francisco. 8+ years capturing life&apos;s most precious moments.
+              </p>
             </div>
           </div>
 
-          {/* Booking Form */}
-          <GlassCard className="space-y-4">
-            <h3 className="text-lg font-bold text-white">Complete Your Booking</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="mb-1 block text-[10px] uppercase text-white/40">Full Name</label>
-                <input type="text" placeholder="Jane Smith" className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
+          {/* ===== Right: Calendar + Form ===== */}
+          <div className="col-span-12 md:col-span-8 flex flex-col gap-5">
+            {/* Calendar */}
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)',
+                backdropFilter: 'blur(24px)',
+                border: '1px solid rgba(255,255,255,0.12)',
+              }}
+            >
+              {/* Calendar header */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[15px] font-semibold text-white">{monthName}</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
+                    className="rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/10"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
+                    className="rounded-lg p-1.5 text-white/50 transition-colors hover:bg-white/10"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-              <div>
-                <label className="mb-1 block text-[10px] uppercase text-white/40">Email</label>
-                <input type="email" placeholder="jane@example.com" className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
+
+              {/* Day headers */}
+              <div className="mb-2 grid grid-cols-7 gap-1">
+                {DAYS.map((d) => (
+                  <div key={d} className="text-center text-[11px] font-medium text-white/35">{d}</div>
+                ))}
               </div>
-              <div>
-                <label className="mb-1 block text-[10px] uppercase text-white/40">Phone</label>
-                <input type="tel" placeholder="+1 (555) 123-4567" className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
-              </div>
-              <div>
-                <label className="mb-1 block text-[10px] uppercase text-white/40">Notes</label>
-                <input type="text" placeholder="Any special requests..." className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/30" />
+
+              {/* Day cells */}
+              <div className="grid grid-cols-7 gap-1">
+                {cells.map((day, i) => {
+                  const isAvailable = day ? AVAILABLE_DAYS.includes(day) : false
+                  const isSelected = day === selectedDay
+                  return (
+                    <button
+                      key={i}
+                      disabled={!isAvailable}
+                      onClick={() => day && setSelectedDay(day)}
+                      className={`flex aspect-square items-center justify-center rounded-xl text-[13px] font-medium transition-colors ${
+                        !day
+                          ? 'invisible'
+                          : isSelected
+                          ? 'font-bold text-white'
+                          : isAvailable
+                          ? 'text-white/80 hover:bg-white/15'
+                          : 'cursor-default text-white/20'
+                      }`}
+                      style={
+                        isSelected
+                          ? { background: 'linear-gradient(135deg, #6366F1, #8B5CF6)' }
+                          : {}
+                      }
+                    >
+                      {day}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
-            {/* Deposit toggle */}
-            <div className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3">
+            {/* Time slots */}
+            {selectedDay && (
               <div>
-                <p className="text-sm text-white/80">Pay deposit to confirm</p>
-                <p className="text-[10px] text-white/40">$50 deposit secures your booking</p>
+                <p className="mb-2 text-[12px] font-medium uppercase tracking-wider text-white/40">
+                  Available times for Apr {selectedDay}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {TIME_SLOTS.map((time) => {
+                    const active = selectedTime === time
+                    return (
+                      <button
+                        key={time}
+                        onClick={() => setSelectedTime(time)}
+                        className="rounded-xl px-5 py-2 text-[13px] font-medium transition-all"
+                        style={{
+                          background: active ? 'linear-gradient(135deg, #6366F1, #8B5CF6)' : 'rgba(255,255,255,0.08)',
+                          border: `1px solid ${active ? 'transparent' : 'rgba(255,255,255,0.12)'}`,
+                          color: active ? '#ffffff' : 'rgba(255,255,255,0.70)',
+                        }}
+                      >
+                        {time}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
+            )}
+
+            {/* Booking form */}
+            <div
+              className="rounded-2xl p-5"
+              style={{
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 100%)',
+                backdropFilter: 'blur(24px)',
+                border: '1px solid rgba(255,255,255,0.12)',
+              }}
+            >
+              <p className="mb-4 text-[14px] font-semibold text-white">Complete Your Booking</p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-[11px] text-white/45">Full Name</label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Sarah Mitchell"
+                    className="w-full rounded-xl px-3 py-2.5 text-[13px] text-white/90 outline-none placeholder:text-white/25"
+                    style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.12)' }}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] text-white/45">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="sarah@email.com"
+                    className="w-full rounded-xl px-3 py-2.5 text-[13px] text-white/90 outline-none placeholder:text-white/25"
+                    style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.12)' }}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] text-white/45">Phone</label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+1 (555) 000-0000"
+                    className="w-full rounded-xl px-3 py-2.5 text-[13px] text-white/90 outline-none placeholder:text-white/25"
+                    style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.12)' }}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] text-white/45">Notes (optional)</label>
+                  <input
+                    type="text"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Tell us about your vision…"
+                    className="w-full rounded-xl px-3 py-2.5 text-[13px] text-white/90 outline-none placeholder:text-white/25"
+                    style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.12)' }}
+                  />
+                </div>
+              </div>
+
+              {/* Deposit toggle */}
+              {selectedServiceObj && selectedServiceObj.priceValue > 0 && (
+                <div
+                  className="mt-4 flex items-center justify-between rounded-xl px-4 py-3"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  <div>
+                    <p className="text-[13px] font-medium text-white/80">Pay deposit to confirm</p>
+                    <p className="text-[11px] text-white/40">25% to secure your booking</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[14px] font-bold text-white/90">
+                      ${depositAmount}
+                    </span>
+                    <button
+                      onClick={() => setPayDeposit(!payDeposit)}
+                      className={`relative h-6 w-11 rounded-full transition-colors ${payDeposit ? 'bg-indigo-500' : 'bg-white/20'}`}
+                    >
+                      <span
+                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${payDeposit ? 'left-[22px]' : 'left-0.5'}`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Confirm button */}
               <button
-                onClick={() => setDepositEnabled(!depositEnabled)}
-                className={`h-5 w-9 rounded-full p-0.5 transition-colors ${depositEnabled ? 'bg-indigo-600' : 'bg-white/20'}`}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90"
+                style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}
               >
-                <div className={`h-4 w-4 rounded-full bg-white transition-transform ${depositEnabled ? 'translate-x-4' : ''}`} />
+                <DollarSign className="h-4 w-4" />
+                Confirm Booking
+                {selectedServiceObj && selectedServiceObj.priceValue > 0 && payDeposit && (
+                  <span className="opacity-80">— ${depositAmount} deposit</span>
+                )}
               </button>
             </div>
-          </GlassCard>
 
-          {/* Confirm Button */}
-          <button className="w-full rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 py-4 text-center font-headline text-lg font-bold text-white hover:from-indigo-700 hover:to-violet-700 transition-all flex items-center justify-center gap-2">
-            <Lock className="h-5 w-5" /> Confirm Booking
-          </button>
+            <p className="text-center text-[11px] text-white/25">
+              Powered by View1 Studio · No account required
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -1,230 +1,813 @@
 'use client'
 
-import { useState } from 'react'
 import {
-  Brain,
-  Building2,
-  CreditCard,
-  Palette,
-  Plug,
-  Sliders,
-  Sparkles,
-  Users,
+  Settings,
+  Camera,
+  Mail,
+  Globe,
+  ChevronDown,
+  Zap,
+  Trash2,
+  Crown,
+  Check,
+  HardDrive,
+  HelpCircle,
+  MessageSquare,
+  BookOpen,
+  Save,
+  Loader2,
 } from 'lucide-react'
-import { V2Shell } from '@/components/features/dashboard-v2/V2Shell'
-import { GlassCard } from '@/components/features/dashboard-v2/GlassCard'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import Image from 'next/image'
+import { useAuth } from '@/hooks/useAuth'
+import { createClient } from '@/lib/supabase/client'
 
-/* ─── Data ────────────────────────────────────────────────────────────────── */
+/* ------------------------------------------------------------------ */
+/*  Constants                                                          */
+/* ------------------------------------------------------------------ */
 
-const sidebarItems = [
-  { icon: Building2, label: 'Studio', active: true },
-  { icon: Palette, label: 'Branding', active: false },
-  { icon: Users, label: 'Team', active: false },
-  { icon: Plug, label: 'Integrations', active: false },
-  { icon: CreditCard, label: 'Billing', active: false },
+const currencies = ['USD', 'EUR', 'GBP'] as const
+const planFeatures = [
+  'Unlimited Projects',
+  'AI-Powered Sorting',
+  'Custom Client Galleries',
+  'Stripe Connect Integration',
+  'Priority Support',
+  'Custom Branding',
 ]
 
-const shootingStyles = [
-  { label: 'Moody', active: true },
-  { label: 'Film', active: true },
-  { label: 'Lifestyle', active: false },
-  { label: 'Cinematic', active: false },
-  { label: 'Editorial', active: false },
-  { label: 'Rustic', active: false },
-]
+/* ------------------------------------------------------------------ */
+/*  Sub-components                                                     */
+/* ------------------------------------------------------------------ */
 
-const sortCategories = ['Hero Shots', 'Details', 'Group Shots', 'Candids', 'B-Roll']
-const rejectRules = ['Blurry', 'Eyes Closed', 'Overexposed']
-
-/* ─── Toggle Component ────────────────────────────────────────────────────── */
-
-function Toggle({ enabled = true }: { enabled?: boolean }) {
-  const [on, setOn] = useState(enabled)
+function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <button
-      onClick={() => setOn(!on)}
-      className={`h-5 w-9 rounded-full p-0.5 transition-colors ${on ? 'bg-indigo-600' : 'bg-white/20'}`}
-    >
-      <div className={`h-4 w-4 rounded-full bg-white transition-transform ${on ? 'translate-x-4' : ''}`} />
-    </button>
+    <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
+      {children}
+    </span>
   )
 }
 
-/* ─── Page ────────────────────────────────────────────────────────────────── */
+function Card({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div
+      className={`rounded-2xl border border-outline-variant/30 bg-surface-container-low p-6 ${className}`}
+    >
+      {children}
+    </div>
+  )
+}
+
+function ProgressBar({
+  label,
+  value,
+  max,
+  unit,
+  color = 'bg-primary',
+}: {
+  label: string
+  value: number
+  max: number
+  unit: string
+  color?: string
+}) {
+  const pct = Math.round((value / max) * 100)
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-on-surface">{label}</span>
+        <span className="text-xs text-on-surface-variant">
+          {value} / {max} {unit}
+        </span>
+      </div>
+      <div className="h-2 w-full rounded-full bg-surface-container-highest">
+        <div
+          className={`h-full rounded-full ${color} transition-all`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
 
 export default function SettingsPage() {
-  const [confidence, setConfidence] = useState(75)
+  const { user } = useAuth()
+  const supabase = createClient()
+
+  // Profile state
+  const [displayName, setDisplayName] = useState('')
+  const [businessName, setBusinessName] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null)
+  const [profileLoading, setProfileLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  // UI-only workflow state
+  const [currency, setCurrency] = useState<(typeof currencies)[number]>('USD')
+  const [sensitivity, setSensitivity] = useState(72)
+  const [autoSync, setAutoSync] = useState(true)
+  const [portalLoading, setPortalLoading] = useState(false)
+
+  // AI Preferences state
+  const [shootingStyles, setShootingStyles] = useState<Set<string>>(new Set(['Wedding', 'Portrait']))
+  const [autoSortCategories, setAutoSortCategories] = useState<Set<string>>(
+    new Set(['Bridal', 'Ceremony', 'Reception', 'Portraits', 'Details'])
+  )
+  const [cullingFrequency, setCullingFrequency] = useState(65)
+  const [confidenceThreshold, setConfidenceThreshold] = useState(70)
+  const [autoRejectFilters, setAutoRejectFilters] = useState<Set<string>>(
+    new Set(['Blur', 'Eyes Closed'])
+  )
+  const [faceFamilySorting, setFaceFamilySorting] = useState(true)
+  const [kwInput, setKwInput] = useState('')
+  const [minKeywords, setMinKeywords] = useState<string[]>(['Golden Hour', 'Details', 'Candid'])
+  const [deliveryAuto, setDeliveryAuto] = useState(false)
+
+  // Load profile + workspace on mount
+  useEffect(() => {
+    if (!user) return
+
+    const load = async () => {
+      try {
+        const [profileResult, workspaceResult] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('display_name,avatar_url')
+            .eq('id', user.id)
+            .single(),
+          supabase
+            .from('workspaces')
+            .select('id,name')
+            .eq('owner_id', user.id)
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .single(),
+        ])
+
+        if (profileResult.data) {
+          setDisplayName(profileResult.data.display_name ?? '')
+          setAvatarUrl(profileResult.data.avatar_url)
+          setAvatarPreview(profileResult.data.avatar_url)
+        }
+        if (workspaceResult.data) {
+          setBusinessName(workspaceResult.data.name)
+          setWorkspaceId(workspaceResult.data.id)
+        }
+      } finally {
+        setProfileLoading(false)
+      }
+    }
+
+    load()
+  }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleAvatarChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file || !user) return
+
+      // Show local preview immediately
+      const reader = new FileReader()
+      reader.onload = (ev) => setAvatarPreview(ev.target?.result as string)
+      reader.readAsDataURL(file)
+
+      // Upload to Supabase Storage (avatars bucket)
+      const ext = file.name.split('.').pop() ?? 'jpg'
+      const path = `${user.id}/avatar.${ext}`
+      const { error } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true })
+
+      if (!error) {
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from('avatars').getPublicUrl(path)
+        setAvatarUrl(publicUrl)
+      }
+    },
+    [user, supabase],
+  )
+
+  const handleManageSubscription = useCallback(async () => {
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/billing/portal', { method: 'POST' })
+      const data = await res.json() as { url?: string; error?: string }
+      if (!res.ok || !data.url) {
+        throw new Error(data.error ?? 'Could not open billing portal')
+      }
+      window.location.href = data.url
+    } catch (err) {
+      console.error('Billing portal error:', err)
+    } finally {
+      setPortalLoading(false)
+    }
+  }, [])
+
+  const handleSave = useCallback(async () => {
+    if (!user) return
+    setSaving(true)
+    setSaveStatus('idle')
+    setSaveError(null)
+
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ display_name: displayName.trim() || null, avatar_url: avatarUrl })
+        .eq('id', user.id)
+      if (profileError) throw new Error(profileError.message)
+
+      if (workspaceId && businessName.trim()) {
+        const { error: wsError } = await supabase
+          .from('workspaces')
+          .update({ name: businessName.trim() })
+          .eq('id', workspaceId)
+        if (wsError) throw new Error(wsError.message)
+      }
+
+      setSaveStatus('success')
+      setTimeout(() => setSaveStatus('idle'), 3000)
+    } catch (err) {
+      setSaveStatus('error')
+      setSaveError(err instanceof Error ? err.message : 'Failed to save changes')
+    } finally {
+      setSaving(false)
+    }
+  }, [user, supabase, displayName, businessName, avatarUrl, workspaceId])
 
   return (
-    <V2Shell activeNav="Settings">
-      <div className="mx-auto flex max-w-[1280px] gap-6">
-        {/* Sidebar */}
-        <div className="w-[200px] shrink-0">
-          <GlassCard className="space-y-1">
-            <p className="mb-2 text-[10px] uppercase tracking-wider text-white/40">General/Studio</p>
-            {sidebarItems.map((item) => {
-              const Icon = item.icon
-              return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="font-headline text-3xl italic font-extrabold text-on-surface">
+          Control Panel
+        </h1>
+        <p className="mt-1 text-sm text-on-surface-variant">
+          Manage your studio profile, workflow defaults, and subscription
+        </p>
+      </div>
+
+      {/* Two-column grid */}
+      <div className="grid grid-cols-12 gap-6">
+        {/* ====== LEFT COLUMN (8) ====== */}
+        <div className="col-span-12 lg:col-span-8 space-y-6">
+          {/* Studio Identity */}
+          <Card>
+            <div className="flex items-center gap-2 mb-6">
+              <Camera size={18} className="text-primary" />
+              <h2 className="font-headline font-bold text-lg text-on-surface">
+                Studio Identity
+              </h2>
+            </div>
+
+            {profileLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <Loader2 size={24} className="animate-spin text-primary/50" />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-start gap-6">
+                  {/* Avatar upload */}
+                  <div className="flex flex-col items-center gap-2">
+                    <button
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="relative flex h-20 w-20 items-center justify-center rounded-xl border-2 border-dashed border-outline-variant/40 bg-surface-container overflow-hidden hover:border-primary/40 transition-colors"
+                      title="Upload avatar"
+                    >
+                      {avatarPreview ? (
+                        <Image
+                          src={avatarPreview}
+                          alt="Avatar"
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <Camera size={28} className="text-on-surface-variant/30" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="text-[11px] font-medium text-primary hover:underline"
+                    >
+                      Upload Logo
+                    </button>
+                    <input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                    />
+                  </div>
+
+                  {/* Fields */}
+                  <div className="flex-1 space-y-4">
+                    <div className="space-y-1.5">
+                      <SectionLabel>Full Name</SectionLabel>
+                      <input
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="Your name"
+                        className="w-full rounded-lg bg-surface-container px-4 py-2.5 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20 focus:ring-primary/50"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <SectionLabel>Business Name</SectionLabel>
+                      <input
+                        type="text"
+                        value={businessName}
+                        onChange={(e) => setBusinessName(e.target.value)}
+                        placeholder="Your studio name"
+                        className="w-full rounded-lg bg-surface-container px-4 py-2.5 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20 focus:ring-primary/50"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <SectionLabel>Email</SectionLabel>
+                      <div className="flex items-center gap-2 rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
+                        <Mail size={14} className="text-on-surface-variant/50" />
+                        <span className="text-sm text-on-surface">
+                          {user?.email ?? '—'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <SectionLabel>Portfolio URL</SectionLabel>
+                      <div className="flex items-center gap-2 rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
+                        <Globe size={14} className="text-on-surface-variant/50" />
+                        <span className="text-sm text-primary">
+                          view1.studio/{businessName.toLowerCase().replace(/\s+/g, '-') || 'your-studio'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save row */}
+                <div className="mt-6 flex items-center gap-3">
+                  <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-primary-dim px-5 py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-60"
+                  >
+                    {saving ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Save size={14} />
+                    )}
+                    {saving ? 'Saving…' : 'Save Changes'}
+                  </button>
+                  {saveStatus === 'success' && (
+                    <span className="text-sm text-secondary flex items-center gap-1">
+                      <Check size={14} />
+                      Saved
+                    </span>
+                  )}
+                  {saveStatus === 'error' && (
+                    <span className="text-sm text-error">{saveError}</span>
+                  )}
+                </div>
+              </>
+            )}
+          </Card>
+
+          {/* Global Workflow */}
+          <Card>
+            <div className="flex items-center gap-2 mb-6">
+              <Settings size={18} className="text-primary" />
+              <h2 className="font-headline font-bold text-lg text-on-surface">
+                Global Workflow
+              </h2>
+            </div>
+
+            <div className="space-y-6">
+              {/* Default Preset */}
+              <div className="space-y-1.5">
+                <SectionLabel>Default Sorting Preset</SectionLabel>
+                <div className="relative">
+                  <select className="w-full appearance-none rounded-lg bg-surface-container px-4 py-2.5 pr-10 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20 focus:ring-primary/50">
+                    <option>Wedding Architecture</option>
+                    <option>Real Estate Pro</option>
+                    <option>Editorial Travel</option>
+                    <option>Portrait Session</option>
+                  </select>
+                  <ChevronDown
+                    size={16}
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50"
+                  />
+                </div>
+              </div>
+
+              {/* Currency */}
+              <div className="space-y-1.5">
+                <SectionLabel>Currency</SectionLabel>
+                <div className="flex gap-2">
+                  {currencies.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setCurrency(c)}
+                      className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
+                        currency === c
+                          ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary'
+                          : 'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/20 hover:ring-primary/30'
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* AI Culling Sensitivity */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <SectionLabel>AI Culling Sensitivity</SectionLabel>
+                  <span className="text-xs font-medium text-primary">
+                    {sensitivity}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={sensitivity}
+                  onChange={(e) => setSensitivity(Number(e.target.value))}
+                  className="w-full accent-[#d48441]"
+                />
+                <div className="flex justify-between text-[10px] text-on-surface-variant/50">
+                  <span>Conservative</span>
+                  <span>Aggressive</span>
+                </div>
+              </div>
+
+              {/* Auto-Sync */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap size={14} className="text-secondary" />
+                  <span className="text-sm text-on-surface">
+                    Auto-Sync to Cloud
+                  </span>
+                </div>
                 <button
-                  key={item.label}
-                  className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${
-                    item.active ? 'bg-white/10 text-white font-medium' : 'text-white/50 hover:text-white hover:bg-white/5'
+                  onClick={() => setAutoSync(!autoSync)}
+                  className={`relative h-6 w-11 rounded-full transition-colors ${
+                    autoSync ? 'bg-primary' : 'bg-surface-container-highest'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
+                  <span
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                      autoSync ? 'left-[22px]' : 'left-0.5'
+                    }`}
+                  />
                 </button>
-              )
-            })}
-          </GlassCard>
-        </div>
-
-        {/* Main content */}
-        <div className="flex-1 space-y-6">
-          {/* AI Setup Wizard Header */}
-          <div>
-            <h1 className="font-headline text-3xl font-bold text-white">AI Setup Wizard</h1>
-            <p className="mt-1 text-sm text-white/60">
-              Configure your AI preferences: train your custom style, set default sorting categories, and let AI handle tedious parts of your workflow.
-            </p>
-          </div>
-
-          {/* Tell us about your business */}
-          <GlassCard className="space-y-4">
-            <h3 className="text-sm font-semibold text-white">Tell us about your photography business</h3>
-            <textarea
-              rows={3}
-              placeholder="Describe your photography style, specialties, and typical shoots..."
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
-            />
-            <div className="flex gap-2">
-              {['Portrait/Editorial', 'Weddings/Events', 'Commercial'].map((tag) => (
-                <button key={tag} className="rounded-full border border-white/15 px-3 py-1 text-xs text-white/60 hover:bg-white/10 hover:text-white">
-                  {tag}
-                </button>
-              ))}
-            </div>
-            <button className="text-xs text-indigo-400 hover:text-indigo-300">Advanced Settings</button>
-          </GlassCard>
-
-          {/* Automation Configuration */}
-          <GlassCard className="space-y-4">
-            <h3 className="text-sm font-semibold text-white">Automation Configuration</h3>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-white/80">Auto-Sort on Upload</p>
-                <p className="text-[10px] text-white/40">Automatically sort photos when uploaded</p>
               </div>
-              <Toggle />
             </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-white/80">Watermark First Look</p>
-                <p className="text-[10px] text-white/40">Add watermark to gallery previews</p>
-              </div>
-              <Toggle enabled={false} />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-white/80">Auto Confidence</span>
-                <span className="text-xs font-mono text-white/60">{confidence}%</span>
-              </div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={confidence}
-                onChange={(e) => setConfidence(Number(e.target.value))}
-                className="w-full accent-indigo-600"
-              />
-            </div>
-            <div className="flex items-center gap-4 text-xs text-white/40">
-              <span>Model Configuration</span>
-              <span>&middot;</span>
-              <span>AI Time Log</span>
-            </div>
-          </GlassCard>
+          </Card>
 
           {/* AI Preferences */}
-          <h2 className="text-lg font-semibold text-white">AI Preferences</h2>
+          <Card>
+            <div className="flex items-center gap-2 mb-6">
+              <Zap size={18} className="text-primary" />
+              <h2 className="font-headline font-bold text-lg text-on-surface">AI Preferences</h2>
+            </div>
 
-          {/* Shooting Styles */}
-          <GlassCard className="space-y-3">
-            <h3 className="text-sm font-semibold text-white">Shooting Styles</h3>
-            <div className="flex flex-wrap gap-2">
-              {shootingStyles.map((s) => (
+            <div className="space-y-6">
+              {/* Shooting Style */}
+              <div className="space-y-2">
+                <SectionLabel>Shooting Style</SectionLabel>
+                <div className="flex flex-wrap gap-2">
+                  {['Wedding', 'Events', 'Portrait', 'Commercial', 'Landscape', 'Other'].map((s) => {
+                    const active = shootingStyles.has(s)
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => setShootingStyles((prev) => {
+                          const next = new Set(prev)
+                          if (next.has(s)) next.delete(s)
+                          else next.add(s)
+                          return next
+                        })}
+                        className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                          active
+                            ? 'bg-gradient-to-br from-primary to-primary-dim text-on-primary'
+                            : 'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/20 hover:ring-primary/30'
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Auto-Sort Categories */}
+              <div className="space-y-2">
+                <SectionLabel>Auto-Sort Categories</SectionLabel>
+                <div className="grid grid-cols-3 gap-2">
+                  {['Bridal', 'Groom', 'Ceremony', 'Reception', 'Portraits', 'Group', 'Venue', 'Details', 'BTS'].map((cat) => {
+                    const active = autoSortCategories.has(cat)
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setAutoSortCategories((prev) => {
+                          const next = new Set(prev)
+                          if (next.has(cat)) next.delete(cat)
+                          else next.add(cat)
+                          return next
+                        })}
+                        className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                          active
+                            ? 'bg-primary/10 text-primary ring-1 ring-primary/30'
+                            : 'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/20'
+                        }`}
+                      >
+                        <span className={`h-3.5 w-3.5 rounded flex items-center justify-center ${active ? 'bg-primary' : 'bg-surface-container-highest'}`}>
+                          {active && <Check size={9} className="text-on-primary" />}
+                        </span>
+                        {cat}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Culling Frequency */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <SectionLabel>Culling Frequency</SectionLabel>
+                  <span className="text-xs font-medium text-primary">{cullingFrequency}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={cullingFrequency}
+                  onChange={(e) => setCullingFrequency(Number(e.target.value))}
+                  className="w-full accent-[#6366F1]"
+                />
+                <div className="flex justify-between text-[10px] text-on-surface-variant/50">
+                  <span>Keep Most</span>
+                  <span>Aggressive Cull</span>
+                </div>
+              </div>
+
+              {/* Auto-Reject Filters */}
+              <div className="space-y-2">
+                <SectionLabel>Auto-Reject Filters</SectionLabel>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Blur', 'Eyes Closed', 'Blinks', 'Obstruction', 'Misc'].map((filter) => {
+                    const active = autoRejectFilters.has(filter)
+                    return (
+                      <div key={filter} className="flex items-center justify-between rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
+                        <span className="text-sm text-on-surface">{filter}</span>
+                        <button
+                          onClick={() => setAutoRejectFilters((prev) => {
+                            const next = new Set(prev)
+                            if (next.has(filter)) next.delete(filter)
+                            else next.add(filter)
+                            return next
+                          })}
+                          className={`relative h-5 w-9 rounded-full transition-colors ${active ? 'bg-primary' : 'bg-surface-container-highest'}`}
+                        >
+                          <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${active ? 'left-[18px]' : 'left-0.5'}`} />
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Face Family Sorting + Confidence */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
+                  <span className="text-sm text-on-surface">Face Family Sorting</span>
+                  <button
+                    onClick={() => setFaceFamilySorting(!faceFamilySorting)}
+                    className={`relative h-5 w-9 rounded-full transition-colors ${faceFamilySorting ? 'bg-primary' : 'bg-surface-container-highest'}`}
+                  >
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${faceFamilySorting ? 'left-[18px]' : 'left-0.5'}`} />
+                  </button>
+                </div>
+                {faceFamilySorting && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <SectionLabel>Confidence Threshold</SectionLabel>
+                      <span className="text-xs font-medium text-primary">{confidenceThreshold}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={50}
+                      max={100}
+                      value={confidenceThreshold}
+                      onChange={(e) => setConfidenceThreshold(Number(e.target.value))}
+                      className="w-full accent-[#6366F1]"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Min Keywords */}
+              <div className="space-y-2">
+                <SectionLabel>Min Keywords</SectionLabel>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {minKeywords.map((kw) => (
+                    <span
+                      key={kw}
+                      className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary ring-1 ring-primary/20"
+                    >
+                      {kw}
+                      <button
+                        onClick={() => setMinKeywords((prev) => prev.filter((k) => k !== kw))}
+                        className="text-primary/60 hover:text-primary"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={kwInput}
+                    onChange={(e) => setKwInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && kwInput.trim()) {
+                        setMinKeywords((prev) => [...prev, kwInput.trim()])
+                        setKwInput('')
+                      }
+                    }}
+                    placeholder="Add keyword…"
+                    className="flex-1 rounded-lg bg-surface-container px-4 py-2 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20 focus:ring-primary/50"
+                  />
+                  <button
+                    onClick={() => {
+                      if (kwInput.trim()) {
+                        setMinKeywords((prev) => [...prev, kwInput.trim()])
+                        setKwInput('')
+                      }
+                    }}
+                    className="rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Delivery Schedule */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between rounded-lg bg-surface-container px-4 py-2.5 ring-1 ring-outline-variant/20">
+                  <span className="text-sm text-on-surface">Auto-Delivery Schedule</span>
+                  <button
+                    onClick={() => setDeliveryAuto(!deliveryAuto)}
+                    className={`relative h-5 w-9 rounded-full transition-colors ${deliveryAuto ? 'bg-primary' : 'bg-surface-container-highest'}`}
+                  >
+                    <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${deliveryAuto ? 'left-[18px]' : 'left-0.5'}`} />
+                  </button>
+                </div>
+                {deliveryAuto && (
+                  <div className="flex gap-3">
+                    <select className="flex-1 rounded-lg bg-surface-container px-3 py-2 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20">
+                      <option>Monday</option>
+                      <option>Wednesday</option>
+                      <option>Friday</option>
+                      <option>Saturday</option>
+                    </select>
+                    <select className="flex-1 rounded-lg bg-surface-container px-3 py-2 text-sm text-on-surface outline-none ring-1 ring-outline-variant/20">
+                      <option>9:00 AM</option>
+                      <option>12:00 PM</option>
+                      <option>3:00 PM</option>
+                      <option>6:00 PM</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Danger Zone */}
+          <Card className="!border-red-500/30">
+            <div className="flex items-center gap-2 mb-4">
+              <Trash2 size={18} className="text-error" />
+              <h2 className="font-headline font-bold text-lg text-error">
+                Danger Zone
+              </h2>
+            </div>
+            <p className="text-sm text-on-surface-variant mb-4">
+              Permanently delete your account and all associated data. This
+              action cannot be undone.
+            </p>
+            <button className="rounded-lg border border-red-500/40 bg-red-500/10 px-5 py-2.5 text-sm font-medium text-error transition-colors hover:bg-red-500/20">
+              Delete Account
+            </button>
+          </Card>
+        </div>
+
+        {/* ====== RIGHT COLUMN (4) ====== */}
+        <div className="col-span-12 lg:col-span-4 space-y-6">
+          {/* Pro Studio Subscription */}
+          <Card className="relative overflow-hidden">
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-primary/20 to-primary-dim/10 blur-2xl" />
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-1">
+                <Crown size={18} className="text-primary" />
+                <SectionLabel>Current Plan</SectionLabel>
+              </div>
+              <h3 className="font-headline text-2xl font-extrabold text-on-surface">
+                Pro Studio
+              </h3>
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-3xl font-extrabold text-primary">
+                  $39
+                </span>
+                <span className="text-sm text-on-surface-variant">/mo</span>
+              </div>
+
+              <ul className="mt-5 space-y-2.5">
+                {planFeatures.map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-on-surface">
+                    <Check size={14} className="text-secondary shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-6 space-y-2">
                 <button
-                  key={s.label}
-                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                    s.active ? 'bg-orange-500 text-white' : 'bg-white/10 text-white/60 hover:text-white'
-                  }`}
+                  onClick={handleManageSubscription}
+                  disabled={portalLoading}
+                  className="w-full rounded-xl bg-gradient-to-br from-primary to-primary-dim py-2.5 text-sm font-bold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-60"
                 >
-                  {s.label}
+                  {portalLoading ? 'Loading…' : 'Manage Subscription'}
                 </button>
-              ))}
-            </div>
-          </GlassCard>
-
-          {/* Auto-Sort Categories */}
-          <GlassCard className="space-y-3">
-            <h3 className="text-sm font-semibold text-white">Auto-Sort Categories</h3>
-            {sortCategories.map((cat) => (
-              <div key={cat} className="flex items-center justify-between rounded-lg bg-white/5 px-4 py-2.5">
-                <span className="text-sm text-white/80">{cat}</span>
-                <Toggle />
-              </div>
-            ))}
-          </GlassCard>
-
-          {/* Confidence Threshold */}
-          <GlassCard className="space-y-3">
-            <h3 className="text-sm font-semibold text-white">Confidence Threshold</h3>
-            <input type="range" min={0} max={100} defaultValue={70} className="w-full accent-indigo-600" />
-          </GlassCard>
-
-          {/* Auto-Reject Rules */}
-          <GlassCard className="space-y-3">
-            <h3 className="text-sm font-semibold text-white">Auto-Reject Rules</h3>
-            {rejectRules.map((rule) => (
-              <div key={rule} className="flex items-center justify-between rounded-lg bg-white/5 px-4 py-2.5">
-                <span className="text-sm text-white/80">{rule}</span>
-                <Toggle />
-              </div>
-            ))}
-          </GlassCard>
-
-          {/* Face/Skin Retouching */}
-          <GlassCard className="space-y-3">
-            <h3 className="text-sm font-semibold text-white">Face/Skin Retouching</h3>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-white/80">Portrait Mode</span>
-              <Toggle enabled={false} />
-            </div>
-          </GlassCard>
-
-          {/* Vibe Keywords */}
-          <GlassCard className="space-y-3">
-            <h3 className="text-sm font-semibold text-white">Vibe Keywords</h3>
-            <input
-              type="text"
-              placeholder="e.g. golden hour, dreamy, editorial..."
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-white/30 focus:outline-none"
-            />
-          </GlassCard>
-
-          {/* Deliver Schedule */}
-          <GlassCard className="space-y-3">
-            <h3 className="text-sm font-semibold text-white">Deliver Schedule</h3>
-            <div className="flex gap-2">
-              {['Same Day', '24 Hours', '48 Hours', '1 Week'].map((opt) => (
-                <button key={opt} className="rounded-lg bg-white/8 px-3 py-1.5 text-xs text-white/60 hover:text-white hover:bg-white/15">
-                  {opt}
+                <button className="w-full rounded-xl border border-outline-variant/30 py-2.5 text-sm font-medium text-on-surface-variant transition-colors hover:border-primary/30 hover:text-primary">
+                  Switch to Annual (Save 20%)
                 </button>
-              ))}
+              </div>
             </div>
-          </GlassCard>
+          </Card>
+
+          {/* Resource Allocation */}
+          <Card>
+            <div className="flex items-center gap-2 mb-5">
+              <HardDrive size={16} className="text-on-surface-variant" />
+              <h3 className="font-headline font-bold text-on-surface">
+                Resource Allocation
+              </h3>
+            </div>
+            <div className="space-y-5">
+              <ProgressBar
+                label="Storage"
+                value={42}
+                max={100}
+                unit="GB"
+                color="bg-gradient-to-r from-primary to-primary-dim"
+              />
+              <ProgressBar
+                label="AI Credits"
+                value={1840}
+                max={3000}
+                unit="credits"
+                color="bg-secondary"
+              />
+            </div>
+          </Card>
+
+          {/* Support */}
+          <Card>
+            <div className="flex items-center gap-2 mb-4">
+              <HelpCircle size={16} className="text-on-surface-variant" />
+              <h3 className="font-headline font-bold text-on-surface">
+                Support
+              </h3>
+            </div>
+            <div className="space-y-2">
+              <button className="flex w-full items-center gap-3 rounded-lg bg-surface-container px-4 py-3 text-sm text-on-surface transition-colors hover:bg-surface-container-high">
+                <MessageSquare size={16} className="text-primary shrink-0" />
+                Live Chat
+              </button>
+              <button className="flex w-full items-center gap-3 rounded-lg bg-surface-container px-4 py-3 text-sm text-on-surface transition-colors hover:bg-surface-container-high">
+                <BookOpen size={16} className="text-primary shrink-0" />
+                Documentation
+              </button>
+            </div>
+          </Card>
         </div>
       </div>
-    </V2Shell>
+    </div>
   )
 }
