@@ -148,7 +148,7 @@ export default function RefundPage({ params }: RefundPageProps) {
               onClick={() => setRefundType('full')}
               className={`flex-1 rounded-xl border py-3 text-sm font-semibold transition-all ${
                 refundType === 'full'
-                  ? 'border-[#e7765f] bg-[#e7765f]/10 text-rose-400'
+                  ? 'border-brand-coral bg-brand-coral/10 text-rose-400'
                   : 'border-outline-variant/50 bg-surface text-on-surface-variant hover:border-outline-variant'
               }`}
             >
@@ -158,7 +158,7 @@ export default function RefundPage({ params }: RefundPageProps) {
               onClick={() => setRefundType('partial')}
               className={`flex-1 rounded-xl border py-3 text-sm font-semibold transition-all ${
                 refundType === 'partial'
-                  ? 'border-[#e7765f] bg-[#e7765f]/10 text-rose-400'
+                  ? 'border-brand-coral bg-brand-coral/10 text-rose-400'
                   : 'border-outline-variant/50 bg-surface text-on-surface-variant hover:border-outline-variant'
               }`}
             >
@@ -227,8 +227,8 @@ export default function RefundPage({ params }: RefundPageProps) {
 
         {/* Impact warning */}
         {refundType === 'full' && (
-          <div className="mb-6 flex items-start gap-3 rounded-xl border border-[#e7765f]/30 bg-[#e7765f]/5 p-4">
-            <AlertTriangle size={18} className="mt-0.5 shrink-0 text-[#e7765f]" />
+          <div className="mb-6 flex items-start gap-3 rounded-xl border border-brand-coral/30 bg-brand-coral/5 p-4">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0 text-brand-coral" />
             <p className="text-sm leading-relaxed text-rose-400">
               Full refund will revoke client&apos;s download access to this gallery. This action cannot be undone.
             </p>
@@ -272,7 +272,7 @@ export default function RefundPage({ params }: RefundPageProps) {
           </Link>
           <button
             disabled={!reason}
-            className="flex-1 rounded-xl bg-gradient-to-br from-[#ffb4a5] to-[#e7765f] py-3.5 font-headline font-bold text-sm text-on-primary transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 rounded-xl bg-gradient-to-br from-brand-peach to-brand-coral py-3.5 font-headline font-bold text-sm text-on-primary transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Process Refund
           </button>
@@ -290,7 +290,7 @@ export default function RefundPage({ params }: RefundPageProps) {
                 className="flex items-center justify-between rounded-lg bg-surface-container px-4 py-3"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ffb4a5]/10 text-rose-400">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-peach/10 text-rose-400">
                     <DollarSign size={16} />
                   </div>
                   <div>

@@ -2,7 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useRef, useState } from 'react'
 import { Aperture, Bell, Settings } from 'lucide-react'
+import { TodoTrigger, TodoDropdown } from './TodoPanel'
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard' },
@@ -23,6 +25,8 @@ interface TopNavProps {
 
 export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: TopNavProps) {
   const pathname = usePathname()
+  const [todoOpen, setTodoOpen] = useState(false)
+  const todoButtonRef = useRef<HTMLButtonElement>(null)
 
   return (
     <nav className="relative z-20 flex h-14 w-full shrink-0 items-center justify-between border-b border-white/[0.09] bg-white/[0.04] px-10 backdrop-blur-sm">
@@ -58,7 +62,7 @@ export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: To
       </div>
 
       {/* Right: Icons + Avatar */}
-      <div className="flex items-center gap-3">
+      <div className="relative flex items-center gap-3">
         <button
           onClick={onBellClick}
           className="relative text-white/[0.67] transition-colors hover:text-white"
@@ -70,12 +74,24 @@ export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: To
             </span>
           )}
         </button>
+        <TodoTrigger
+          open={todoOpen}
+          onToggle={() => setTodoOpen((v) => !v)}
+          buttonRef={todoButtonRef}
+        />
         <Link href="/dashboard/settings" className="text-white/[0.67] transition-colors hover:text-white">
           <Settings className="h-[18px] w-[18px]" />
         </Link>
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white ring-2 ring-white/25">
           {userInitials}
         </div>
+
+        {/* Todo dropdown */}
+        <TodoDropdown
+          open={todoOpen}
+          onClose={() => setTodoOpen(false)}
+          anchorRef={todoButtonRef}
+        />
       </div>
     </nav>
   )

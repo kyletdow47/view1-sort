@@ -413,7 +413,7 @@ function ProjectsTab() {
             className="rounded-2xl border border-outline-variant/30 bg-surface-container overflow-hidden hover:border-outline-variant/60 transition-all group"
           >
             {/* Thumbnail placeholder */}
-            <div className="h-36 bg-gradient-to-br from-surface-highest/20 to-[#151312] flex items-center justify-center relative">
+            <div className="h-36 bg-gradient-to-br from-surface-highest/20 to-background flex items-center justify-center relative">
               <Camera size={32} className="text-on-surface/10" />
               <div className="absolute top-3 right-3">
                 <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider ${projectStatusColors[project.status]}`}>
@@ -835,7 +835,7 @@ export default function ClientProfilePage() {
           {/* Left: Avatar + info */}
           <div className="flex items-start gap-5">
             {/* Avatar */}
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-[#e09050] to-[#c06830] text-2xl font-extrabold text-[#3a1800] shadow-lg shadow-primary/10">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-brand-amber to-brand-sienna text-2xl font-extrabold text-brand-dark shadow-lg shadow-primary/10">
               {client.initials}
             </div>
 

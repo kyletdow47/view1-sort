@@ -45,7 +45,7 @@ const statusSteps: { key: EditStatus; label: string; icon: React.ElementType }[]
 ]
 
 const statusColors: Record<EditStatus, string> = {
-  requested: 'bg-[#ffb4a5]/15 text-rose-400',
+  requested: 'bg-brand-peach/15 text-rose-400',
   reviewed: 'bg-emerald-400/15 text-emerald-400',
   priced: 'bg-primary/15 text-primary',
   paid: 'bg-emerald-500/15 text-emerald-400',

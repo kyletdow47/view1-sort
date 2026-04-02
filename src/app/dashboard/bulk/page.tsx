@@ -150,7 +150,7 @@ export default function BulkManagementPage() {
                 <button className="flex items-center gap-2 px-3 py-1.5 bg-surface-highest/60 hover:bg-surface-highest text-[10px] font-mono font-bold uppercase tracking-widest text-on-surface rounded-lg border border-outline-variant/20 transition-all">
                   <Download className="w-3 h-3" /> Export
                 </button>
-                <button className="flex items-center gap-2 px-3 py-1.5 bg-[#e7765f]/10 hover:bg-[#e7765f]/20 text-rose-400 text-[10px] font-mono font-bold uppercase tracking-widest rounded-lg border border-[#e7765f]/20 transition-all">
+                <button className="flex items-center gap-2 px-3 py-1.5 bg-brand-coral/10 hover:bg-brand-coral/20 text-rose-400 text-[10px] font-mono font-bold uppercase tracking-widest rounded-lg border border-brand-coral/20 transition-all">
                   <Trash2 className="w-3 h-3" /> Delete
                 </button>
               </div>

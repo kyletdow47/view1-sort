@@ -25,10 +25,10 @@ import type { GalleryTheme, Project } from '@/types/supabase'
 
 /* ── Themes ── */
 const themes = [
-  { id: 'dark' as const, name: 'Minimal Dark', bg: '#151312', accent: '#ffb780' },
-  { id: 'light' as const, name: 'Clean Light', bg: '#f5f3f0', accent: '#d48441' },
-  { id: 'minimal' as const, name: 'Editorial', bg: '#1a1a1a', accent: '#95d1d1' },
-  { id: 'editorial' as const, name: 'Warm Earth', bg: '#1d1916', accent: '#ffb4a5' },
+  { id: 'dark' as const, name: 'Minimal Dark', bg: 'rgb(var(--t-bg))', accent: 'var(--brand-amber)' },
+  { id: 'light' as const, name: 'Clean Light', bg: '#f5f3f0', accent: 'var(--brand-sienna)' },
+  { id: 'minimal' as const, name: 'Editorial', bg: '#1a1a1a', accent: 'var(--brand-teal)' },
+  { id: 'editorial' as const, name: 'Warm Earth', bg: '#1d1916', accent: 'var(--brand-peach)' },
 ]
 
 /* ── Helpers ── */

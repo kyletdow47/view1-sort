@@ -207,6 +207,46 @@ export interface StripeEvent {
   created_at: string
 }
 
+export type GalleryStatus = 'draft' | 'published' | 'expired'
+
+export interface Gallery {
+  id: string
+  project_id: string
+  workspace_id: string
+  title: string
+  cover_photo_url: string | null
+  password_protected: boolean
+  password_hash: string | null
+  allow_downloads: boolean
+  show_powered_by: boolean
+  photographer_name: string | null
+  photographer_logo_url: string | null
+  theme: GalleryTheme
+  status: GalleryStatus
+  expires_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface GallerySelection {
+  id: string
+  gallery_id: string
+  media_id: string
+  session_token: string
+  created_at: string
+}
+
+export interface GalleryComment {
+  id: string
+  gallery_id: string
+  media_id: string
+  author_name: string
+  author_email: string | null
+  body: string
+  parent_id: string | null
+  created_at: string
+}
+
 // ---------------------------------------------------------------------------
 // Insert types (omit server-generated fields)
 // ---------------------------------------------------------------------------
@@ -227,6 +267,9 @@ export type BookingInsert = Omit<Booking, 'id' | 'created_at' | 'updated_at'>
 export type WaitlistInsert = Omit<Waitlist, 'id' | 'created_at'>
 export type GalleryPaymentInsert = Omit<GalleryPayment, 'id' | 'created_at'>
 export type StripeEventInsert = Omit<StripeEvent, 'id' | 'created_at'>
+export type GalleryInsert = Omit<Gallery, 'id' | 'created_at' | 'updated_at'>
+export type GallerySelectionInsert = Omit<GallerySelection, 'id' | 'created_at'>
+export type GalleryCommentInsert = Omit<GalleryComment, 'id' | 'created_at'>
 
 // ---------------------------------------------------------------------------
 // Update types (all fields optional except PK)

@@ -52,7 +52,7 @@ const pendingInvites: PendingInvite[] = [
 const roleConfig: Record<Role, { label: string; color: string; bg: string; icon: React.ElementType }> = {
   owner: { label: 'Owner', color: 'text-primary', bg: 'bg-primary/15', icon: Crown },
   editor: { label: 'Editor', color: 'text-emerald-400', bg: 'bg-emerald-400/15', icon: Pencil },
-  viewer: { label: 'Viewer', color: 'text-on-surface-variant', bg: 'bg-[#d9c2b4]/15', icon: Eye },
+  viewer: { label: 'Viewer', color: 'text-on-surface-variant', bg: 'bg-on-surface-variant/15', icon: Eye },
 }
 
 const permissions = [
@@ -162,7 +162,7 @@ export default function TeamPage() {
                     {new Date(member.lastActive).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                   </div>
                   {member.role !== 'owner' && (
-                    <button className="rounded-lg p-2 text-on-surface-variant/30 hover:text-[#e7765f] hover:bg-[#e7765f]/10 transition-colors">
+                    <button className="rounded-lg p-2 text-on-surface-variant/30 hover:text-brand-coral hover:bg-brand-coral/10 transition-colors">
                       <Trash2 size={14} />
                     </button>
                   )}
@@ -253,7 +253,7 @@ export default function TeamPage() {
                     <button className="rounded-lg px-3 py-1.5 text-xs font-medium text-on-surface-variant ring-1 ring-outline-variant/20 hover:ring-primary/30 hover:text-primary transition-all">
                       Resend
                     </button>
-                    <button className="rounded-lg p-1.5 text-on-surface-variant/30 hover:text-[#e7765f] hover:bg-[#e7765f]/10 transition-colors">
+                    <button className="rounded-lg p-1.5 text-on-surface-variant/30 hover:text-brand-coral hover:bg-brand-coral/10 transition-colors">
                       <X size={14} />
                     </button>
                   </div>

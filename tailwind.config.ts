@@ -50,6 +50,35 @@ const config: Config = {
         error:   '#ef4444',
         success: '#22c55e',
         warning: '#f59e0b',
+
+        // ── Chart / data-visualisation palette ───────────────────────────
+        'chart-emerald':     'var(--chart-emerald)',
+        'chart-violet':      'var(--chart-violet)',
+        'chart-amber':       'var(--chart-amber)',
+        'chart-red':         'var(--chart-red)',
+        'chart-blue':        'var(--chart-blue)',
+        'chart-orange':      'var(--chart-orange)',
+        'chart-teal':        'var(--chart-teal)',
+        'chart-purple':      'var(--chart-purple)',
+        'chart-gold':        'var(--chart-gold)',
+        'chart-coral':       'var(--chart-coral)',
+        'chart-mint':        'var(--chart-mint)',
+        'chart-deep-purple': 'var(--chart-deep-purple)',
+        'chart-tangerine':   'var(--chart-tangerine)',
+        'chart-cyan':        'var(--chart-cyan)',
+        'chart-indigo':      'var(--chart-indigo)',
+        'chart-rose':        'var(--chart-rose)',
+        'chart-dark-teal':   'var(--chart-dark-teal)',
+        'chart-pink':        'var(--chart-pink)',
+        'chart-soft-indigo': 'var(--chart-soft-indigo)',
+
+        // ── Brand accent palette ─────────────────────────────────────────
+        'brand-teal':   'var(--brand-teal)',
+        'brand-coral':  'var(--brand-coral)',
+        'brand-peach':  'var(--brand-peach)',
+        'brand-amber':  'var(--brand-amber)',
+        'brand-sienna': 'var(--brand-sienna)',
+        'brand-dark':   'var(--brand-dark)',
       },
 
       fontFamily: {
