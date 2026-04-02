@@ -41,7 +41,7 @@ const stats = [
 
 export function QuickStats() {
   return (
-    <GlassPanel className="flex h-full w-[239px] shrink-0 flex-col gap-3 p-4">
+    <GlassPanel className="flex h-full w-full flex-col gap-3 p-4">
       <span className="text-[14px] font-semibold tracking-[0.5px] text-white/[0.67]">
         Quick Stats
       </span>
