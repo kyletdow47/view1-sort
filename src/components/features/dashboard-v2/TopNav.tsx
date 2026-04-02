@@ -12,6 +12,7 @@ const navItems = [
   { label: 'Clients', href: '/dashboard/clients' },
   { label: 'Bookings', href: '/dashboard/bookings' },
   { label: 'Analytics', href: '/dashboard/analytics' },
+  { label: 'Content', href: '/dashboard/content-hub' },
 ]
 
 interface TopNavProps {
