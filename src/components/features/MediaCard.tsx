@@ -2,7 +2,7 @@
 
 import { memo, useRef } from 'react'
 import { clsx } from 'clsx'
-import { GripVertical, ImageOff, Maximize2, RectangleHorizontal, RectangleVertical, Square } from 'lucide-react'
+import { ImageOff, Maximize2, RectangleHorizontal, RectangleVertical, Square } from 'lucide-react'
 import { Badge } from '@/components/common'
 import type { MediaItem, MediaOrientation } from '@/types/media'
 
@@ -101,10 +101,6 @@ export const MediaCard = memo(function MediaCard({ media, onSelect, onDoubleClic
           <Maximize2 className="w-4 h-4 text-white/70" />
         </div>
 
-        {/* Drag handle */}
-        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150 cursor-grab active:cursor-grabbing">
-          <GripVertical className="w-4 h-4 text-white/50" />
-        </div>
       </div>
 
       {/* Footer info */}
