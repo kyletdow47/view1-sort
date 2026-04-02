@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { VideoBackground } from './VideoBackground'
+import { ScrollCard } from './ScrollCard'
 import {
   Sparkles, Brain, Layers, Send, Users, BarChart3, CalendarDays,
   FileText, Smartphone, CheckCircle, ArrowRight, Camera,
@@ -270,18 +272,21 @@ function FeatureTabs() {
 
       {/* Feature grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {features.map(f => (
-          <div
-            key={f.title}
-            className="group rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 transition-all hover:border-zinc-700 hover:bg-zinc-900/60 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20"
-          >
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 transition-all group-hover:bg-indigo-500/15">
-              <f.icon size={18} />
-            </div>
-            <h3 className="font-semibold text-zinc-100 mb-1.5">{f.title}</h3>
-            <p className="text-sm text-zinc-500 leading-relaxed">{f.desc}</p>
-          </div>
-        ))}
+        {features.map((f, i) => {
+          const rotations = [-3, 2.5, -4, 3.5, -2]
+          const depths = [1.2, 1.5, 1, 1.3, 1.6]
+          return (
+            <ScrollCard key={f.title} rotation={rotations[i % rotations.length]} depth={depths[i % depths.length]}>
+              <div className="group rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 transition-all hover:border-zinc-700 hover:bg-zinc-900/60 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 transition-all group-hover:bg-indigo-500/15">
+                  <f.icon size={18} />
+                </div>
+                <h3 className="font-semibold text-zinc-100 mb-1.5">{f.title}</h3>
+                <p className="text-sm text-zinc-500 leading-relaxed">{f.desc}</p>
+              </div>
+            </ScrollCard>
+          )
+        })}
       </div>
     </div>
   )
@@ -443,8 +448,9 @@ export function LandingPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen text-zinc-100" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');`}</style>
+      <VideoBackground />
 
       {/* ── NAV ── */}
       <nav className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? 'border-b border-zinc-800/60 bg-[#09090b]/90 backdrop-blur-xl' : ''}`}>
@@ -968,32 +974,38 @@ export function LandingPage() {
                 features: ['Everything in Pro', 'Team accounts (5 seats)', 'Custom gallery branding', 'Priority AI processing', 'SMS notifications', 'Advanced analytics', 'Unlimited storage', 'Dedicated support'],
                 cta: 'Join Waitlist', highlight: false,
               },
-            ].map(plan => (
-              <div key={plan.name} className={`rounded-2xl border p-7 flex flex-col relative ${plan.highlight ? 'border-indigo-500/40 bg-indigo-500/5 ring-1 ring-indigo-500/10' : 'border-zinc-800 bg-zinc-900/40'}`}>
-                {plan.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-3 py-0.5 text-xs font-bold text-white">Most Popular</div>
-                )}
-                <div className="mb-6">
-                  <p className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">{plan.name}</p>
-                  <div className="mt-2 flex items-end gap-1.5">
-                    <span className="text-4xl font-black text-zinc-50">{plan.price}</span>
-                    <span className="text-sm text-zinc-500 mb-1">{plan.period}</span>
+            ].map((plan, i) => {
+              const rotations = [-2.5, 0, 2.5]
+              const depths = [1.2, 1, 1.2]
+              return (
+                <ScrollCard key={plan.name} rotation={rotations[i % rotations.length]} depth={depths[i % depths.length]}>
+                  <div className={`rounded-2xl border p-7 flex flex-col relative h-full ${plan.highlight ? 'border-indigo-500/40 bg-indigo-500/5 ring-1 ring-indigo-500/10' : 'border-zinc-800 bg-zinc-900/40'}`}>
+                    {plan.highlight && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-3 py-0.5 text-xs font-bold text-white">Most Popular</div>
+                    )}
+                    <div className="mb-6">
+                      <p className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">{plan.name}</p>
+                      <div className="mt-2 flex items-end gap-1.5">
+                        <span className="text-4xl font-black text-zinc-50">{plan.price}</span>
+                        <span className="text-sm text-zinc-500 mb-1">{plan.period}</span>
+                      </div>
+                      <p className="mt-2 text-sm text-zinc-500">{plan.desc}</p>
+                    </div>
+                    <ul className="flex-1 space-y-2.5 mb-8">
+                      {plan.features.map(f => (
+                        <li key={f} className="flex items-start gap-2.5 text-sm text-zinc-300">
+                          <Check size={14} className="mt-0.5 shrink-0 text-indigo-400" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                    <a href="#waitlist" className={`block rounded-xl py-3 text-center text-sm font-semibold transition-all ${plan.highlight ? 'bg-indigo-500 text-white hover:bg-indigo-400' : 'border border-zinc-700 text-zinc-300 hover:border-zinc-600 hover:text-zinc-100'}`}>
+                      {plan.cta}
+                    </a>
                   </div>
-                  <p className="mt-2 text-sm text-zinc-500">{plan.desc}</p>
-                </div>
-                <ul className="flex-1 space-y-2.5 mb-8">
-                  {plan.features.map(f => (
-                    <li key={f} className="flex items-start gap-2.5 text-sm text-zinc-300">
-                      <Check size={14} className="mt-0.5 shrink-0 text-indigo-400" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <a href="#waitlist" className={`block rounded-xl py-3 text-center text-sm font-semibold transition-all ${plan.highlight ? 'bg-indigo-500 text-white hover:bg-indigo-400' : 'border border-zinc-700 text-zinc-300 hover:border-zinc-600 hover:text-zinc-100'}`}>
-                  {plan.cta}
-                </a>
-              </div>
-            ))}
+                </ScrollCard>
+              )
+            })}
           </div>
           <p className="mt-8 text-center text-sm text-zinc-500">All plans include a 14-day free trial. No credit card required. Cancel anytime.</p>
         </div>
