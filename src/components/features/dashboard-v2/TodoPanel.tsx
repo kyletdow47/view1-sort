@@ -17,7 +17,7 @@ const TOTAL = 8
 interface TodoDropdownProps {
   open: boolean
   onClose: () => void
-  anchorRef: React.RefObject<HTMLButtonElement>
+  anchorRef: React.RefObject<HTMLButtonElement | null>
 }
 
 export function TodoDropdown({ open, onClose, anchorRef }: TodoDropdownProps) {
@@ -103,7 +103,7 @@ export function TodoTrigger({
 }: {
   open: boolean
   onToggle: () => void
-  buttonRef: React.RefObject<HTMLButtonElement>
+  buttonRef: React.RefObject<HTMLButtonElement | null>
 }) {
   return (
     <button
