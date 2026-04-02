@@ -1,6 +1,5 @@
 'use client'
 
-import { TopNav } from './TopNav'
 import { WelcomeSection } from './WelcomeSection'
 import { RecentActivity } from './RecentActivity'
 import { RecentProjects } from './RecentProjects'
@@ -24,44 +23,22 @@ export function DashboardV2({
   activeProjectCount = 0,
 }: DashboardV2Props) {
   return (
-    <div className="relative h-screen w-full max-w-[1440px] mx-auto overflow-x-hidden rounded-2xl border border-white/[0.13]"
-      style={{
-        background: 'linear-gradient(135deg, #1A3A8F 0%, #2D60D4 20%, #3B7DE8 40%, #5A6FE8 60%, #7B5EA7 80%, #1E2FA8 100%)',
-      }}
-    >
-      {/* Radial highlight */}
-      <div className="pointer-events-none absolute inset-0"
-        style={{
-          background: 'radial-gradient(ellipse 70% 60% at 20% 10%, rgba(255,255,255,0.07) 0%, transparent 100%)',
-        }}
-      />
+    <div className="flex flex-col gap-5">
+      {/* Welcome / chat */}
+      <WelcomeSection userName={userName} />
 
-      {/* Content */}
-      <div className="relative flex h-full flex-col">
-        <TopNav />
+      {/* Row 1: Activity + Projects + Quick Stats */}
+      <div className="grid min-h-[290px] grid-cols-3 gap-4">
+        <RecentActivity />
+        <RecentProjects projects={projects} photoCounts={photoCounts} />
+        <QuickStats />
+      </div>
 
-        {/* Main layout */}
-        <div className="flex flex-1 items-start justify-center overflow-y-auto overflow-x-hidden">
-          {/* Center content column */}
-          <div className="relative flex w-full max-w-[1280px] flex-col gap-5 px-10 pb-10 pt-8">
-            {/* Welcome / chat */}
-            <WelcomeSection userName={userName} />
-
-            {/* Row 1: Activity + Projects + Quick Stats */}
-            <div className="grid min-h-[290px] grid-cols-3 gap-4">
-              <RecentActivity />
-              <RecentProjects projects={projects} photoCounts={photoCounts} />
-              <QuickStats />
-            </div>
-
-            {/* Row 2: Calendar + Deliveries + Inbox */}
-            <div className="grid min-h-[280px] grid-cols-3 gap-4">
-              <CalendarWidget />
-              <ProjectDeliveries />
-              <InboxWidget />
-            </div>
-          </div>
-        </div>
+      {/* Row 2: Calendar + Deliveries + Inbox */}
+      <div className="grid min-h-[280px] grid-cols-3 gap-4">
+        <CalendarWidget />
+        <ProjectDeliveries />
+        <InboxWidget />
       </div>
     </div>
   )

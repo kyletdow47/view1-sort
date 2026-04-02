@@ -147,12 +147,7 @@ export function DashboardClientLayout({
     return 'KD'
   }, [profile, user])
 
-  // The main dashboard uses a full-screen v2 design with its own nav — bypass
-  if (pathname === '/dashboard') {
-    return <>{children}</>
-  }
-
-  // Gradient shell for all inner dashboard pages
+  // Gradient shell for all dashboard pages (including main dashboard)
   return (
     <div
       className="relative flex min-h-screen flex-col overflow-hidden text-white"
