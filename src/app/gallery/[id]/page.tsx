@@ -1,123 +1,171 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { ClientGalleryView } from '@/components/features/gallery/ClientGalleryView'
+import { GalleryPasswordGate } from '@/components/features/gallery/GalleryPasswordGate'
+import type { Gallery, Media, GalleryComment } from '@/types/supabase'
 
 export const dynamic = 'force-dynamic'
-import { GalleryView } from '@/components/features/gallery/GalleryView'
-import { AccessGate } from '@/components/features/gallery/AccessGate'
-import { GalleryPaywall } from '@/components/features/gallery/GalleryPaywall'
-import type { GalleryTheme, Media, Project } from '@/types/supabase'
 
-interface GalleryPageProps {
+interface Props {
   params: Promise<{ id: string }>
   searchParams: Promise<{ token?: string }>
 }
 
-export default async function GalleryPage(props: GalleryPageProps) {
-  const searchParams = await props.searchParams;
-  const { id } = await props.params
-  const token = typeof searchParams.token === 'string' ? searchParams.token : undefined
+export default async function ClientGalleryPage({ params, searchParams }: Props) {
+  const { id } = await params
+  const { token } = await searchParams
 
   const supabase = await createClient()
 
-  // Fetch project
-  const { data: projectData } = await supabase
-    .from('projects')
+  // ── Fetch gallery ──────────────────────────────────────────────────────────
+  const { data: galleryData } = await supabase
+    .from('galleries')
     .select('*')
     .eq('id', id)
     .single()
 
-  if (!projectData) notFound()
-  const project = projectData as Project
-  const theme: GalleryTheme = project.gallery_theme ?? 'dark'
+  if (!galleryData) notFound()
 
-  // Fetch photographer name via workspace → profile
-  let photographerName = 'Photographer'
-  const { data: workspace } = await supabase
-    .from('workspaces')
-    .select('owner_id, name')
-    .eq('id', project.workspace_id)
-    .single()
+  const gallery = galleryData as Gallery
 
-  if (workspace) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('display_name')
-      .eq('id', workspace.owner_id)
-      .single()
-    photographerName = profile?.display_name ?? workspace.name ?? photographerName
-  }
-
-  // If token provided, validate it
-  if (token) {
-    const now = new Date().toISOString()
-    const { data: access } = await supabase
-      .from('gallery_access')
-      .select('access_type, expires_at')
-      .eq('project_id', id)
-      .eq('token', token)
-      .single()
-
-    const isExpired = access?.expires_at != null && access.expires_at < now
-    if (!access || isExpired) {
-      return <AccessGate projectId={id} theme={theme} invalidToken />
-    }
-
-    // Valid token — fetch media and render gallery
-    const { data: mediaData } = await supabase
-      .from('media')
-      .select('*')
-      .eq('project_id', id)
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: false })
-
-    const media = (mediaData ?? []) as Media[]
-    const hasPaid = access.access_type === 'full'
-
+  // Expired galleries are inaccessible
+  if (gallery.status === 'expired') {
     return (
-      <GalleryView
-        project={project}
-        media={media}
-        theme={theme}
-        accessToken={token}
-        hasPaid={hasPaid}
-        photographerName={photographerName}
-      />
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#0c0c0e',
+          color: '#8a8a8a',
+          fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+          textAlign: 'center',
+          padding: '2rem',
+        }}
+      >
+        <div>
+          <p style={{ fontSize: '1.125rem', color: '#f0f0f0', marginBottom: '0.5rem' }}>
+            Gallery Expired
+          </p>
+          <p style={{ fontSize: '0.875rem' }}>
+            This gallery link has expired. Please contact your photographer.
+          </p>
+        </div>
+      </div>
     )
   }
 
-  // No token — check if gallery is publicly accessible
-  if (!project.gallery_public || project.status !== 'published') {
-    return <AccessGate projectId={id} theme={theme} />
+  // Draft galleries are not publicly accessible
+  if (gallery.status !== 'published') {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#0c0c0e',
+          color: '#8a8a8a',
+          fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif',
+          textAlign: 'center',
+          padding: '2rem',
+        }}
+      >
+        <div>
+          <p style={{ fontSize: '1.125rem', color: '#f0f0f0', marginBottom: '0.5rem' }}>
+            Gallery Not Available
+          </p>
+          <p style={{ fontSize: '0.875rem' }}>
+            This gallery isn&apos;t published yet.
+          </p>
+        </div>
+      </div>
+    )
   }
 
-  // Public gallery — fetch media
+  // ── Password gate ──────────────────────────────────────────────────────────
+  if (gallery.password_protected) {
+    let tokenValid = false
+
+    if (token) {
+      const now = new Date().toISOString()
+      const { data: access } = await supabase
+        .from('gallery_access')
+        .select('access_type, expires_at')
+        .eq('project_id', gallery.project_id)
+        .eq('token', token)
+        .single()
+
+      tokenValid = !!access && (access.expires_at == null || access.expires_at > now)
+    }
+
+    if (!tokenValid) {
+      return (
+        <GalleryPasswordGate
+          galleryId={id}
+          galleryTitle={gallery.title}
+          theme={gallery.theme}
+          photographerName={gallery.photographer_name ?? 'Photographer'}
+          photographerLogo={gallery.photographer_logo_url ?? null}
+          invalidToken={!!token && !tokenValid}
+        />
+      )
+    }
+  }
+
+  // ── Fetch media ────────────────────────────────────────────────────────────
   const { data: mediaData } = await supabase
     .from('media')
     .select('*')
-    .eq('project_id', id)
+    .eq('project_id', gallery.project_id)
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: false })
 
   const media = (mediaData ?? []) as Media[]
 
-  // If gallery requires payment, show paywall with sample media
-  if (project.pricing_model !== 'free') {
-    return (
-      <GalleryPaywall
-        project={project}
-        sampleMedia={media.slice(0, 6)}
-        photographerName={photographerName}
-      />
-    )
+  // ── Fetch initial comments ─────────────────────────────────────────────────
+  const { data: commentsData } = await supabase
+    .from('gallery_comments')
+    .select('*')
+    .eq('gallery_id', id)
+    .order('created_at', { ascending: true })
+
+  const initialComments = (commentsData ?? []) as GalleryComment[]
+
+  // ── Fetch photographer info ────────────────────────────────────────────────
+  let photographerName = gallery.photographer_name ?? 'Photographer'
+
+  if (!gallery.photographer_name) {
+    const { data: workspace } = await supabase
+      .from('workspaces')
+      .select('owner_id, name')
+      .eq('id', gallery.workspace_id)
+      .single()
+
+    if (workspace) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name, tier')
+        .eq('id', workspace.owner_id)
+        .single()
+
+      photographerName = profile?.display_name ?? workspace.name ?? photographerName
+    }
   }
 
+  // ── Determine plan tier for branding ──────────────────────────────────────
+  // show_powered_by is stored on gallery; fall back to profile tier check
+  const isPaidPlan = !gallery.show_powered_by
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <GalleryView
-      project={project}
+    <ClientGalleryView
+      gallery={gallery}
       media={media}
-      theme={theme}
-      hasPaid
+      initialComments={initialComments}
       photographerName={photographerName}
+      isPaidPlan={isPaidPlan}
     />
   )
 }
