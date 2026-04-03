@@ -2,1079 +2,402 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { VideoBackground } from './VideoBackground'
-import { ScrollCard } from './ScrollCard'
+import { AnimatedSection } from './animated-section'
+import { AnimatedCounter } from './animated-counter'
+import { TextColor } from '@/components/ui/text-color'
+import { ScrollHero } from './ScrollHero'
+import { WaitlistForm } from './WaitlistForm'
 import {
-  Sparkles, Brain, Layers, Send, Users, BarChart3, CalendarDays,
-  FileText, Smartphone, CheckCircle, ArrowRight, Camera,
-  FolderOpen, CreditCard, Mail, Bell, Shield,
-  Download, Eye, MessageSquare, RefreshCw, Palette, Clock,
-  TrendingUp, Package, ChevronDown, Monitor,
-  Check, X, Globe, Scissors, Link as LinkIcon, Lock, Heart,
-  Target, Zap, PenLine, Home, Plane, Mic, Star,
-  ClipboardList, Image, SlidersHorizontal, Cpu, Repeat,
-  LayoutGrid, Wallet, MapPin, UserCheck, Wand2,
+  Brain, Camera, FolderOpen, Zap, Check, ChevronDown,
+  CreditCard, BarChart3, Globe, MessageSquare, Download,
+  Heart, FileText, Smartphone, Bell,
 } from 'lucide-react'
 
-/* ─────────────────────────────────────────────
-   Waitlist form
-───────────────────────────────────────────── */
-function WaitlistForm({ size = 'default' }: { size?: 'default' | 'large' }) {
-  const [email, setEmail] = useState('')
-  const [name, setName] = useState('')
-  const [type, setType] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+/* Normal glass card — subtle white/glass border like dashboard interior cards */
+const glass = [
+  'relative rounded-[20px] overflow-hidden',
+  'bg-gradient-to-b from-white/[0.10] to-white/[0.02]',
+  'border border-white/[0.10]',
+  'backdrop-blur-[32px]',
+  'shadow-[0_8px_32px_rgba(0,0,0,0.35),0_1px_0_rgba(255,255,255,0.06)]',
+].join(' ')
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!email) return
-    setLoading(true)
-    setError('')
-    try {
-      const res = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, photographer_type: type }),
-      })
-      if (!res.ok) throw new Error('Failed')
-      setSubmitted(true)
-    } catch {
-      setError('Something went wrong. Try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
+const glassHighlight = 'before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:pointer-events-none'
 
-  if (submitted) {
-    return (
-      <div className={`flex flex-col items-center gap-3 text-center ${size === 'large' ? 'py-6' : 'py-4'}`}>
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500/20 text-indigo-400">
-          <CheckCircle size={24} />
-        </div>
-        <p className={`font-semibold text-zinc-100 ${size === 'large' ? 'text-xl' : 'text-base'}`}>
-          You&apos;re on the list.
-        </p>
-        <p className="text-sm text-zinc-400">We&apos;ll email you when access opens. Tell a photographer friend.</p>
-      </div>
-    )
-  }
+const glassHover = 'transition-all hover:-translate-y-0.5 hover:border-white/[0.15] hover:shadow-[0_16px_48px_rgba(0,0,0,0.4),0_1px_0_rgba(255,255,255,0.1)]'
 
-  return (
-    <form onSubmit={handleSubmit} className={`flex flex-col gap-3 w-full ${size === 'large' ? 'max-w-lg' : 'max-w-md'}`}>
-      {size === 'large' && (
-        <div className="flex gap-3">
-          <input
-            type="text"
-            placeholder="Your name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="flex-1 rounded-xl border border-zinc-700/60 bg-zinc-900/80 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 transition-all"
-          />
-          <select
-            value={type}
-            onChange={e => setType(e.target.value)}
-            className="flex-1 rounded-xl border border-zinc-700/60 bg-zinc-900/80 px-4 py-3 text-sm text-zinc-400 outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 transition-all appearance-none"
-          >
-            <option value="">Photography type</option>
-            <option value="wedding">Wedding</option>
-            <option value="real_estate">Real Estate</option>
-            <option value="commercial">Commercial</option>
-            <option value="fashion">Fashion / Portrait</option>
-            <option value="travel">Travel / Influencer</option>
-            <option value="event">Event</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-      )}
-      <div className="flex gap-2">
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-          className={`flex-1 rounded-xl border border-zinc-700/60 bg-zinc-900/80 px-4 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 transition-all ${size === 'large' ? 'py-4' : 'py-3'}`}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className={`shrink-0 rounded-xl bg-indigo-500 px-6 font-semibold text-white transition-all hover:bg-indigo-400 disabled:opacity-60 ${size === 'large' ? 'py-4 text-base' : 'py-3 text-sm'}`}
-        >
-          {loading ? 'Joining…' : 'Join Waitlist'}
-        </button>
-      </div>
-      {error && <p className="text-xs text-red-400">{error}</p>}
-      <p className="text-center text-xs text-zinc-500">Free to join. Early access + lifetime discount for waitlist members.</p>
-    </form>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   Screenshot placeholder
-───────────────────────────────────────────── */
-function ScreenPlaceholder({ label, aspect = '16/9', className = '' }: { label: string; aspect?: string; className?: string }) {
-  return (
-    <div
-      className={`relative overflow-hidden rounded-2xl border border-zinc-700/40 bg-gradient-to-br from-zinc-900 to-zinc-950 ${className}`}
-      style={{ aspectRatio: aspect }}
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(99,102,241,0.08)_0%,transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_80%,rgba(99,102,241,0.05)_0%,transparent_60%)]" />
-      <div className="absolute inset-x-0 top-0 flex h-8 items-center gap-1.5 border-b border-zinc-800 px-3">
-        <div className="h-2 w-2 rounded-full bg-zinc-700" />
-        <div className="h-2 w-2 rounded-full bg-zinc-700" />
-        <div className="h-2 w-2 rounded-full bg-zinc-700" />
-        <div className="mx-3 flex-1 rounded-md bg-zinc-800 h-3.5" />
-      </div>
-      <div className="absolute inset-0 mt-8 opacity-20"
-        style={{ backgroundImage: 'linear-gradient(rgba(99,102,241,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 mt-8">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-          <Monitor size={20} />
-        </div>
-        <span className="text-xs font-medium text-zinc-500 tracking-wider uppercase">{label}</span>
-      </div>
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-px w-3/4 bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
-    </div>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   Section label
-───────────────────────────────────────────── */
+/* ── Section label ── */
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/8 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-indigo-400">
+    <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-violet-400">
       {children}
     </span>
   )
 }
 
-/* ─────────────────────────────────────────────
-   FAQ
-───────────────────────────────────────────── */
+/* ── FAQ ── */
 const FAQS = [
-  { q: 'How is View1 Sort different from Lightroom AI or Imagen?', a: 'Lightroom and Imagen sort by technical quality — sharpness, exposure, blink detection. View1 Sort understands the narrative arc of your shoot. It knows the emotion of a soft first-look image outweighs a technically perfect reception shot. You also describe your shoot before upload, so the AI knows what story it\'s looking for.' },
-  { q: 'Does it replace Lightroom?', a: 'No — it works alongside it. After AI sorting, you export to Lightroom for editing. When you reopen View1, the edited files auto-sync back. We\'re the sorting, delivery, and business layer. Lightroom is your editing layer. They\'re better together.' },
-  { q: 'Can my clients use it without creating an account?', a: 'Yes. Clients receive a magic link via email and can view the gallery immediately — no account needed. If they want a dashboard to track all their projects with you, they can create an account using the same email in one click.' },
-  { q: 'How does the 3-stage delivery work?', a: 'Stage 1: you send a preselection gallery — client views and comments but can\'t download. Stage 2: client selects their favorites and you edit them. Stage 3: you upload finals — client downloads or requests revisions. Each stage, the status badge updates for both of you.' },
-  { q: 'What photography niches does the AI support?', a: 'Wedding, Real Estate, Commercial, Fashion/Portrait, Travel/Influencer, and Event — with built-in presets for each. You can also build your own "vibe preset" by chatting with the AI and describing your exact aesthetic and rejection criteria.' },
-  { q: 'Is my data secure?', a: 'Yes. All data is isolated with Row Level Security at the database level. Client galleries are private by default — only accessible via your shared link. Watermarks are applied on delivery without modifying stored originals.' },
-  { q: 'What does it cost?', a: 'We\'re in early access. Waitlist members get a lifetime discount and first access. Pricing will follow a tiered model: Free (limited projects), Pro (full AI sort + delivery), Business (team accounts + analytics).' },
+  { q: 'How is View1 Sort different from Lightroom AI or Imagen?', a: 'Lightroom and Imagen sort by technical quality — sharpness, exposure, blink detection. View1 Sort understands the narrative arc of your shoot.' },
+  { q: 'Does it replace Lightroom?', a: 'No — it works alongside it. After AI sorting, you export to Lightroom for editing. When you reopen View1, the edited files auto-sync back.' },
+  { q: 'Can my clients use it without creating an account?', a: 'Yes. Clients receive a magic link via email and can view the gallery immediately — no account needed.' },
+  { q: 'What does it cost?', a: 'We\'re in early access. Waitlist members get a lifetime discount and first access.' },
 ]
 
 function FAQ() {
   const [open, setOpen] = useState<number | null>(null)
   return (
-    <div className="divide-y divide-zinc-800">
+    <div className="divide-y divide-white/10">
       {FAQS.map((faq, i) => (
         <div key={i} className="py-5">
           <button onClick={() => setOpen(open === i ? null : i)} className="flex w-full items-center justify-between gap-4 text-left">
-            <span className="font-medium text-zinc-100">{faq.q}</span>
-            <ChevronDown size={16} className={`shrink-0 text-zinc-400 transition-transform ${open === i ? 'rotate-180' : ''}`} />
+            <span className="font-medium text-white/90">{faq.q}</span>
+            <ChevronDown size={16} className={`shrink-0 text-white/30 transition-transform ${open === i ? 'rotate-180' : ''}`} />
           </button>
-          {open === i && <p className="mt-3 text-sm leading-relaxed text-zinc-400">{faq.a}</p>}
+          {open === i && <p className="mt-3 text-sm leading-relaxed text-white/50">{faq.a}</p>}
         </div>
       ))}
     </div>
   )
 }
 
-/* ─────────────────────────────────────────────
-   Marquee items
-───────────────────────────────────────────── */
-const MARQUEE_ITEMS: { icon: React.ElementType; label: string }[] = [
-  { icon: Brain, label: 'AI Story Sorting' },
-  { icon: Scissors, label: 'Smart Culling' },
-  { icon: Wand2, label: 'Vibe Chat Presets' },
-  { icon: RefreshCw, label: 'Lightroom Roundtrip' },
-  { icon: LinkIcon, label: 'Magic Link Delivery' },
-  { icon: ClipboardList, label: 'Client Selection Flow' },
-  { icon: FileText, label: 'Contract + Invoice' },
-  { icon: BarChart3, label: 'Financial Analytics' },
-  { icon: CalendarDays, label: 'Booking Forms' },
-  { icon: Smartphone, label: 'Mobile Companion' },
-  { icon: Palette, label: 'Watermark Studio' },
-  { icon: Download, label: 'ZIP Export by Category' },
-  { icon: Cpu, label: 'AI Style Profile' },
-  { icon: Bell, label: 'Auto Email + SMS' },
-  { icon: CalendarDays, label: 'Calendar Sync' },
-]
-
-/* ─────────────────────────────────────────────
-   Feature tabs
-───────────────────────────────────────────── */
-const FEATURE_TABS = [
-  { id: 'ai-story', label: 'AI Story Sorting', icon: Brain },
-  { id: 'culling', label: 'Smart Culling', icon: Scissors },
-  { id: 'vibe', label: 'Vibe Chat Presets', icon: Wand2 },
-  { id: 'lightroom', label: 'Lightroom Roundtrip', icon: RefreshCw },
-]
-
-const FEATURES_BY_TAB: Record<string, { icon: React.ElementType; title: string; desc: string }[]> = {
-  'ai-story': [
-    { icon: Brain, title: 'Narrative Arc Sorting', desc: 'Sorts by emotional weight and story flow — ceremony to reception, not just sharpness scores.' },
-    { icon: Layers, title: 'Context-Aware AI', desc: 'You describe the shoot before upload. The AI knows what story it\'s looking for before it sees a single photo.' },
-    { icon: Cpu, title: 'AI Style Profile', desc: 'Learns your personal aesthetic across projects. After 5 shoots, it starts sorting like you — not like everyone.' },
-    { icon: LayoutGrid, title: 'Category Folders', desc: 'Photos land in named narrative folders — not a flat dump. Every category label is editable after sort.' },
-    { icon: FolderOpen, title: 'Batch Processing', desc: 'Sort 1,200-photo wedding shoots in minutes. No manual dragging, no folders named "maybe".' },
+/* ── Platform feature tabs ── */
+const PLATFORM_TABS: Record<string, { icon: React.ElementType; title: string; desc: string }[]> = {
+  'AI Sorting': [
+    { icon: Brain, title: 'Custom AI Profiles', desc: 'Train the AI on your personal shooting style and aesthetic preferences.' },
+    { icon: FolderOpen, title: 'Category Folders', desc: 'Auto-organized by shot type, emotion, and scene — not random file names.' },
+    { icon: Zap, title: 'Batch Processing', desc: 'Sort thousands of photos in minutes, not hours of manual work.' },
   ],
-  culling: [
-    { icon: Scissors, title: 'Blur & Focus Detection', desc: 'Instantly flags out-of-focus and motion-blurred images before the sort even begins.' },
-    { icon: Eye, title: 'Closed Eye Detection', desc: 'Automatically catches blinked shots across all subjects in group photos.' },
-    { icon: RefreshCw, title: 'Duplicate Removal', desc: 'Finds near-identical frames and keeps only the best from each burst sequence.' },
-    { icon: Camera, title: 'Exposure Culling', desc: 'Removes blown highlights and crushed blacks automatically — configurable per shoot.' },
-    { icon: CheckCircle, title: 'Photographer Review', desc: 'Every cull suggestion is reviewable. You approve, override, or dismiss. Always in control.' },
+  'Client Delivery': [
+    { icon: Globe, title: 'Magic Link Gallery', desc: 'One link, instant access. Works on any device, no account required.' },
+    { icon: MessageSquare, title: 'Photo Comments', desc: 'Clients leave notes on specific shots. Threaded replies from you.' },
+    { icon: Download, title: 'Organized Downloads', desc: 'Curated ZIP with AI category folders — not a flat dump of files.' },
   ],
-  vibe: [
-    { icon: Wand2, title: 'Natural Language Presets', desc: 'Describe your aesthetic in plain English. The AI turns your conversation into a reusable sorting preset.' },
-    { icon: MessageSquare, title: 'Niche-Aware Questions', desc: 'The AI asks the right questions for your niche — real estate priorities differ from wedding priorities.' },
-    { icon: LayoutGrid, title: '6 Built-In Presets', desc: 'Wedding, Real Estate, Commercial, Fashion, Travel, and Events — ready to apply in one click.' },
-    { icon: Zap, title: 'Inline Prompt', desc: 'Refine a preset mid-project without leaving the sort view. One click to re-sort with the update.' },
-    { icon: FolderOpen, title: 'Preset Library', desc: 'All your custom presets saved and reusable across every future project.' },
+  'Billing': [
+    { icon: FileText, title: 'Contracts & E-Sign', desc: 'Template-based contracts with digital signatures before the shoot.' },
+    { icon: CreditCard, title: 'Stripe Invoicing', desc: 'Auto-generated invoices. Instant payouts. Payment tracking built in.' },
+    { icon: Bell, title: 'Auto Notifications', desc: 'Email + SMS at every milestone — invoice sent, gallery ready, finals delivered.' },
   ],
-  lightroom: [
-    { icon: RefreshCw, title: 'Two-Way Sync', desc: 'Export sorted catalog to Lightroom. Edit. Reopen View1. Edited files auto-sync back into your project.' },
-    { icon: Shield, title: 'Original Preserved', desc: 'Your original files are never modified. View1 always keeps the source safe.' },
-    { icon: Download, title: 'XMP Sidecar Support', desc: 'Lightroom edits, ratings, and flags travel back via XMP without re-importing anything.' },
-    { icon: FolderOpen, title: 'Smart Export', desc: 'Export only the AI-selected photos to Lightroom — no need to sort 1,400 images manually first.' },
-    { icon: Cpu, title: 'Edit Aware Sorting', desc: 'After roundtrip, View1 knows which photos were edited and updates delivery stage automatically.' },
+  'Analytics': [
+    { icon: BarChart3, title: 'Revenue Tracking', desc: 'Track revenue by period, client, and package — tied to real Stripe data.' },
+    { icon: Heart, title: 'Client Insights', desc: 'Repeat client tracking, acquisition rate, and gallery engagement stats.' },
+    { icon: Smartphone, title: 'Gallery Metrics', desc: 'See which photos get downloaded most, time spent, and conversion rates.' },
   ],
 }
 
-function FeatureTabs() {
-  const [active, setActive] = useState('ai-story')
-  const features = FEATURES_BY_TAB[active] ?? []
-
+function PlatformTabs() {
+  const tabs = Object.keys(PLATFORM_TABS)
+  const [active, setActive] = useState(tabs[0])
+  const features = PLATFORM_TABS[active]
   return (
     <div>
-      {/* Tab bar */}
       <div className="flex justify-center mb-10">
-        <div className="inline-flex gap-1 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-1.5">
-          {FEATURE_TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActive(tab.id)}
-              className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium transition-all ${
-                active === tab.id
-                  ? 'bg-zinc-800 text-zinc-100 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              <tab.icon size={14} />
-              {tab.label}
-            </button>
+        <div className="inline-flex gap-1 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 backdrop-blur-sm">
+          {tabs.map(tab => (
+            <button key={tab} onClick={() => setActive(tab)} className={`rounded-xl px-4 py-2 text-[13px] font-medium transition-all ${active === tab ? 'bg-white/[0.12] text-white shadow-sm' : 'text-white/35 hover:text-white/60'}`}>{tab}</button>
           ))}
         </div>
       </div>
-
-      {/* Feature grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {features.map((f, i) => {
-          const rotations = [-3, 2.5, -4, 3.5, -2]
-          const depths = [1.2, 1.5, 1, 1.3, 1.6]
-          return (
-            <ScrollCard key={f.title} rotation={rotations[i % rotations.length]} depth={depths[i % depths.length]}>
-              <div className="group rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 transition-all hover:border-zinc-700 hover:bg-zinc-900/60 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 transition-all group-hover:bg-indigo-500/15">
-                  <f.icon size={18} />
-                </div>
-                <h3 className="font-semibold text-zinc-100 mb-1.5">{f.title}</h3>
-                <p className="text-sm text-zinc-500 leading-relaxed">{f.desc}</p>
-              </div>
-            </ScrollCard>
-          )
-        })}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {features.map(f => (
+          <div key={f.title} className={`p-7 ${glass} ${glassHighlight} ${glassHover}`}>
+            <f.icon size={24} className="text-violet-400 mb-3" />
+            <h3 className="font-semibold text-white mb-1.5" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>{f.title}</h3>
+            <p className="text-[13px] text-white/35 leading-relaxed">{f.desc}</p>
+          </div>
+        ))}
       </div>
     </div>
   )
 }
 
-/* ─────────────────────────────────────────────
-   Use case tabs
-───────────────────────────────────────────── */
-const USE_CASES = [
-  {
-    id: 'wedding', label: 'Wedding', icon: Heart,
-    headline: '1,200 photos. 6 hours. One deadline.',
-    subhead: 'You shoot 8-hour days and come home to days of sorting. Clients wait weeks.',
-    screenshot: 'Wedding Gallery Delivery',
-    wins: [
-      { icon: Brain, text: 'AI sorts entire wedding by narrative arc: ceremony → portraits → reception' },
-      { icon: Send, text: 'Preselection gallery live within hours of the shoot' },
-      { icon: ClipboardList, text: 'Client selects favorites — you only edit what matters' },
-      { icon: LinkIcon, text: 'Magic link delivery — no file transfer apps or Dropbox' },
-      { icon: FileText, text: 'Contract signed and deposit collected before you show up' },
-    ],
-  },
-  {
-    id: 'realestate', label: 'Real Estate', icon: Home,
-    headline: 'Three properties a day. Delivered by 5pm.',
-    subhead: 'Turnaround is everything. Manual sorting and emailing kills your margin.',
-    screenshot: 'Real Estate Sort View',
-    wins: [
-      { icon: LayoutGrid, text: 'Preset: exterior hero → rooms by size → detail textures' },
-      { icon: Send, text: 'Auto-delivery to agent or homeowner after sort is complete' },
-      { icon: Palette, text: 'Watermarked previews unlock on payment — automatic' },
-      { icon: CreditCard, text: 'Invoice auto-sent after gallery delivered, Stripe handles the rest' },
-      { icon: MapPin, text: 'Location-tagged projects for real estate portfolio tracking' },
-    ],
-  },
-  {
-    id: 'commercial', label: 'Commercial', icon: Star,
-    headline: 'Brand clients, revision rounds, licensing.',
-    subhead: 'Multiple revision rounds, licensing terms, agency delivery chains.',
-    screenshot: 'Commercial Project View',
-    wins: [
-      { icon: LayoutGrid, text: 'Preset: hero shots → lifestyle → product detail → rejects' },
-      { icon: MessageSquare, text: '3-stage delivery with revision thread built in' },
-      { icon: FileText, text: 'Contract with licensing terms before project begins' },
-      { icon: Download, text: 'Organized ZIP by category for art directors' },
-      { icon: BarChart3, text: 'Per-project analytics — which assets got downloaded most' },
-    ],
-  },
-  {
-    id: 'fashion', label: 'Fashion', icon: Wand2,
-    headline: 'Editorial sorting. Every look, every angle.',
-    subhead: 'Mood and aesthetic matter more than sharpness. Generic AI misses it.',
-    screenshot: 'Fashion Sort by Vibe',
-    wins: [
-      { icon: LayoutGrid, text: 'Preset: editorial → lifestyle → detail → movement' },
-      { icon: Wand2, text: 'Vibe chat builds a preset matching your exact aesthetic' },
-      { icon: Cpu, text: 'AI Style Profile learns your personal selects over time' },
-      { icon: LinkIcon, text: 'Lookbook-style gallery delivery for clients' },
-      { icon: Layers, text: 'Category tags editable after sort — fine-tune every folder' },
-    ],
-  },
-  {
-    id: 'travel', label: 'Travel', icon: Plane,
-    headline: 'Hundreds of photos. Multiple clients. Daily.',
-    subhead: 'Volume sorting, content categorization, and social delivery all at once.',
-    screenshot: 'Travel Content Sort',
-    wins: [
-      { icon: LayoutGrid, text: 'Preset: landscape → street → food → architecture → portrait' },
-      { icon: Sparkles, text: 'AI caption suggestions based on shoot tags and location' },
-      { icon: Send, text: 'Batch deliver to multiple brand clients simultaneously' },
-      { icon: Smartphone, text: 'Mobile-first workflow — sort and deliver from anywhere' },
-      { icon: Download, text: 'Social export formatted for Instagram, Pinterest, and more' },
-    ],
-  },
-  {
-    id: 'events', label: 'Events', icon: Mic,
-    headline: 'Fast turnaround. Lots of faces. Demanding organizers.',
-    subhead: 'Event organizers want quick delivery, selects, and proper categorization.',
-    screenshot: 'Event Gallery View',
-    wins: [
-      { icon: LayoutGrid, text: 'Preset: keynote → networking → crowd → speakers → awards' },
-      { icon: Send, text: 'Client delivery within 24 hours of upload' },
-      { icon: Brain, text: 'AI sorts by venue, speaker, and activity type automatically' },
-      { icon: Users, text: 'Attendee face grouping and tagging (coming soon)' },
-      { icon: FileText, text: 'Invoice and contract templates built for event photography' },
-    ],
-  },
-]
+/* ── Use case tabs ── */
+const USE_CASES: Record<string, { headline: string; wins: string[] }> = {
+  'Wedding': { headline: '1,200 photos. 6 hours. One deadline.', wins: ['AI sorts entire wedding by narrative arc: ceremony → portraits → reception', 'Preselection gallery live within hours of the shoot', 'Client selects favorites — you only edit what matters', 'Magic link delivery — no file transfer apps or Dropbox'] },
+  'Real Estate': { headline: 'Three properties a day. Delivered by 5pm.', wins: ['Preset: exterior hero → rooms by size → detail textures', 'Auto-delivery to agent or homeowner after sort is complete', 'Watermarked previews unlock on payment — automatic', 'Invoice auto-sent after gallery delivered, Stripe handles the rest'] },
+  'Commercial': { headline: 'Brand clients, revision rounds, licensing.', wins: ['Preset: hero shots → lifestyle → product detail → rejects', '3-stage delivery with revision thread built in', 'Contract with licensing terms before project begins', 'Organized ZIP by category for art directors'] },
+  'Events': { headline: 'Fast turnaround. Lots of faces. Demanding organizers.', wins: ['Preset: keynote → networking → crowd → speakers → awards', 'Client delivery within 24 hours of upload', 'AI sorts by venue, speaker, and activity type automatically', 'Invoice and contract templates built for event photography'] },
+}
 
 function UseCaseTabs() {
-  const [active, setActive] = useState('wedding')
-  const uc = USE_CASES.find(u => u.id === active) ?? USE_CASES[0]
-
+  const tabs = Object.keys(USE_CASES)
+  const [active, setActive] = useState(tabs[0])
+  const uc = USE_CASES[active]
   return (
     <div>
-      {/* Tab bar */}
-      <div className="flex justify-center mb-10">
-        <div className="inline-flex gap-1 rounded-2xl border border-zinc-800 bg-zinc-900/50 p-1.5 flex-wrap justify-center">
-          {USE_CASES.map(u => (
-            <button
-              key={u.id}
-              onClick={() => setActive(u.id)}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
-                active === u.id
-                  ? 'bg-zinc-800 text-zinc-100 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              <u.icon size={13} />
-              {u.label}
-            </button>
+      <div className="flex justify-center mb-8">
+        <div className="inline-flex gap-1 rounded-2xl bg-white/[0.04] border border-white/10 p-1.5 backdrop-blur-sm">
+          {tabs.map(t => (
+            <button key={t} onClick={() => setActive(t)} className={`rounded-xl px-5 py-2 text-[13px] font-medium transition-all ${active === t ? 'bg-white/[0.12] text-white shadow-sm' : 'text-white/35 hover:text-white/60'}`}>{t}</button>
           ))}
         </div>
       </div>
-
-      {/* Content */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 items-start">
-        {/* Left — details */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-8">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              <uc.icon size={18} />
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">{uc.label} Photography</p>
-              <h3 className="text-lg font-bold text-zinc-100 leading-snug">{uc.headline}</h3>
-            </div>
-          </div>
-          <p className="text-sm text-zinc-500 italic border-l-2 border-zinc-700 pl-3 mb-6">&ldquo;{uc.subhead}&rdquo;</p>
-          <ul className="space-y-3">
-            {uc.wins.map((w, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 mt-0.5">
-                  <w.icon size={13} />
-                </div>
-                <span className="text-sm text-zinc-300 leading-relaxed">{w.text}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Right — screenshot */}
-        <ScreenPlaceholder label={uc.screenshot} aspect="4/3" className="h-full" />
+      <div className={`mx-auto max-w-2xl p-8 ${glass} ${glassHighlight}`}>
+        <h3 className="text-xl font-bold text-white mb-4" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>{uc.headline}</h3>
+        <ul className="space-y-3">
+          {uc.wins.map(w => (
+            <li key={w} className="flex items-start gap-3 text-sm text-white/50">
+              <Check size={16} className="shrink-0 text-emerald-400 mt-0.5" />
+              {w}
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )
 }
 
 /* ─────────────────────────────────────────────
-   Main component
+   Main — Metallic Rainbow Dark (matching Dashboard V2)
 ───────────────────────────────────────────── */
 export function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handler)
+    window.addEventListener('scroll', handler, { passive: true })
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
   return (
-    <div className="min-h-screen text-zinc-100" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');`}</style>
-      <VideoBackground />
+    <div className="min-h-screen text-white relative" style={{ fontFamily: "'Inter', system-ui, sans-serif", background: '#030305', overflowX: 'clip' }}>
+
+      {/* ── Background layers ── */}
+      <div className="fixed inset-0 z-0 pointer-events-none" style={{ background: 'linear-gradient(160deg, rgba(3,3,5,0.5) 0%, rgba(8,8,16,0.56) 30%, rgba(6,6,9,0.56) 60%, rgba(3,3,5,0.5) 100%)' }} />
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-35" style={{ background: ['radial-gradient(ellipse 40% 35% at 10% 15%, rgba(245,158,11,0.5) 0%, transparent 70%)','radial-gradient(ellipse 45% 40% at 50% 10%, rgba(59,130,246,0.6) 0%, transparent 70%)','radial-gradient(ellipse 35% 30% at 85% 20%, rgba(168,85,247,0.5) 0%, transparent 70%)','radial-gradient(ellipse 30% 35% at 25% 55%, rgba(236,72,153,0.4) 0%, transparent 70%)','radial-gradient(ellipse 40% 30% at 70% 50%, rgba(245,158,11,0.5) 0%, transparent 70%)','radial-gradient(ellipse 35% 35% at 40% 85%, rgba(59,130,246,0.5) 0%, transparent 70%)','radial-gradient(ellipse 30% 30% at 80% 80%, rgba(168,85,247,0.5) 0%, transparent 70%)','radial-gradient(ellipse 35% 25% at 15% 90%, rgba(236,72,153,0.4) 0%, transparent 70%)'].join(', ') }} />
+      <div className="fixed inset-0 z-0 pointer-events-none" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 30%, rgba(255,255,255,0.03) 50%, transparent 70%, rgba(255,255,255,0.04) 100%)' }} />
 
       {/* ── NAV ── */}
-      <nav className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? 'border-b border-zinc-800/60 bg-[#09090b]/90 backdrop-blur-xl' : ''}`}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <nav className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${scrolled ? 'border-b border-white/10 bg-black/50 backdrop-blur-xl' : ''}`}>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 lg:px-20 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600">
-              <Camera size={15} className="text-white" />
-            </div>
-            <span className="text-lg font-black tracking-tight text-zinc-100">View1 Sort</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-500"><Camera size={13} className="text-white" /></div>
+            <span className="text-base font-semibold tracking-tight text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>View1 Sort</span>
           </div>
           <div className="hidden items-center gap-8 md:flex">
-            {['Features', 'How It Works', 'Use Cases', 'Pricing'].map(item => (
-              <a key={item} href={`#${item.toLowerCase().replace(' ', '-')}`} className="text-sm text-zinc-400 transition-colors hover:text-zinc-100">{item}</a>
+            {['Capabilities', 'Integrations', 'Pricing', 'Blog'].map(item => (
+              <a key={item} href={`#${item.toLowerCase()}`} className="text-sm text-white/40 transition-colors hover:text-white">{item}</a>
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/auth/login" className="hidden text-sm font-medium text-zinc-400 transition-colors hover:text-zinc-100 md:block">Sign In</Link>
-            <a href="https://photo-sorter-theta.vercel.app/dashboard" target="_blank" rel="noopener noreferrer" className="hidden items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800/60 px-4 py-2 text-sm font-medium text-zinc-200 transition-all hover:border-zinc-600 hover:bg-zinc-800 md:flex">
-              Open App <ArrowRight size={13} />
-            </a>
-            <a href="#waitlist" className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-indigo-400">Get Early Access</a>
+            <Link href="/auth/login" className="hidden text-sm text-white/40 transition-colors hover:text-white md:block">Sign In</Link>
+            <a href="#waitlist" className="rounded-lg btn-rainbow px-5 py-2 text-sm transition-all">Get Early Access</a>
           </div>
         </div>
       </nav>
 
-      {/* ── HERO ── */}
-      <section className="relative overflow-hidden pt-32 pb-20">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.12)_0%,transparent_100%)]" />
-        <div className="absolute top-1/2 left-1/4 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/4 blur-3xl" />
-        <div className="absolute top-1/3 right-1/4 h-64 w-64 rounded-full bg-violet-500/4 blur-3xl" />
-
-        <div className="relative mx-auto max-w-5xl px-6 text-center">
-          <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/8 px-4 py-1.5 text-sm font-medium text-indigo-300">
-            <Sparkles size={13} />
-            Now in private early access — join the waitlist
-            <ArrowRight size={13} />
-          </div>
-
-          <h1 className="mx-auto max-w-4xl text-5xl font-extrabold leading-[1.1] tracking-tight text-zinc-50 sm:text-6xl lg:text-7xl">
-            The AI That Thinks
-            <br />
-            <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-indigo-300 bg-clip-text text-transparent">
-              Like a Photographer
-            </span>
-          </h1>
-
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-400">
-            Professional photographers sort faster, deliver beautifully, and run their entire business — without switching apps. Powered by AI that thinks like a photographer, not a filing cabinet.
-          </p>
-
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <a href="#waitlist" className="rounded-xl bg-indigo-500 px-7 py-3.5 text-base font-semibold text-white transition-all hover:bg-indigo-400 shadow-lg shadow-indigo-500/25">
-              Get Early Access
-            </a>
-            <a href="#how-it-works" className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/60 px-7 py-3.5 text-base font-semibold text-zinc-200 transition-all hover:border-zinc-600 hover:bg-zinc-800">
-              See How It Works <ArrowRight size={15} />
-            </a>
-          </div>
-
-          <div className="relative mt-16">
-            <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
-            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-b from-indigo-500/5 to-transparent blur-2xl" />
-            <ScreenPlaceholder label="AI Sort Dashboard" aspect="16/9" className="relative shadow-2xl shadow-black/60 ring-1 ring-zinc-700/40" />
-          </div>
-        </div>
-      </section>
-
-      {/* ── MARQUEE ── */}
-      <section className="border-y border-zinc-800/40 bg-zinc-950/50 py-4 overflow-hidden">
-        <div className="flex gap-3 whitespace-nowrap" style={{ animation: 'marquee 35s linear infinite' }}>
-          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
-            <span
-              key={i}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-zinc-700/50 bg-zinc-800/40 px-3 py-1 text-xs font-medium text-zinc-400"
-            >
-              <item.icon size={11} className="text-indigo-400" />
-              {item.label}
-            </span>
-          ))}
-        </div>
-        <style>{`@keyframes marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }`}</style>
-      </section>
+      {/* ── SCROLL-JACKED HERO ── */}
+      <ScrollHero />
 
       {/* ── PROBLEM ── */}
-      <section className="py-24 px-6">
+      <section className="py-24 px-6 relative z-10">
         <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-16">
+          <AnimatedSection className="text-center mb-14">
             <SectionLabel>The Problem</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-              You shoot photography, not file folders,<br />not to manage files.
-            </h2>
-            <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">After every shoot, the real work begins — and it takes forever.</p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <h2 className="mt-4 text-4xl font-bold tracking-tight lg:text-5xl text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>The part nobody talks about.</h2>
+            <p className="mt-4 text-base text-white/40 max-w-xl mx-auto leading-relaxed">You come home from a shoot with a thousand photos and a to-do list that has nothing to do with photography.</p>
+          </AnimatedSection>
+          <div className="flex flex-col md:flex-row gap-6 justify-center">
             {[
-              { icon: Clock, title: '4–12 mins', sub: 'Average time AI needs to sort and cull an entire wedding shoot', color: 'text-red-400', border: 'border-red-500/20', bg: 'bg-red-500/5' },
-              { icon: Mail, title: '25+ credits', sub: 'Saved per project by eliminating manual folder management and email back-and-forth', color: 'text-orange-400', border: 'border-orange-500/20', bg: 'bg-orange-500/5' },
-              { icon: Package, title: '6 tools', sub: 'Replaced by one platform — sort, deliver, contract, invoice, analytics, and bookings', color: 'text-amber-400', border: 'border-amber-500/20', bg: 'bg-amber-500/5' },
-            ].map(p => (
-              <div key={p.title} className={`rounded-2xl border p-6 ${p.border} ${p.bg}`}>
-                <p.icon size={24} className={p.color} />
-                <p className={`mt-3 text-3xl font-black ${p.color}`}>{p.title}</p>
-                <p className="mt-2 text-sm text-zinc-400 leading-relaxed">{p.sub}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-8 grid grid-cols-1 gap-3 md:grid-cols-2">
-            {[
-              { icon: FolderOpen, text: 'Manually dragging photos into folders named "maybe" and "definitely"' },
-              { icon: LinkIcon, text: 'Sending 5GB Dropbox links that expire and confuse clients' },
-              { icon: CreditCard, text: 'Chasing invoice payments through three different apps' },
-              { icon: RefreshCw, text: 'Re-exporting the same gallery three times after revision emails' },
-              { icon: ClipboardList, text: 'Building shot lists in Notes.app and losing them on set' },
-              { icon: FileText, text: 'Copy-pasting client details into contracts, invoices, and emails separately' },
-            ].map(pain => (
-              <div key={pain.text} className="flex items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-400 mt-0.5">
-                  <pain.icon size={13} />
+              { target: 12, prefix: '6–', suffix: ' hours', sub: 'spent sorting and culling after a single shoot' },
+              { target: 20, prefix: '', suffix: '+ emails', sub: 'back and forth before finals actually get delivered' },
+              { target: 4, prefix: '', suffix: '+ apps', sub: 'just to manage one project from shoot to payment' },
+            ].map((s, i) => (
+              <AnimatedSection key={s.suffix} delay={i * 150} variant="float-in">
+                <div className={`w-[280px] p-8 ${glass} ${glassHighlight}`}>
+                  <p className="text-4xl font-bold text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}><AnimatedCounter target={s.target} prefix={s.prefix} suffix={s.suffix} duration={1800} /></p>
+                  <p className="mt-2 text-sm text-white/35 leading-relaxed">{s.sub}</p>
                 </div>
-                <span className="text-sm text-zinc-400">{pain.text}</span>
-              </div>
+              </AnimatedSection>
             ))}
           </div>
         </div>
       </section>
 
       {/* ── AI DIFFERENCE ── */}
-      <section id="features" className="py-24 px-6 bg-zinc-950/40">
+      <section className="py-24 px-6 relative z-10">
         <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <SectionLabel><Brain size={12} /> The AI Difference</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">Sort by story. Not just sharpness.</h2>
-            <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">Every other AI tool asks "is this photo technically good?" We ask "does this photo matter?"</p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-2xl border border-zinc-700/40 bg-zinc-900/60 p-8">
-              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">Everyone Else</p>
-              <div className="space-y-3">
-                {['Reject blurry images', 'Reject closed eyes', 'Reject bad exposure', 'Sort by quality score', 'Ignore context and emotion'].map(item => (
-                  <div key={item} className="flex items-center gap-3 text-sm text-zinc-400">
-                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-500/10">
-                      <X size={11} className="text-red-400" />
-                    </div>
-                    {item}
-                  </div>
-                ))}
+          <AnimatedSection className="text-center mb-14">
+            <SectionLabel>The AI Difference</SectionLabel>
+            <h2 className="mt-4 text-4xl font-bold tracking-tight lg:text-[56px] text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>Most AI sorts by sharpness.<br />That&apos;s not how photographers think.</h2>
+            <p className="mt-4 text-base text-white/40 max-w-xl mx-auto leading-relaxed">A soft, emotional first-look photo matters more than a perfectly lit detail shot. We built the AI to understand that.</p>
+          </AnimatedSection>
+          <AnimatedSection>
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+              <div className={`p-8 ${glass} ${glassHighlight}`}>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-red-400/80 mb-5">Everyone Else</p>
+                <p className="text-sm text-white/40 leading-relaxed">Flag blurry and duplicate images. Score photos by technical quality. Sort by sharpness and exposure. Treat every shoot the same way. Miss the photos that actually matter.</p>
+              </div>
+              <div className="p-[1px] rounded-[20px]" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.5) 0%, rgba(59,130,246,0.4) 25%, rgba(168,85,247,0.4) 50%, rgba(236,72,153,0.4) 75%, rgba(245,158,11,0.5) 100%)' }}>
+                <div className="relative rounded-[19px] overflow-hidden bg-gradient-to-b from-white/[0.12] to-white/[0.03] backdrop-blur-[32px] p-8 shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
+                  <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-400 mb-5">View1 Sort</p>
+                  <p className="text-sm text-white/50 leading-relaxed">You describe the shoot — the AI sorts with that context. Sorts by story and emotional weight, not just pixels. Smart culling flags the obvious misses — you make the final call. Build sorting presets by just talking to the AI. Over time, it starts to sort the way you would.</p>
+                </div>
               </div>
             </div>
-            <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/5 p-8 ring-1 ring-indigo-500/10">
-              <p className="text-xs font-semibold uppercase tracking-widest text-indigo-400 mb-4">View1 Sort</p>
-              <div className="space-y-3">
-                {[
-                  'Smart cull + photographer review before sort',
-                  'Sort by narrative arc and emotional weight',
-                  'Understand shoot context from your description',
-                  'Vibe presets built through natural language chat',
-                  'AI Style Profile learns your personal aesthetic',
-                ].map(item => (
-                  <div key={item} className="flex items-center gap-3 text-sm text-zinc-100">
-                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-500/15">
-                      <Check size={11} className="text-indigo-400" />
-                    </div>
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8">
-            <ScreenPlaceholder label="AI Sort — Story View" aspect="21/9" />
-          </div>
+          </AnimatedSection>
         </div>
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" className="py-24 px-6">
+      <section id="how-it-works" className="py-24 px-6 relative z-10">
         <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-16">
+          <AnimatedSection className="text-center mb-14">
             <SectionLabel>How It Works</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-              Sort by step. Tuned to your needs.
-            </h2>
-            <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">A structured workflow from upload to delivery — powered by AI at every stage.</p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="mt-4"><TextColor words={['Upload.', 'Sort.', 'Deliver.', 'Get paid.']} /></div>
+            <p className="mt-4 text-base text-white/40 max-w-xl mx-auto leading-relaxed">Three steps. No app-switching. No export-import chains. No &ldquo;where did I save that gallery?&rdquo;</p>
+          </AnimatedSection>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {[
-              {
-                step: '01', icon: Brain, title: 'Describe & Upload',
-                desc: 'Tell the AI what you shot — vibe, priorities, what to reject. Upload your photos. Smart culling runs first, then AI sorts into story-based categories.',
-                items: [
-                  { icon: Target, text: 'Shoot context feeds the AI' },
-                  { icon: Scissors, text: 'Smart cull removes obvious rejects' },
-                  { icon: FolderOpen, text: 'Sorted into narrative categories' },
-                ],
-              },
-              {
-                step: '02', icon: Send, title: 'Deliver to Clients',
-                desc: 'Send a preselection gallery via magic link. Client selects favorites and comments. You edit in Lightroom, reopen View1, and finals auto-sync.',
-                items: [
-                  { icon: LinkIcon, text: 'Magic link — no app needed' },
-                  { icon: MessageSquare, text: 'Per-photo comments' },
-                  { icon: RefreshCw, text: 'Lightroom roundtrip sync' },
-                ],
-              },
-              {
-                step: '03', icon: CreditCard, title: 'Get Paid & Close',
-                desc: 'Client downloads their curated ZIP organized by category. Stripe invoice auto-generated. Contract, payment, and delivery history all in one profile.',
-                items: [
-                  { icon: Download, text: 'ZIP by AI category' },
-                  { icon: CreditCard, text: 'Stripe invoice + receipt' },
-                  { icon: Shield, text: 'Full audit trail' },
-                ],
-              },
-            ].map(step => (
-              <div key={step.step} className="relative">
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="text-5xl font-black text-zinc-800">{step.step}</span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/12 text-indigo-400 border border-indigo-500/20">
-                    <step.icon size={18} />
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold text-zinc-100 mb-2">{step.title}</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed mb-4">{step.desc}</p>
-                <ul className="space-y-2">
-                  {step.items.map(item => (
-                    <li key={item.text} className="flex items-center gap-2.5 text-sm text-zinc-500">
-                      <item.icon size={13} className="shrink-0 text-indigo-400" />
-                      {item.text}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── VIBE PRESET BUILDER ── */}
-      <section className="py-24 px-6 bg-zinc-950/40">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 items-center">
-            <div>
-              <SectionLabel><Wand2 size={12} /> Vibe Preset Builder</SectionLabel>
-              <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-                Build your AI Moment<br />by just a simple text.
-              </h2>
-              <p className="mt-4 text-zinc-400 leading-relaxed">
-                Chat with the AI to build a sorting preset that matches your exact aesthetic. It asks about your niche, priorities, what mood you&apos;re going for, and what you always reject. The result? A personal preset that sorts like <em className="text-zinc-200 not-italic font-medium">you</em>.
-              </p>
-
-              <div className="mt-8 rounded-2xl border border-zinc-700/40 bg-zinc-900/60 p-5 space-y-3">
-                {[
-                  { role: 'ai', msg: 'What kind of shoot is this?' },
-                  { role: 'user', msg: 'Luxury real estate in Miami. Ocean-facing penthouse, lots of golden hour light.' },
-                  { role: 'ai', msg: 'Perfect. What should I prioritize — exterior hero shots, room-by-room interiors, or lifestyle details?' },
-                  { role: 'user', msg: 'Exterior heroes first, then rooms by size, then texture and detail shots.' },
-                  { role: 'ai', msg: 'What do you always reject immediately?' },
-                  { role: 'user', msg: 'Bad window glare, construction mess, anything with a crew member in frame.' },
-                  { role: 'ai', msg: 'Preset "Miami Luxury RE" created — 6 categories, 4 rejection rules. Apply to project?' },
-                ].map((msg, i) => (
-                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-xs rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${msg.role === 'ai' ? 'bg-zinc-800 text-zinc-200' : 'bg-indigo-500 text-white'}`}>
-                      {msg.msg}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <ul className="mt-8 space-y-3">
-                {[
-                  { icon: LayoutGrid, text: '6 built-in niche presets to start immediately' },
-                  { icon: Wand2, text: 'Chat to customize or build a preset from scratch' },
-                  { icon: Zap, text: 'Inline prompt available on every project' },
-                  { icon: FolderOpen, text: 'Presets saved to your library and fully reusable' },
-                ].map(f => (
-                  <li key={f.text} className="flex items-center gap-3 text-sm text-zinc-300">
-                    <f.icon size={14} className="shrink-0 text-indigo-400" />
-                    {f.text}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <ScreenPlaceholder label="Presets Library" aspect="3/4" />
-          </div>
-        </div>
-      </section>
-
-      {/* ── GALLERY DELIVERY ── */}
-      <section className="py-24 px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <SectionLabel><Image size={12} /> Gallery & Delivery</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">From Memory Card to pixel-perfect<br />gallery workflow.</h2>
-            <p className="mt-4 text-zinc-400 max-w-xl mx-auto">A structured delivery flow that keeps photographer and client perfectly in sync — from first look to final download.</p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 mb-12">
-            {[
-              {
-                icon: Eye, stage: 'Stage 1', title: 'Preselection',
-                desc: 'After culling and AI sort, share the gallery. Client views and comments. Nothing is downloadable yet.',
-                color: 'text-blue-400', border: 'border-blue-500/20', bg: 'bg-blue-500/5',
-                items: [{ icon: Camera, text: 'Full AI-sorted gallery' }, { icon: MessageSquare, text: 'Per-photo comments' }, { icon: Lock, text: 'Download locked' }],
-              },
-              {
-                icon: CheckCircle, stage: 'Stage 2', title: 'Client Selection',
-                desc: 'Client favorites the photos they want. You see exactly what they chose and take it to Lightroom.',
-                color: 'text-violet-400', border: 'border-violet-500/20', bg: 'bg-violet-500/5',
-                items: [{ icon: Heart, text: 'Client favorites' }, { icon: ClipboardList, text: 'Selection summary' }, { icon: Palette, text: 'You edit in Lightroom' }],
-              },
-              {
-                icon: Download, stage: 'Stage 3', title: 'Finals',
-                desc: 'Re-upload edited files. Client downloads ZIP by category, or opens a revision thread.',
-                color: 'text-emerald-400', border: 'border-emerald-500/20', bg: 'bg-emerald-500/5',
-                items: [{ icon: Download, text: 'ZIP by category' }, { icon: PenLine, text: 'Revision requests' }, { icon: CheckCircle, text: 'Or just download' }],
-              },
-            ].map(s => (
-              <div key={s.stage} className={`rounded-2xl border p-6 ${s.border} ${s.bg}`}>
-                <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${s.color} mb-3`}>
-                  <s.icon size={14} />
-                  {s.stage} — {s.title}
-                </div>
-                <p className="text-sm text-zinc-400 leading-relaxed mb-4">{s.desc}</p>
-                <ul className="space-y-2">
-                  {s.items.map(item => (
-                    <li key={item.text} className="flex items-center gap-2 text-xs text-zinc-500">
-                      <item.icon size={12} className="shrink-0 text-zinc-600" />
-                      {item.text}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          <ScreenPlaceholder label="Client Gallery — Stage 2 Selection" aspect="21/9" />
-        </div>
-      </section>
-
-      {/* ── FEATURES (TABBED) ── */}
-      <section className="py-24 px-6 bg-zinc-950/40">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <SectionLabel>Every Feature</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-              One platform. Every tool<br />a photographer needs.
-            </h2>
-          </div>
-          <FeatureTabs />
-        </div>
-      </section>
-
-      {/* ── USE CASES (TABBED) ── */}
-      <section id="use-cases" className="py-24 px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <SectionLabel>Use Cases</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-              Built for every photographer<br />who shoots at volume.
-            </h2>
-          </div>
-          <UseCaseTabs />
-        </div>
-      </section>
-
-      {/* ── CLIENT EXPERIENCE ── */}
-      <section className="py-24 px-6 bg-zinc-950/40">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <SectionLabel><Users size={12} /> Client Experience</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-              Your clients see magic.<br />You see efficiency.
-            </h2>
-            <p className="mt-4 text-zinc-400 max-w-xl mx-auto">
-              Send a magic link and your client is viewing their gallery in seconds. No download, no account, no friction.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
-            <ScreenPlaceholder label="Client Dashboard — Desktop" aspect="4/3" />
-            <ScreenPlaceholder label="Client Gallery — Mobile View" aspect="4/3" />
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { icon: Globe, title: 'Magic link gallery', desc: 'One email, instant access. Works on any device, no account required.' },
-              { icon: CheckCircle, title: 'Selection flow', desc: 'Tap to favorite. Clear status at every stage of delivery.' },
-              { icon: MessageSquare, title: 'Photo comments', desc: 'Leave notes on specific shots. Threaded replies from the photographer.' },
-              { icon: Download, title: 'Organized downloads', desc: 'Curated ZIP with AI category folders — not a flat dump of files.' },
-              { icon: Bell, title: 'Status notifications', desc: 'Email + SMS updates at every milestone automatically.' },
-              { icon: Smartphone, title: 'Full mobile experience', desc: 'Complete gallery, selection, comments, and download on mobile.' },
-            ].map(f => (
-              <div key={f.title} className="flex items-start gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400">
-                  <f.icon size={16} />
-                </div>
-                <div>
-                  <p className="font-medium text-zinc-100 mb-0.5">{f.title}</p>
-                  <p className="text-sm text-zinc-500">{f.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── BUSINESS WORKFLOW ── */}
-      <section className="py-24 px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <SectionLabel><CreditCard size={12} /> Business Workflow</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-              Contract to delivery.<br />Zero tab-switching.
-            </h2>
-            <p className="mt-4 text-zinc-400 max-w-xl mx-auto">
-              Replace DocuSign, QuickBooks, Stripe, and email chains with one unified flow tied to every client profile.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-5 items-center mb-12">
-            {[
-              { icon: FileText, label: 'Send Contract', sub: 'Template-based' },
-              { icon: UserCheck, label: 'Client Signs', sub: 'Digital signature' },
-              { icon: CreditCard, label: 'Invoice Sent', sub: 'Auto-generated' },
-              { icon: Zap, label: 'Payment Collected', sub: 'Stripe, instant' },
-              { icon: FolderOpen, label: 'Project Unlocks', sub: 'Workflow begins' },
+              { step: '01', title: 'Upload & Describe', desc: 'Upload your photos and tell the AI about the shoot — what you were going for, what matters most, what to skip.' },
+              { step: '02', title: 'Share with Your Client', desc: 'Send a single link. Your client sees the gallery instantly — no app to download, no account to create.' },
+              { step: '03', title: 'Get Paid, Move On', desc: 'Finals go out as an organized download — not a flat dump. Invoice is handled. Everything lives in one place.' },
             ].map((step, i) => (
-              <div key={step.label} className="relative flex flex-col items-center text-center gap-2">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-700 text-indigo-400">
-                  <step.icon size={18} />
+              <AnimatedSection key={step.step} delay={i * 150} variant="float-in">
+                <div className={`p-8 ${glass} ${glassHighlight} ${glassHover}`}>
+                  <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500 text-white"><span className="text-sm font-bold" style={{ fontFamily: "'Geist Mono', monospace" }}>{step.step}</span></div>
+                  <h3 className="text-[22px] font-bold text-white mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>{step.title}</h3>
+                  <p className="text-sm text-white/35 leading-relaxed">{step.desc}</p>
                 </div>
-                <p className="text-sm font-semibold text-zinc-100">{step.label}</p>
-                <p className="text-xs text-zinc-500">{step.sub}</p>
-                {i < 4 && <ArrowRight size={14} className="absolute -right-2 top-3 text-zinc-700 hidden md:block" />}
-              </div>
+              </AnimatedSection>
             ))}
           </div>
+        </div>
+      </section>
 
+      {/* ── AI MOMENT ── */}
+      <section className="py-24 px-6 relative z-10">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 gap-20 lg:grid-cols-2 items-center">
+            <AnimatedSection>
+              <div>
+                <SectionLabel>AI-Powered Presets</SectionLabel>
+                <h2 className="mt-4 text-[40px] font-bold tracking-tight leading-[1.15] text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Tell the AI how you see. It learns.</h2>
+                <p className="mt-4 text-[15px] text-white/40 leading-relaxed max-w-md">No menus. No sliders. Just describe what you shoot, what you look for, and what you always reject. The AI builds a reusable sorting preset from the conversation.</p>
+                <ul className="mt-8 space-y-3">
+                  {['Zero manual tagging required', 'Understands light, emotion, and context', 'Runs in the browser — your photos never leave your device', 'Learns your style over time'].map(item => (
+                    <li key={item} className="flex items-center gap-3 text-sm text-white/40"><Check size={16} className="shrink-0 text-violet-400" />{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </AnimatedSection>
+            <AnimatedSection variant="float-in" delay={200}>
+              <div className={`p-6 ${glass} ${glassHighlight}`}>
+                <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-white/10">
+                  <div className="h-2 w-2 rounded-full bg-violet-400" />
+                  <span className="text-[13px] font-semibold text-white/70">AI Workspace</span>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-end"><div className="max-w-[300px] rounded-[14px] rounded-br-[4px] bg-gradient-to-r from-indigo-500 to-violet-500 px-3.5 py-2.5 text-[13px] text-white leading-relaxed">It&apos;s a golden hour beach wedding, very emotional ceremony, lots of candid family moments</div></div>
+                  <div className="flex gap-2.5 items-end"><div className="h-7 w-7 shrink-0 rounded-full border border-violet-400/25 bg-violet-400/10" /><div className="rounded-[14px] rounded-bl-[4px] border border-white/10 bg-white/[0.06] px-3.5 py-2.5 text-[13px] text-white/70 leading-relaxed">Got it — running AI sort for golden hour beach wedding. Prioritizing: emotional candids → ceremony moments → family groups → detail shots. Hero shot candidates flagged ✨</div></div>
+                  <div className="flex justify-end"><div className="max-w-[240px] rounded-[14px] rounded-br-[4px] bg-gradient-to-r from-indigo-500 to-violet-500 px-3.5 py-2.5 text-[13px] text-white leading-relaxed">Looks great! Deliver the top 80 to the client gallery</div></div>
+                </div>
+                <div className="mt-4 pt-3">
+                  <p className="text-[11px] text-white/25 mb-1.5">Processing 847 photos · 92% complete</p>
+                  <div className="h-1 rounded-full bg-white/10 overflow-hidden"><div className="h-full w-[92%] rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500" /></div>
+                </div>
+              </div>
+            </AnimatedSection>
+          </div>
+        </div>
+      </section>
+
+      {/* ── WORKFLOW ── */}
+      <section className="py-24 px-6 relative z-10">
+        <div className="mx-auto max-w-5xl">
+          <AnimatedSection className="text-center mb-14">
+            <SectionLabel>Workflow</SectionLabel>
+            <h2 className="mt-4 text-4xl font-bold tracking-tight lg:text-5xl text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>The shoot doesn&apos;t end<br />when you put the camera down.</h2>
+          </AnimatedSection>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
-              { icon: Package, title: 'Package Builder', desc: 'Create session packages with photos included, extras pricing, print options, and licensing terms.' },
-              { icon: Bell, title: 'Auto Email + SMS', desc: 'Trigger emails and texts at every milestone — invoice sent, contract signed, gallery ready, finals delivered.' },
-              { icon: ClipboardList, title: 'Booking Forms', desc: 'Tailored forms for every niche. Submissions create client profiles and draft projects automatically.' },
-            ].map(f => (
-              <div key={f.title} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-800 text-indigo-400 mb-4">
-                  <f.icon size={18} />
+              { tag: 'STAGE 1 · INGEST', title: 'Upload & Ingest', desc: 'Drag-drop from Finder, import from Lightroom, or sync from cloud. All formats supported.' },
+              { tag: 'STAGE 2 · PRODUCTION', title: 'AI Sort & Curation', desc: 'AI categorizes every photo, scores hero shots, and builds a curated delivery set — in minutes.' },
+              { tag: 'STAGE 3 · FINISH', title: 'Deliver & Get Paid', desc: 'Watermarked gallery link, client selection, Stripe invoice — all automated after the sort.' },
+            ].map((wf, i) => (
+              <AnimatedSection key={wf.tag} delay={i * 120} variant="float-in">
+                <div className={`p-7 ${glass} ${glassHighlight} ${glassHover}`}>
+                  <div className="inline-flex rounded-md bg-violet-400/10 border border-violet-400/20 px-2.5 py-1 mb-4"><span className="text-[10px] font-semibold uppercase tracking-wider text-violet-400">{wf.tag}</span></div>
+                  <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>{wf.title}</h3>
+                  <p className="text-[13px] text-white/35 leading-relaxed">{wf.desc}</p>
                 </div>
-                <h3 className="font-semibold text-zinc-100 mb-2">{f.title}</h3>
-                <p className="text-sm text-zinc-500 leading-relaxed">{f.desc}</p>
-              </div>
+              </AnimatedSection>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── ANALYTICS ── */}
-      <section className="py-24 px-6 bg-zinc-950/40">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 items-center">
-            <div>
-              <SectionLabel><BarChart3 size={12} /> Analytics</SectionLabel>
-              <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">
-                Know your business<br />like you know your shots.
-              </h2>
-              <p className="mt-4 text-zinc-400 leading-relaxed">
-                Track revenue, understand which packages sell, and see your client relationships grow — all tied to real Stripe data, not estimates.
-              </p>
-              <div className="mt-8 grid grid-cols-2 gap-3">
-                {[
-                  { icon: TrendingUp, text: 'Revenue by period' },
-                  { icon: FolderOpen, text: 'Active project pipeline' },
-                  { icon: Users, text: 'Client acquisition rate' },
-                  { icon: Package, text: 'Package performance' },
-                  { icon: Download, text: 'Gallery-to-download rate' },
-                  { icon: RefreshCw, text: 'Repeat client tracking' },
-                ].map(m => (
-                  <div key={m.text} className="flex items-center gap-2.5 text-sm text-zinc-300">
-                    <m.icon size={14} className="shrink-0 text-indigo-400" />
-                    {m.text}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <ScreenPlaceholder label="Analytics Dashboard" aspect="4/3" />
-          </div>
+      {/* ── PLATFORM ── */}
+      <section className="py-24 px-6 relative z-10">
+        <div className="mx-auto max-w-5xl">
+          <AnimatedSection className="text-center mb-10">
+            <h2 className="text-4xl font-bold tracking-tight lg:text-5xl text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>Everything in one place. Finally.</h2>
+            <p className="mt-4 text-base text-white/40 max-w-xl mx-auto leading-relaxed">Gallery hosting. Client proofing. Invoicing. Contracts. AI editing. You&apos;re using five apps for what should be one workflow. We fixed that.</p>
+          </AnimatedSection>
+          <PlatformTabs />
         </div>
       </section>
 
-      {/* ── PRICING ── */}
-      <section id="pricing" className="py-24 px-6">
+      {/* ── FINAL CTA ── */}
+      <section id="waitlist" className="py-24 px-6 relative z-10">
         <div className="mx-auto max-w-5xl">
-          <div className="text-center mb-16">
-            <SectionLabel>Pricing</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight text-zinc-50">Free as in go.<br />Zero confusion.</h2>
-            <p className="mt-3 text-zinc-400">Waitlist members get early access + a lifetime discount on any plan.</p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {[
-              {
-                name: 'Free', price: '$0', period: 'forever',
-                desc: 'Get started and experience the AI.',
-                features: ['3 projects/month', 'AI Sort (basic presets)', 'Magic link delivery', 'Client gallery view', '5 GB storage'],
-                cta: 'Start Free', highlight: false,
-              },
-              {
-                name: 'Pro', price: '$19', period: 'per month',
-                desc: 'Everything a working photographer needs.',
-                features: ['Unlimited projects', 'AI Sort + Vibe Chat presets', 'AI Style Profile', 'Lightroom roundtrip', '3-stage delivery flow', 'Contract + invoice', 'Booking forms', 'Analytics dashboard', '100 GB storage'],
-                cta: 'Join Waitlist', highlight: true,
-              },
-              {
-                name: 'Business', price: '$49', period: 'per month',
-                desc: 'For studios and high-volume shooters.',
-                features: ['Everything in Pro', 'Team accounts (5 seats)', 'Custom gallery branding', 'Priority AI processing', 'SMS notifications', 'Advanced analytics', 'Unlimited storage', 'Dedicated support'],
-                cta: 'Join Waitlist', highlight: false,
-              },
-            ].map((plan, i) => {
-              const rotations = [-2.5, 0, 2.5]
-              const depths = [1.2, 1, 1.2]
-              return (
-                <ScrollCard key={plan.name} rotation={rotations[i % rotations.length]} depth={depths[i % depths.length]}>
-                  <div className={`rounded-2xl border p-7 flex flex-col relative h-full ${plan.highlight ? 'border-indigo-500/40 bg-indigo-500/5 ring-1 ring-indigo-500/10' : 'border-zinc-800 bg-zinc-900/40'}`}>
-                    {plan.highlight && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-500 px-3 py-0.5 text-xs font-bold text-white">Most Popular</div>
-                    )}
-                    <div className="mb-6">
-                      <p className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">{plan.name}</p>
-                      <div className="mt-2 flex items-end gap-1.5">
-                        <span className="text-4xl font-black text-zinc-50">{plan.price}</span>
-                        <span className="text-sm text-zinc-500 mb-1">{plan.period}</span>
-                      </div>
-                      <p className="mt-2 text-sm text-zinc-500">{plan.desc}</p>
-                    </div>
-                    <ul className="flex-1 space-y-2.5 mb-8">
-                      {plan.features.map(f => (
-                        <li key={f} className="flex items-start gap-2.5 text-sm text-zinc-300">
-                          <Check size={14} className="mt-0.5 shrink-0 text-indigo-400" />
-                          {f}
-                        </li>
+          <AnimatedSection className="text-center mb-10">
+            <h2 className="text-4xl font-bold tracking-tight lg:text-[56px] text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>We&apos;re building this for you.<br />Come be part of it.</h2>
+          </AnimatedSection>
+          <UseCaseTabs />
+          <div className="mt-16" />
+          <AnimatedSection variant="float-in">
+            <div className="mx-auto max-w-[960px] p-[2px] rounded-3xl" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.6) 0%, rgba(59,130,246,0.5) 20%, rgba(168,85,247,0.5) 40%, rgba(236,72,153,0.5) 60%, rgba(59,130,246,0.5) 80%, rgba(245,158,11,0.6) 100%)' }}>
+              <div className="relative rounded-[22px] overflow-hidden bg-gradient-to-b from-white/[0.12] to-white/[0.03] backdrop-blur-[32px] shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                <div className="grid grid-cols-1 lg:grid-cols-2">
+                  <div className="p-10">
+                    <h3 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>The View1 Workflow</h3>
+                    <p className="text-sm text-white/35 leading-relaxed mb-6 max-w-md">Join the waitlist for early access and founding member pricing. You&apos;ll be first to try new features — and your feedback shapes what we build next.</p>
+                    <ul className="space-y-2.5">
+                      {['AI sorts your entire shoot in under 12 minutes', 'Watermarked gallery delivered same day', 'Invoice sent and paid before you leave the venue'].map(item => (
+                        <li key={item} className="flex items-center gap-2.5 text-sm text-white/50"><Check size={16} className="shrink-0 text-emerald-400" />{item}</li>
                       ))}
                     </ul>
-                    <a href="#waitlist" className={`block rounded-xl py-3 text-center text-sm font-semibold transition-all ${plan.highlight ? 'bg-indigo-500 text-white hover:bg-indigo-400' : 'border border-zinc-700 text-zinc-300 hover:border-zinc-600 hover:text-zinc-100'}`}>
-                      {plan.cta}
-                    </a>
                   </div>
-                </ScrollCard>
-              )
-            })}
-          </div>
-          <p className="mt-8 text-center text-sm text-zinc-500">All plans include a 14-day free trial. No credit card required. Cancel anytime.</p>
-        </div>
-      </section>
-
-      {/* ── WAITLIST CTA ── */}
-      <section id="waitlist" className="py-32 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,rgba(99,102,241,0.10)_0%,transparent_100%)]" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent" />
-        <div className="relative mx-auto max-w-2xl text-center">
-          <div className="mb-6 flex justify-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/15 text-indigo-400 border border-indigo-500/20">
-              <Camera size={28} />
+                  <div className="bg-white/[0.03] p-10 flex flex-col justify-center border-l border-white/10">
+                    <div className="mb-3">
+                      <div className="inline-flex rounded-full bg-violet-400/10 border border-violet-400/20 px-3 py-1 mb-4"><span className="text-[11px] font-medium text-violet-400">Early Access — Limited Spots</span></div>
+                      <p className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Free to start</p>
+                      <p className="text-[13px] text-white/30 mb-5">No credit card required. Cancel anytime.</p>
+                    </div>
+                    <WaitlistForm />
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <h2 className="text-5xl font-extrabold tracking-tight text-zinc-50 lg:text-6xl">
-            Ready to sort smarter?
-          </h2>
-          <p className="mt-6 text-xl text-zinc-400 leading-relaxed">
-            Join the waitlist for early access. Waitlist members get a <strong className="text-zinc-200 font-semibold">lifetime discount</strong> and are first to try every new feature.
-          </p>
-          <div className="mt-10 flex justify-center">
-            <WaitlistForm size="large" />
-          </div>
+          </AnimatedSection>
         </div>
       </section>
 
       {/* ── FAQ ── */}
-      <section className="py-24 px-6 bg-zinc-950/40">
+      <section className="py-24 px-6 relative z-10">
         <div className="mx-auto max-w-2xl">
           <div className="text-center mb-12">
             <SectionLabel>FAQ</SectionLabel>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-zinc-50">Common questions</h2>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Common questions</h2>
           </div>
           <FAQ />
         </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-zinc-800/60 py-12 px-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4 mb-10">
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2.5 mb-3">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600">
-                  <Camera size={13} className="text-white" />
-                </div>
-                <span className="font-black tracking-tight text-zinc-100">View1 Sort</span>
-              </div>
-              <p className="text-sm text-zinc-500 leading-relaxed">The AI-powered photographer OS. Sort by story. Deliver beautifully. Run your business.</p>
-            </div>
-            {[
-              { heading: 'Product', links: ['Features', 'How It Works', 'Pricing', 'Changelog'] },
-              { heading: 'Use Cases', links: ['Wedding', 'Real Estate', 'Commercial', 'Fashion', 'Travel'] },
-              { heading: 'Company', links: ['About', 'Blog', 'Privacy', 'Terms'] },
-            ].map(col => (
-              <div key={col.heading}>
-                <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">{col.heading}</p>
-                <ul className="space-y-2">
-                  {col.links.map(l => (
-                    <li key={l}><a href="#" className="text-sm text-zinc-500 transition-colors hover:text-zinc-300">{l}</a></li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+      <footer className="border-t border-white/10 py-10 px-6 relative z-10">
+        <div className="mx-auto max-w-7xl flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex h-5 w-5 items-center justify-center rounded bg-indigo-500"><Camera size={10} className="text-white" /></div>
+            <span className="text-[13px] font-semibold text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>View1 Sort</span>
           </div>
-          <div className="border-t border-zinc-800/60 pt-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <p className="text-xs text-zinc-600">© 2026 View1 Sort. All rights reserved.</p>
-            <p className="text-xs text-zinc-600">Built for photographers who take their work seriously.</p>
+          <p className="text-xs text-white/20">© 2026 View1 Sort. All rights reserved.</p>
+          <div className="flex gap-6">
+            {['Privacy', 'Terms', 'Contact'].map(l => (
+              <a key={l} href="#" className="text-xs text-white/20 hover:text-white/50 transition-colors">{l}</a>
+            ))}
           </div>
         </div>
       </footer>
