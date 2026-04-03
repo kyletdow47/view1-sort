@@ -13,6 +13,7 @@ import { TabBar } from './TabBar'
 import { SubTabRow } from './SubTabRow'
 import { CategoryColumn } from './CategoryColumn'
 import { AIAnalysisPanel } from './AIAnalysisPanel'
+import { AISortWorkspace } from './AISortWorkspace'
 import { CullSliderBar } from './CullSliderBar'
 import { WorkspaceSelectionToolbar } from './WorkspaceSelectionToolbar'
 
@@ -195,37 +196,45 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
               onReSort={handleRunAI}
             />
 
-            {/* Main Content: Category Columns + AI Panel */}
-            <div className="flex gap-4 flex-1 min-h-0">
-              {/* Category Columns */}
-              <div className="flex gap-3 flex-1 min-h-0">
-                {categoryColumns.map((col) => (
-                  <CategoryColumn
-                    key={col.id}
-                    name={col.name}
-                    color={col.color}
-                    photos={col.photos}
-                    selectedIds={selectedIds}
-                    onSelect={handleSelect}
-                    onDoubleClick={handleDoubleClick}
-                  />
-                ))}
-              </div>
-
-              {/* AI Analysis Panel */}
-              <AIAnalysisPanel
-                totalPhotos={totalPhotos}
-                qualityConfidence={87}
-                duplicateCount={12}
-                blurryCount={5}
-                overexposedCount={3}
-                flaggedIssues={[
-                  'Low light in 23 photos',
-                  'Possible duplicates detected',
-                ]}
+            {/* Main Content: Sort Controls + Category Columns + AI Panel */}
+            {activeSubTab === 'workspace' ? (
+              <AISortWorkspace
+                categoryColumns={categoryColumns}
+                allMedia={allMedia}
+                selectedIds={selectedIds}
+                onSelect={handleSelect}
+                onDoubleClick={handleDoubleClick}
                 onReviewFlags={handleReviewFlags}
               />
-            </div>
+            ) : activeSubTab === 'upload' ? (
+              <div className="flex items-center justify-center flex-1 text-white/30 text-lg">
+                Upload sub-tab — drag photos here or click to upload
+              </div>
+            ) : activeSubTab === 'preferences' ? (
+              <div className="flex items-center justify-center flex-1 text-white/30 text-lg">
+                AI Sort Preferences — coming soon
+              </div>
+            ) : activeSubTab === 'vibe-presets' ? (
+              <div className="flex items-center justify-center flex-1 text-white/30 text-lg">
+                Vibe Presets — coming soon
+              </div>
+            ) : (
+              <div className="flex gap-4 flex-1 min-h-0">
+                <div className="flex gap-3 flex-1 min-h-0">
+                  {categoryColumns.map((col) => (
+                    <CategoryColumn
+                      key={col.id}
+                      name={col.name}
+                      color={col.color}
+                      photos={col.photos}
+                      selectedIds={selectedIds}
+                      onSelect={handleSelect}
+                      onDoubleClick={handleDoubleClick}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
 
