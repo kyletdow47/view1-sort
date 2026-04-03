@@ -14,6 +14,7 @@ import { SubTabRow } from './SubTabRow'
 import { CategoryColumn } from './CategoryColumn'
 import { AIAnalysisPanel } from './AIAnalysisPanel'
 import { AISortWorkspace } from './AISortWorkspace'
+import { AISortPreferences } from './AISortPreferences'
 import { CullSliderBar } from './CullSliderBar'
 import { WorkspaceSelectionToolbar } from './WorkspaceSelectionToolbar'
 
@@ -211,9 +212,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
                 Upload sub-tab — drag photos here or click to upload
               </div>
             ) : activeSubTab === 'preferences' ? (
-              <div className="flex items-center justify-center flex-1 text-white/30 text-lg">
-                AI Sort Preferences — coming soon
-              </div>
+              <AISortPreferences />
             ) : activeSubTab === 'vibe-presets' ? (
               <div className="flex items-center justify-center flex-1 text-white/30 text-lg">
                 Vibe Presets — coming soon
