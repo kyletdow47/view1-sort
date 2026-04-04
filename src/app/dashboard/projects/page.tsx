@@ -69,13 +69,14 @@ function getGradient(id: string): string {
 
 function ProjectCardSkeleton() {
   return (
-    <div className="rounded-xl overflow-hidden bg-surface border border-outline-variant/20">
-      <Skeleton className="h-44 w-full rounded-none" />
-      <div className="p-4 space-y-3">
-        <Skeleton variant="line" className="w-2/3 h-4" />
-        <Skeleton variant="line" className="w-1/2 h-3" />
-        <Skeleton variant="line" className="w-1/3 h-3" />
-      </div>
+    <div
+      className="h-[260px] rounded-[20px] overflow-hidden"
+      style={{
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)',
+        border: '2px solid rgba(255,255,255,0.12)',
+      }}
+    >
+      <Skeleton className="h-full w-full rounded-none" />
     </div>
   )
 }
@@ -99,21 +100,27 @@ interface ProjectGridCardProps {
 }
 
 function ProjectGridCard({ project }: ProjectGridCardProps) {
-  const [menuOpen, setMenuOpen] = useState(false)
   const shootDate = project.created_at
-    ? new Date(project.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    ? new Date(project.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : '—'
+  const statusLabel = project.status
+    ? project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('_', ' ')
+    : ''
+  // TODO: Replace with real photo count from media table join
+  const photoCount = 0
 
   return (
     <div
-      className="group relative overflow-hidden rounded-2xl transition-all duration-200 hover:scale-[1.01]"
-      style={{ border: '1px solid rgba(255,255,255,0.15)' }}
+      className="group relative overflow-hidden rounded-[20px] transition-all duration-200 hover:scale-[1.01]"
+      style={{
+        border: '2px solid rgba(255,255,255,0.19)',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.16), 0 1px 0 rgba(255,255,255,0.15)',
+      }}
     >
-      {/* Cover — full bleed photo */}
-      <Link href={`/dashboard/project/${project.id}`}>
+      <Link href={`/dashboard/project/${project.id}`} className="block">
         <div
           className={clsx(
-            'relative aspect-[4/3] overflow-hidden bg-gradient-to-br',
+            'relative h-[260px] overflow-hidden bg-gradient-to-br',
             !project.cover_image_url && getGradient(project.id),
           )}
         >
@@ -126,55 +133,43 @@ function ProjectGridCard({ project }: ProjectGridCardProps) {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-          {/* Bottom overlay: title + badges */}
-          <div className="absolute bottom-0 left-0 right-0 p-3">
-            <h3 className="truncate text-[13px] font-semibold text-white">{project.name}</h3>
-            <div className="mt-1 flex flex-wrap items-center gap-1">
-              <StatusBadge status={project.status} />
-              {project.preset && (
-                <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-medium text-white/80">
-                  {project.preset}
-                </span>
-              )}
+          {/* Bottom overlay: title + client + status + photo count */}
+          <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between p-5">
+            <div className="min-w-0">
+              <h3 className="truncate text-[14px] font-semibold text-white" style={{ fontFamily: 'var(--font-geist)' }}>
+                {project.name}
+              </h3>
+              <p className="mt-1 truncate text-[12px] text-white/70" style={{ fontFamily: 'var(--font-geist)' }}>
+                {project.preset ? `${project.preset} · ` : ''}{shootDate} · {statusLabel}
+              </p>
+            </div>
+            <div className="shrink-0 ml-3 flex items-center rounded-lg bg-white/20 px-2.5 py-1">
+              <span className="text-[11px] font-medium text-white" style={{ fontFamily: 'var(--font-geist)' }}>
+                {photoCount}
+              </span>
             </div>
           </div>
 
-          {/* Options menu */}
-          <div className="absolute right-2 top-2" data-menu>
-            <button
-              type="button"
-              aria-label="Project options"
-              aria-expanded={menuOpen}
-              className="rounded-lg bg-black/40 p-1.5 text-white/70 opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-black/60 hover:text-white focus:opacity-100 focus:outline-none"
-              onClick={(e) => { e.stopPropagation(); setMenuOpen((prev) => !prev) }}
+          {/* Hover overlay with action buttons */}
+          <div className="absolute inset-0 flex items-center justify-center gap-2.5 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
+            <span
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-[12px] font-medium text-white"
+              style={{ border: '1.5px solid rgba(255,255,255,0.8)' }}
             >
-              <MoreVertical className="h-4 w-4" />
-            </button>
-            {menuOpen && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                <div
-                  className="absolute right-0 top-8 z-20 w-44 overflow-hidden rounded-xl"
-                  style={{ background: 'rgba(15,20,50,0.9)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.2)' }}
-                >
-                  <Link
-                    href={`/dashboard/project/${project.id}`}
-                    className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-                  >
-                    <ArrowUpRight className="h-4 w-4" />
-                    View project
-                  </Link>
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <Share2 className="h-4 w-4" />
-                    Share gallery
-                  </button>
-                </div>
-              </>
-            )}
+              <ArrowUpRight className="h-3.5 w-3.5" /> View
+            </span>
+            <span
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-[12px] font-medium text-white"
+              style={{ border: '1.5px solid rgba(255,255,255,0.8)' }}
+            >
+              <Share2 className="h-3.5 w-3.5" /> Share
+            </span>
+            <span
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-[12px] font-medium text-white"
+              style={{ border: '1.5px solid rgba(255,255,255,0.8)' }}
+            >
+              <MoreVertical className="h-3.5 w-3.5" /> More
+            </span>
           </div>
         </div>
       </Link>
@@ -597,18 +592,24 @@ export default function ProjectsPage() {
   const activeSortLabel =
     SORT_OPTIONS.find((s) => s.value === sortBy)?.label ?? 'Sort'
 
-  // Stat counts
-  const activeCount = projects.filter(p => p.status === 'active').length
-  const pendingReviewCount = projects.length - activeCount
-  const deliveredCount = projects.filter(p => p.status === 'published').length
+  // Stat counts — match Pencil design labels
+  const activeCount = projects.filter(p =>
+    !['delivered', 'gallery_live'].includes(p.status as string)
+  ).length
+  const awaitingReviewCount = projects.filter(p =>
+    (p.status as string) === 'review'
+  ).length
+  const deliveredCount = projects.filter(p =>
+    (p.status as string) === 'delivered'
+  ).length
 
   return (
     <div className="space-y-6">
       {/* ── Page header ────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[28px] font-bold text-white">Projects</h1>
-          <p className="mt-1 text-[13px] text-white/50">Browse, search and manage all your projects</p>
+          <h1 className="text-[30px] font-bold text-white" style={{ fontFamily: 'var(--font-geist)' }}>Projects</h1>
+          <p className="mt-1.5 text-[14px] text-white/70" style={{ fontFamily: 'var(--font-geist)' }}>Browse, search, and manage all your projects</p>
         </div>
         <button
           type="button"
@@ -624,22 +625,25 @@ export default function ProjectsPage() {
       {/* ── Stat cards ─────────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-3.5">
         {[
-          { label: 'Active Projects', value: loading ? '—' : activeCount, color: '#60A5FA' },
-          { label: 'Pending Review', value: loading ? '—' : pendingReviewCount, color: '#FBBF24' },
-          { label: 'Delivered', value: loading ? '—' : deliveredCount, color: '#34D399' },
-          { label: 'Total Value', value: '$12.4k', color: '#A78BFA' },
+          { label: 'Active Projects', value: loading ? '—' : activeCount },
+          { label: 'Awaiting Review', value: loading ? '—' : awaitingReviewCount },
+          { label: 'Delivered', value: loading ? '—' : deliveredCount },
+          { label: 'Unpaid Work', value: '$12.4k' },
         ].map((stat) => (
           <div
             key={stat.label}
-            className="rounded-2xl p-5"
+            className="relative overflow-hidden rounded-xl px-3 py-2.5"
             style={{
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255,255,255,0.15)',
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid',
+              borderImage: 'linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.03) 100%) 1',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.16), 0 1px 0 rgba(255,255,255,0.15)',
             }}
           >
-            <p className="text-[32px] font-bold text-white leading-none">{stat.value}</p>
-            <p className="mt-2 text-[13px] text-white/50">{stat.label}</p>
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+            <p className="text-[32px] font-bold text-white/[0.93] leading-none" style={{ fontFamily: 'var(--font-geist)' }}>{stat.value}</p>
+            <p className="mt-1 text-[12px] text-white/50" style={{ fontFamily: 'var(--font-geist)' }}>{stat.label}</p>
           </div>
         ))}
       </div>
@@ -678,7 +682,7 @@ export default function ProjectsPage() {
             key={f.label}
             type="button"
             onClick={() => setStatusFilter(f.value as ProjectPipelineStatus | '')}
-            className={`rounded-xl px-4 py-1.5 text-[12px] font-medium transition-colors ${statusFilter === f.value ? 'bg-white/[0.15] font-semibold text-white' : 'text-white/50 hover:text-white/80'}`}
+            className={`rounded-full px-3.5 py-[7px] text-[12px] font-medium transition-colors ${statusFilter === f.value ? 'bg-white/[0.13] font-semibold text-white border border-white/25' : 'bg-white/[0.04] text-white/65 border border-white/[0.12] hover:text-white/80'}`}
           >
             {f.label}
           </button>
@@ -750,8 +754,8 @@ export default function ProjectsPage() {
       {/* ── Content ────────────────────────────────────────────────── */}
       {loading ? (
         viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {[...Array(8)].map((_, i) => <ProjectCardSkeleton key={i} />)}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => <ProjectCardSkeleton key={i} />)}
           </div>
         ) : (
           <div className="rounded-xl border border-outline-variant/20 overflow-hidden">
@@ -789,16 +793,6 @@ export default function ProjectsPage() {
           {filteredProjects.map((project) => (
             <ProjectGridCard key={project.id} project={project} />
           ))}
-
-          {/* Create new tile */}
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="group flex aspect-[4/3] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/20 text-white/40 transition-all hover:border-white/40 hover:text-white/60"
-          >
-            <Plus className="mb-2 h-8 w-8" />
-            <span className="text-sm font-medium">New project</span>
-          </button>
         </div>
       ) : (
         /* List view */

@@ -5,42 +5,54 @@ import { CheckCircle, FolderOpen, Camera, CalendarDays, ArrowUpRight } from 'luc
 import { GlassPanel } from './GlassPanel'
 import { ProgressRing } from './ProgressRing'
 
-const stats = [
-  {
-    icon: <CheckCircle className="h-5 w-5 text-white" />,
-    value: '12',
-    label: 'Unfinished Tasks',
-    progress: 60,
-    colors: ['#FF8E53', '#FF6B6B'] as [string, string],
-    id: 'tasks',
-  },
-  {
-    icon: <FolderOpen className="h-5 w-5 text-white" />,
-    value: '4',
-    label: 'Active Projects',
-    progress: 80,
-    colors: ['#4ECDC4', '#44CF6C'] as [string, string],
-    id: 'projects',
-  },
-  {
-    icon: <Camera className="h-5 w-5 text-white" />,
-    value: '3',
-    label: 'Shoots Pending',
-    progress: 30,
-    colors: ['#C77DFF', '#7B2FBE'] as [string, string],
-    id: 'shoots',
-  },
-  {
-    icon: <CalendarDays className="h-5 w-5 text-white" />,
-    value: '8',
-    label: 'Shoots this Month',
-    progress: 67,
-    colors: ['#FFD93D', '#FF9F43'] as [string, string],
-    id: 'monthly',
-  },
-]
+interface QuickStatsProps {
+  activeProjectCount?: number
+  upcomingShoots?: number
+  revenueThisMonth?: number
+  pendingActions?: number
+}
 
-export function QuickStats() {
+export function QuickStats({
+  activeProjectCount = 0,
+  upcomingShoots = 0,
+  revenueThisMonth = 0,
+  pendingActions = 0,
+}: QuickStatsProps) {
+  const stats = [
+    {
+      icon: <CheckCircle className="h-5 w-5 text-white" />,
+      value: String(pendingActions || 12),
+      label: 'Pending Actions',
+      progress: pendingActions > 0 ? Math.min(100, pendingActions * 10) : 60,
+      colors: ['var(--chart-orange, #FF8E53)', 'var(--chart-red, #FF6B6B)'] as [string, string],
+      id: 'actions',
+    },
+    {
+      icon: <FolderOpen className="h-5 w-5 text-white" />,
+      value: String(activeProjectCount || 4),
+      label: 'Active Projects',
+      progress: activeProjectCount > 0 ? Math.min(100, activeProjectCount * 20) : 80,
+      colors: ['var(--chart-teal, #4ECDC4)', 'var(--chart-green, #44CF6C)'] as [string, string],
+      id: 'projects',
+    },
+    {
+      icon: <Camera className="h-5 w-5 text-white" />,
+      value: String(upcomingShoots || 3),
+      label: 'Upcoming Shoots',
+      progress: upcomingShoots > 0 ? Math.min(100, upcomingShoots * 15) : 30,
+      colors: ['var(--chart-purple, #C77DFF)', 'var(--chart-violet, #7B2FBE)'] as [string, string],
+      id: 'shoots',
+    },
+    {
+      icon: <CalendarDays className="h-5 w-5 text-white" />,
+      value: revenueThisMonth > 0 ? `$${(revenueThisMonth / 100).toLocaleString()}` : '$3.2k',
+      label: 'Revenue this Month',
+      progress: revenueThisMonth > 0 ? Math.min(100, (revenueThisMonth / 500000) * 100) : 67,
+      colors: ['var(--chart-yellow, #FFD93D)', 'var(--chart-amber, #FF9F43)'] as [string, string],
+      id: 'revenue',
+    },
+  ]
+
   return (
     <GlassPanel className="flex h-full w-full flex-col gap-3 p-4">
       <div className="flex items-center justify-between">

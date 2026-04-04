@@ -46,7 +46,7 @@ export function WaitlistForm({ size = 'default' }: { size?: 'default' | 'large' 
   return (
     <form onSubmit={handleSubmit} className={`flex flex-col gap-3 w-full ${size === 'large' ? 'max-w-lg mx-auto' : 'max-w-md'}`}>
       {size === 'large' && (
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <input type="text" placeholder="Your name" value={name} onChange={e => setName(e.target.value)}
             className="flex-1 rounded-xl border border-white/15 bg-white/[0.06] px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-violet-400/40 transition-all backdrop-blur-sm" />
           <select value={type} onChange={e => setType(e.target.value)}

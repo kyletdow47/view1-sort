@@ -3,8 +3,8 @@
 > This file is read and updated by the design-to-dev agent at every run.
 > It serves as build memory — what's done, what's next, what broke, what was learned.
 
-Last updated: 2026-04-03
-Last agent run: 2026-04-03T11:17Z
+Last updated: 2026-04-04
+Last agent run: 2026-04-04T00:12Z
 
 ## Priority Tiers (P0 = do first, P5 = do last)
 
@@ -23,6 +23,10 @@ Last agent run: 2026-04-03T11:17Z
 - Dashboard v2 — PR pending — completed 2026-04-03 — Responsive grid, quick actions bar, empty states, QuickStats CSS vars, glass-panel loading skeleton. Pencil frame jHMkx matched.
 - Projects Page — branch feat/design-to-dev/projects-page — completed 2026-04-03 — Refined grid cards to match Pencil frame XBDLS: 3-col grid, 260px card height, rounded-[20px], hover action buttons, photo count badge, glass stat cards with top highlight, loading.tsx skeleton, error.tsx boundary. Push pending (no git creds in sandbox).
 - AI Workspace Page — branch feat/design-to-dev/ai-workspace-projects-route — completed 2026-04-03 — Route /dashboard/projects/[id], Pencil frame I8wu6. 14 files, 1360 lines. Full tabbed workspace: ProjectHeader, TabBar (6 tabs), SubTabRow (Upload/Workspace/Preferences/Vibe Presets), CategoryColumns (4), AIAnalysisPanel, CullSliderBar, SelectionToolbar. Mock data for AI classifier. Push pending (no git creds in sandbox).
+- AI Sort Workspace Tab — branch feat/design-to-dev/ai-sort-workspace-tab — completed 2026-04-03 — Workspace subtab content: SortControlsPanel (confidence threshold slider, sort algorithm selector, category mapping editor, duplicate/blur toggles, batch reclassify), enhanced AIAnalysisPanel (quality distribution bars, flagged issues rows), AISortWorkspace orchestrator. 5 files changed, 731 lines added. Push pending (no git creds in sandbox).
+- AI Sort Preferences Tab — PR #23 — branch feat/design-to-dev/ai-sort-preferences-tab — completed 2026-04-03 — 8-section preferences panel matching Pencil frame z7scV: Shooting Style chips, Auto-Sort Categories toggles, Confidence Threshold slider, Auto-Reject Rules, Hero Shot Scoring sliders, Vibe Keywords tag input, Delivery Defaults dropdowns. Glass-morphism cards, #5749F4 accent, auto-save debounce. 3 files, 732 lines added.
+- AI Sort Vibe Presets Tab — branch feat/design-to-dev/ai-sort-vibe-presets-tab — completed 2026-04-04 — VibePresetsTab: NL style input → AI parameter extraction → named preset cards with Apply/Edit/Delete, ApplyPresetModal with before/after comparison, mock /api/ai/parse-vibe route (TODO: Supabase Edge Function). 5 files, 856 lines. Push pending (no git creds in sandbox).
+- Gallery Builder Page — PR #24 — branch feat/design-to-dev/gallery-builder — completed 2026-04-04 — Split-panel interface: left controls (PhotoSelector, ThemePicker, WatermarkConfigurator, AccessControls), right live preview (GalleryPreviewPanel with desktop/mobile toggle). 4 themes, watermark position grid, access permissions. Route /dashboard/project/[id]/gallery-builder. 11 files, 1108 lines. Mock data (Supabase integration TODO).
 
 
 ## Currently Building
@@ -50,6 +54,21 @@ None.
 - 2026-04-03: AI Workspace SubTabRow updated to match Pencil — tabs are Upload/Workspace/Preferences/Vibe Presets (not Panoramas/Fit All/Keeps/Rejects). Action buttons are Approve All + Re-Sort (not Upload/Filter/Sort).
 - 2026-04-03: TabBar icons updated to match Pencil — Review uses Eye icon (not CheckCircle), Details uses FileText (not Settings). Gallery label shortened from "Gallery Preview" to "Gallery".
 - 2026-04-03: AI Workspace uses Geist font from Pencil design (not Inter per CLAUDE.md). Font conflict still unresolved — awaiting Kyle's decision.
+- 2026-04-03: AI Sort Workspace Tab uses glass-morphism panel for SortControlsPanel (280px wide) matching AIAnalysisPanel (260px wide) style. Both use backdrop-blur-[40px], gradient fills, white/alpha borders.
+- 2026-04-03: AIAnalysisPanel updated to show quality distribution bars (90+/70-89/<70) matching Pencil exactly. Previous version had simpler progress bar — new version matches Pencil node layout.
+- 2026-04-03: Category mapping editor supports toggle on/off and adding custom categories. Drag-to-reorder deferred until dnd-kit is integrated.
+- 2026-04-03: Batch re-classify uses 3-second mock timer. Needs SigLIP Web Worker for real classification.
+- 2026-04-03: AI Preferences uses ToggleSwitch, GlassCard, SectionHeader, PreferencesSlider, DropdownSelect as internal sub-components. Not extracted to common/ yet — could be reused by Settings page later.
+- 2026-04-03: Vibe Keywords chosen over Asana task's "Style Profile sliders" — Pencil design shows tag-based keywords (golden hour, candid, moody, warm tones), not warm/cool or tight/wide sliders. Following Pencil as source of truth.
+- 2026-04-04: Vibe Presets tab has no dedicated Pencil content frame — only tab button (id: ZfXsr) exists in AI Workspace frame (I8wu6). Built from task spec using existing glass-morphism design system.
+- 2026-04-04: VibePresetsTab uses two-panel layout: left (preset grid, 1-col or xl:2-col), right (280px chat panel). Pattern matches AISortPreferences width ratio.
+- 2026-04-04: /api/ai/parse-vibe mock uses heuristic keyword matching. Real implementation needs claude-haiku-4-5-20251001 via Supabase Edge Function (path documented in route.ts comments).
+- 2026-04-04: AI Sort Preferences Tab (PR #23) was built in a previous run but Asana task was not moved to Code Review. Added cleanup comment to that Asana task; manual move needed.
+- 2026-04-04: Gallery Builder uses split-panel pattern (340px left controls + flex-1 right preview). Left panel has 4 tabbed sections (Photos/Theme/Watermark/Access). Preview renders a simulated gallery matching the selected theme.
+- 2026-04-04: Gallery Builder Pencil frame iTVxS was referenced in task spec but Pencil app was not running. Built from task description + existing GalleryView component patterns + design-system.md glass tokens.
+- 2026-04-04: WatermarkConfigurator uses local blob URLs from file input. Real implementation needs Cloudflare Images upload API integration.
+- 2026-04-04: Gallery Builder reuses existing GalleryTheme type ('dark'|'light'|'minimal'|'editorial') and theme CSS modules from src/components/features/gallery/themes/.
+- 2026-04-04: QA review — 0 pages in Code Review queue. No tasks to review.
 
 ## Shared Components Built
 
@@ -69,6 +88,16 @@ None.
 - AIAnalysisPanel — src/components/features/AIWorkspace/AIAnalysisPanel.tsx — used by [AIWorkspaceView]
 - CullSliderBar — src/components/features/AIWorkspace/CullSliderBar.tsx — used by [AIWorkspaceView]
 - WorkspaceSelectionToolbar — src/components/features/AIWorkspace/WorkspaceSelectionToolbar.tsx — used by [AIWorkspaceView]
+- AISortWorkspace — src/components/features/AIWorkspace/AISortWorkspace.tsx — used by [AIWorkspaceView workspace subtab]
+- SortControlsPanel — src/components/features/AIWorkspace/SortControlsPanel.tsx — used by [AISortWorkspace]
+- AISortPreferences — src/components/features/AIWorkspace/AISortPreferences.tsx — used by [AIWorkspaceView preferences subtab]
+- VibePresetsTab — src/components/features/AIWorkspace/VibePresetsTab.tsx — used by [AIWorkspaceView vibe-presets subtab]
+- GalleryBuilderView — src/components/features/gallery-builder/GalleryBuilderView.tsx — used by [gallery-builder page]
+- PhotoSelector — src/components/features/gallery-builder/PhotoSelector.tsx — used by [GalleryBuilderView]
+- ThemePicker — src/components/features/gallery-builder/ThemePicker.tsx — used by [GalleryBuilderView]
+- WatermarkConfigurator — src/components/features/gallery-builder/WatermarkConfigurator.tsx — used by [GalleryBuilderView]
+- AccessControls — src/components/features/gallery-builder/AccessControls.tsx — used by [GalleryBuilderView]
+- GalleryPreviewPanel — src/components/features/gallery-builder/GalleryPreviewPanel.tsx — used by [GalleryBuilderView]
 
 ## Known Missing Infrastructure
 
@@ -79,3 +108,4 @@ None.
 - [ ] Resend email setup — needed by notifications, gallery sharing
 - [ ] AI classifier (SigLIP Web Worker) — needed by AI Workspace, AI Sort
 - [ ] ESLint config migration — .eslintrc.json format doesn't work with ESLint v9; needs eslint.config.js
+- [ ] Supabase Edge Function: parse-vibe — needed by VibePresetsTab real AI extraction; Claude Haiku call pattern ready in /api/ai/parse-vibe/route.ts TODOs

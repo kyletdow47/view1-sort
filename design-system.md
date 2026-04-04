@@ -418,23 +418,66 @@ Used for: Activity, Projects, Quick Stats, Calendar, Deliveries, Inbox
 
 ---
 
-## 7. Background / Page
+## 7. Background / Page — Metallic Rainbow
 
 ### Dashboard Frame Background
-Multi-layer gradient creating a deep blue-purple light atmosphere:
+Multi-layer metallic rainbow creating an iridescent dark chrome atmosphere:
 
 ```
-Layer 1 - Main gradient (135deg):
-  #1A3A8F (0%) -> #2D60D4 (20%) -> #3B7DE8 (40%) ->
-  #5A6FE8 (60%) -> #7B5EA7 (80%) -> #1E2FA8 (100%)
+Layer 1 - Background image:
+  type: image, url: "./background 5.jpg", mode: fill, opacity: 1.0
+  (Grainy chromatic blur texture — blue, pink, purple blobs on black)
 
-Layer 2 - Radial highlight (top-left softness):
-  type: radial, center: (20%, 10%), size: (70%, 60%)
-  #FFFFFF12 (0%) -> #FFFFFF00 (100%)
+Layer 2 - Dark overlay (50% opacity):
+  linear 160°: #03030580 (0%) → #08081090 (30%) → #06060990 (60%) → #03030580 (100%)
 
-Stroke: 1px inside #FFFFFF20
+Layer 3 - Chromatic mesh gradient (35% opacity):
+  type: mesh_gradient, columns: 4, rows: 3
+  Colors: #F59E0B35, #3B82F665, #A855F745, #EC489935,
+          #EC489945, #F59E0B55, #3B82F665, #A855F745,
+          #3B82F635, #A855F755, #EC489965, #F59E0B45
+
+Layer 4 - Metallic light streak:
+  linear 135°: #FFFFFF0A (0%) → #FFFFFF00 (30%) → #FFFFFF08 (50%) → #FFFFFF00 (70%) → #FFFFFF0A (100%)
+
+Stroke: 2.5px inside rainbow gradient 135°:
+  #F59E0BA0 (0%) → #3B82F690 (20%) → #A855F790 (40%) →
+  #EC489990 (60%) → #3B82F690 (80%) → #F59E0BA0 (100%)
+
 Corner radius: 16px
-Shadow: blur 40, color #00000060, offset (0, 8)
+
+Shadows:
+  1. outer (0, 12) blur 60 #000000A0
+  2. outer (-20, 0) blur 100 #3B82F620 (blue side glow)
+  3. outer (20, 0) blur 100 #F59E0B18 (amber side glow)
+  4. inner (0, 2) blur 60 #FFFFFF06 (top highlight)
+```
+
+### Rainbow Border Stroke (reusable across widgets)
+```
+Standard (1.5px): gradient 135° cycling through:
+  #F59E0B70 → #3B82F660 → #A855F760 → #EC489970
+  (rotate start angle per widget for variety)
+
+Heavy (2.5px): same colors at higher opacity (A0/90)
+  Used on page frames and floating panels
+```
+
+### Metallic Rainbow Accent Colors
+| Color | Hex | Usage |
+|-------|-----|-------|
+| Amber/Gold | `#F59E0B` | Primary accent, gradient start |
+| Blue | `#3B82F6` | Secondary accent, gradient midpoint |
+| Purple | `#A855F7` | Tertiary accent, gradient midpoint |
+| Pink | `#EC4899` | Quaternary accent, gradient end |
+
+### Rainbow Gradient Presets
+```
+Brand gradient (icons, buttons): 135° #F59E0B → #3B82F6 → #A855F7
+CTA button: 135° #F59E0B → #EC4899 → #3B82F6
+Activity dots: pair combos rotating through the 4 accent colors
+Donut rings: angular gradients using accent pairs with outer glow
+Avatar circles: linear gradient pairs with 6px colored glow shadow
 ```
 
 ---
@@ -445,14 +488,14 @@ This is the canonical "liquid glass" visual language used across all Dashboard v
 
 ### 10.1 Page Background
 
-All pages use the same two-layer blue-purple gradient as the Dashboard frame (see §7). No dark zinc backgrounds (`#0D0E14`, `#1A1B26`) on pages that use this style.
+All pages use the metallic rainbow background (see §7): background 5.jpg image → dark overlay → chromatic mesh gradient → metallic light streak. Rainbow gradient border stroke (2.5px).
 
 ### 10.2 Navigation Bar
 
 | Property | Value |
 |----------|-------|
-| Fill | `#FFFFFF0A` (~4% white) |
-| Bottom stroke | `1px inside #FFFFFF18` |
+| Fill | `#FFFFFF08` (~3% white) |
+| Bottom stroke | `1.5px inside rainbow gradient 90°: #F59E0B50 → #3B82F640 → #A855F740 → #EC489950` |
 | Height | `56px` |
 | Padding | `0 40px` |
 
@@ -460,15 +503,19 @@ All pages use the same two-layer blue-purple gradient as the Dashboard frame (se
 
 | Property | Value |
 |----------|-------|
-| Fill | `#FFFFFF12` (~7% white) |
+| Fill | `#FFFFFF0A` (~4% white) |
 | Corner radius | `12px` |
 | Padding | `4px` |
 | Gap | `4px` |
 | Background blur | `16px` |
 
-**Active nav item:** fill `#FFFFFF20`, cornerRadius `8px`, text weight `600`, color `#FFFFFF`  
-**Inactive nav item:** no fill, text weight `400`, color `#FFFFFFAA`  
+**Active nav item:** fill `#FFFFFF18`, cornerRadius `8px`, text weight `600`, color `#FFFFFF`
+**Inactive nav item:** no fill, text weight `400`, color `#FFFFFFAA`
 **Item padding:** `8px 16px`
+
+**Brand icon:** rainbow gradient fill `135°: #F59E0B → #3B82F6 → #A855F7`
+**Nav icons (bell, settings):** rainbow gradient fills (unique per icon)
+**Avatar:** rainbow gradient fill with rainbow stroke (2px)
 
 ### 10.3 Glass Card — Primary (Large Widgets)
 
@@ -478,11 +525,12 @@ Used for: main dashboard widgets (Recent Activity, Recent Projects, Quick Stats)
 |----------|-------|
 | Corner radius | `24px` |
 | Background blur | `32px` |
-| Fill layer 1 | `linear 180°: #FFFFFF1E (0%) → #FFFFFF08 (100%)` |
-| Fill layer 2 | `linear 180°: #FFFFFF30 (0%) → #FFFFFF00 (25%)` |
-| Stroke | `1px inside linear 180°: #FFFFFF40 → #FFFFFF18 (50%) → #FFFFFF08` |
-| Shadow 1 | `outer (0, 8) blur 32 #00000028` |
-| Shadow 2 | `outer (0, 1) blur 0 #FFFFFF25` (top edge highlight) |
+| Fill layer 1 | `linear 180°: #FFFFFF14 (0%) → #FFFFFF04 (100%)` |
+| Fill layer 2 | `linear ~210°: accent_color_10 (0%) → accent2_08 (50%) → transparent (100%)` |
+| Stroke | `1.5px inside rainbow gradient (rotate per widget): accent colors at 60-70%` |
+| Shadow 1 | `outer (0, 8) blur 32 #00000040` |
+| Shadow 2 | `outer (0, 0) blur 16 accent_color_10` (chromatic glow) |
+| Shadow 3 | `inner (0, 2) blur 24 #FFFFFF08` (top highlight) |
 | Padding | `16px` |
 | Gap | `12px` |
 
@@ -494,9 +542,12 @@ Used for: Calendar, Deliveries, Inbox, filter bars, auxiliary panels
 |----------|-------|
 | Corner radius | `20px` |
 | Background blur | `16px` |
-| Fill layer 1 | `#FFFFFF14` (solid ~8% white) |
-| Fill layer 2 | `linear 180°: #FFFFFF33 (0%) → #FFFFFF00 (100%)` |
-| Stroke | `1px inside #FFFFFF33` |
+| Fill layer 1 | `#FFFFFF0C` (solid ~5% white) |
+| Fill layer 2 | `linear 180°: #FFFFFF20 (0%) → #FFFFFF00 (100%)` |
+| Stroke | `1.5px inside rainbow gradient (rotate per widget)` |
+| Shadow 1 | `outer (0, 6) blur 24 #00000038` |
+| Shadow 2 | `outer (0, 0) blur 12 accent_color_0C` (chromatic glow) |
+| Shadow 3 | `inner (0, 1) blur 16 #FFFFFF06` |
 | Padding | `16px` |
 | Gap | `12px` |
 
@@ -506,22 +557,24 @@ Used for: Calendar, Deliveries, Inbox, filter bars, auxiliary panels
 |----------|-------|
 | Corner radius | `24px` |
 | Background blur | `40px` |
-| Fill layer 1 | `linear 180°: #FFFFFF1E (0%) → #FFFFFF0A (100%)` |
-| Fill layer 2 | `linear 180°: #FFFFFF30 (0%) → #FFFFFF00 (30%)` |
-| Stroke | `1px inside linear 180°: #FFFFFF45 → #FFFFFF18 (50%) → #FFFFFF08` |
-| Shadow 1 | `outer (0, 16) blur 48 #00000040 spread -4` |
-| Shadow 2 | `outer (0, 2) blur 8 #FFFFFF08` |
-| Shadow 3 | `outer (0, 1) blur 0 #FFFFFF20` |
+| Fill layer 1 | `linear 180°: #FFFFFF16 (0%) → #FFFFFF06 (100%)` |
+| Fill layer 2 | `linear 180°: #FFFFFF25 (0%) → #FFFFFF00 (30%)` |
+| Fill layer 3 | `linear ~225°: subtle accent tint` |
+| Stroke | `2px inside full rainbow gradient 135° (6-stop cycle)` |
+| Shadow 1 | `outer (0, 16) blur 48 #00000060 spread -4` |
+| Shadow 2 | `outer (0, 0) blur 20 accent_color_12` (chromatic glow) |
+| Shadow 3 | `inner (0, 2) blur 30 #FFFFFF0A` (top highlight) |
 
 ### 10.6 Glass Input / Search Box
 
 | Property | Value |
 |----------|-------|
 | Corner radius | `24px` |
-| Fill | `#FFFFFF18` |
-| Stroke | `1px inside #FFFFFF30` |
+| Fill | `#FFFFFF10` |
+| Stroke | `1.5px inside rainbow gradient 90°` |
 | Background blur | `20px` |
-| Shadow | `outer (0, 4) blur 16 #FFFFFF10` (upward glow) |
+| Shadow 1 | `outer (0, 4) blur 20 #00000020` |
+| Shadow 2 | `inner (0, 1) blur 12 #FFFFFF06` |
 
 ### 10.7 Text Colors on Glass
 

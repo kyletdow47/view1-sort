@@ -32,6 +32,9 @@ export default async function DashboardPage() {
         projects={DEMO_PROJECTS}
         photoCounts={{ 'demo-1': 847, 'demo-2': 156, 'demo-3': 432, 'demo-4': 64 }}
         activeProjectCount={2}
+        upcomingShoots={3}
+        revenueThisMonth={320000}
+        pendingActions={5}
       />
     )
   }
@@ -86,6 +89,11 @@ export default async function DashboardPage() {
     (p) => p.status === 'active' || p.status === 'published'
   ).length
 
+  // TODO: Replace with Supabase queries when bookings and invoices tables exist
+  const upcomingShoots = 0
+  const revenueThisMonth = 0
+  const pendingActions = 0
+
   const userName = profile?.display_name ?? user.email?.split('@')[0] ?? 'there'
 
   return (
@@ -94,6 +102,9 @@ export default async function DashboardPage() {
       projects={projectList}
       photoCounts={photoCounts}
       activeProjectCount={activeProjectCount}
+      upcomingShoots={upcomingShoots}
+      revenueThisMonth={revenueThisMonth}
+      pendingActions={pendingActions}
     />
   )
 }

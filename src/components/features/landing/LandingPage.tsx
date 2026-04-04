@@ -6,6 +6,7 @@ import { AnimatedSection } from './animated-section'
 import { AnimatedCounter } from './animated-counter'
 import { TextColor } from '@/components/ui/text-color'
 import { ScrollHero } from './ScrollHero'
+import { ScrollHowItWorks } from './ScrollHowItWorks'
 import { WaitlistForm } from './WaitlistForm'
 import {
   Brain, Camera, FolderOpen, Zap, Check, ChevronDown,
@@ -91,9 +92,9 @@ function PlatformTabs() {
   return (
     <div>
       <div className="flex justify-center mb-10">
-        <div className="inline-flex gap-1 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 backdrop-blur-sm">
+        <div className="inline-flex flex-wrap justify-center gap-1 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 backdrop-blur-sm">
           {tabs.map(tab => (
-            <button key={tab} onClick={() => setActive(tab)} className={`rounded-xl px-4 py-2 text-[13px] font-medium transition-all ${active === tab ? 'bg-white/[0.12] text-white shadow-sm' : 'text-white/35 hover:text-white/60'}`}>{tab}</button>
+            <button key={tab} onClick={() => setActive(tab)} className={`rounded-xl px-3 sm:px-4 py-2 text-[12px] sm:text-[13px] font-medium transition-all ${active === tab ? 'bg-white/[0.12] text-white shadow-sm' : 'text-white/35 hover:text-white/60'}`}>{tab}</button>
           ))}
         </div>
       </div>
@@ -125,9 +126,9 @@ function UseCaseTabs() {
   return (
     <div>
       <div className="flex justify-center mb-8">
-        <div className="inline-flex gap-1 rounded-2xl bg-white/[0.04] border border-white/10 p-1.5 backdrop-blur-sm">
+        <div className="inline-flex flex-wrap justify-center gap-1 rounded-2xl bg-white/[0.04] border border-white/10 p-1.5 backdrop-blur-sm">
           {tabs.map(t => (
-            <button key={t} onClick={() => setActive(t)} className={`rounded-xl px-5 py-2 text-[13px] font-medium transition-all ${active === t ? 'bg-white/[0.12] text-white shadow-sm' : 'text-white/35 hover:text-white/60'}`}>{t}</button>
+            <button key={t} onClick={() => setActive(t)} className={`rounded-xl px-4 sm:px-5 py-2 text-[12px] sm:text-[13px] font-medium transition-all ${active === t ? 'bg-white/[0.12] text-white shadow-sm' : 'text-white/35 hover:text-white/60'}`}>{t}</button>
           ))}
         </div>
       </div>
@@ -189,21 +190,21 @@ export function LandingPage() {
       <ScrollHero />
 
       {/* ── PROBLEM ── */}
-      <section className="py-24 px-6 relative z-10">
+      <section className="pt-6 pb-24 px-6 relative z-10">
         <div className="mx-auto max-w-5xl">
           <AnimatedSection className="text-center mb-14">
             <SectionLabel>The Problem</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight lg:text-5xl text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>The part nobody talks about.</h2>
+            <h2 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight lg:text-5xl text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>The part nobody talks about.</h2>
             <p className="mt-4 text-base text-white/40 max-w-xl mx-auto leading-relaxed">You come home from a shoot with a thousand photos and a to-do list that has nothing to do with photography.</p>
           </AnimatedSection>
-          <div className="flex flex-col md:flex-row gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
             {[
               { target: 12, prefix: '6–', suffix: ' hours', sub: 'spent sorting and culling after a single shoot' },
               { target: 20, prefix: '', suffix: '+ emails', sub: 'back and forth before finals actually get delivered' },
               { target: 4, prefix: '', suffix: '+ apps', sub: 'just to manage one project from shoot to payment' },
             ].map((s, i) => (
               <AnimatedSection key={s.suffix} delay={i * 150} variant="float-in">
-                <div className={`w-[280px] p-8 ${glass} ${glassHighlight}`}>
+                <div className={`w-full sm:w-[280px] p-6 sm:p-8 ${glass} ${glassHighlight}`}>
                   <p className="text-4xl font-bold text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}><AnimatedCounter target={s.target} prefix={s.prefix} suffix={s.suffix} duration={1800} /></p>
                   <p className="mt-2 text-sm text-white/35 leading-relaxed">{s.sub}</p>
                 </div>
@@ -214,11 +215,11 @@ export function LandingPage() {
       </section>
 
       {/* ── AI DIFFERENCE ── */}
-      <section className="py-24 px-6 relative z-10">
+      <section className="pt-24 pb-2 px-6 relative z-10">
         <div className="mx-auto max-w-6xl">
           <AnimatedSection className="text-center mb-14">
             <SectionLabel>The AI Difference</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight lg:text-[56px] text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>Most AI sorts by sharpness.<br />That&apos;s not how photographers think.</h2>
+            <h2 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight lg:text-[56px] text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>Most AI sorts by sharpness.<br />That&apos;s not how photographers think.</h2>
             <p className="mt-4 text-base text-white/40 max-w-xl mx-auto leading-relaxed">A soft, emotional first-look photo matters more than a perfectly lit detail shot. We built the AI to understand that.</p>
           </AnimatedSection>
           <AnimatedSection>
@@ -239,34 +240,11 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section id="how-it-works" className="py-24 px-6 relative z-10">
-        <div className="mx-auto max-w-5xl">
-          <AnimatedSection className="text-center mb-14">
-            <SectionLabel>How It Works</SectionLabel>
-            <div className="mt-4"><TextColor words={['Upload.', 'Sort.', 'Deliver.', 'Get paid.']} /></div>
-            <p className="mt-4 text-base text-white/40 max-w-xl mx-auto leading-relaxed">Three steps. No app-switching. No export-import chains. No &ldquo;where did I save that gallery?&rdquo;</p>
-          </AnimatedSection>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-            {[
-              { step: '01', title: 'Upload & Describe', desc: 'Upload your photos and tell the AI about the shoot — what you were going for, what matters most, what to skip.' },
-              { step: '02', title: 'Share with Your Client', desc: 'Send a single link. Your client sees the gallery instantly — no app to download, no account to create.' },
-              { step: '03', title: 'Get Paid, Move On', desc: 'Finals go out as an organized download — not a flat dump. Invoice is handled. Everything lives in one place.' },
-            ].map((step, i) => (
-              <AnimatedSection key={step.step} delay={i * 150} variant="float-in">
-                <div className={`p-8 ${glass} ${glassHighlight} ${glassHover}`}>
-                  <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500 text-white"><span className="text-sm font-bold" style={{ fontFamily: "'Geist Mono', monospace" }}>{step.step}</span></div>
-                  <h3 className="text-[22px] font-bold text-white mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>{step.title}</h3>
-                  <p className="text-sm text-white/35 leading-relaxed">{step.desc}</p>
-                </div>
-              </AnimatedSection>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── HOW IT WORKS (scroll-jacked) ── */}
+      <ScrollHowItWorks />
 
       {/* ── AI MOMENT ── */}
-      <section className="py-24 px-6 relative z-10">
+      <section className="pt-12 pb-24 px-6 relative z-10">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-20 lg:grid-cols-2 items-center">
             <AnimatedSection>
@@ -307,7 +285,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-5xl">
           <AnimatedSection className="text-center mb-14">
             <SectionLabel>Workflow</SectionLabel>
-            <h2 className="mt-4 text-4xl font-bold tracking-tight lg:text-5xl text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>The shoot doesn&apos;t end<br />when you put the camera down.</h2>
+            <h2 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight lg:text-5xl text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>The shoot doesn&apos;t end<br />when you put the camera down.</h2>
           </AnimatedSection>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
@@ -331,7 +309,7 @@ export function LandingPage() {
       <section className="py-24 px-6 relative z-10">
         <div className="mx-auto max-w-5xl">
           <AnimatedSection className="text-center mb-10">
-            <h2 className="text-4xl font-bold tracking-tight lg:text-5xl text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>Everything in one place. Finally.</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight lg:text-5xl text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>Everything in one place. Finally.</h2>
             <p className="mt-4 text-base text-white/40 max-w-xl mx-auto leading-relaxed">Gallery hosting. Client proofing. Invoicing. Contracts. AI editing. You&apos;re using five apps for what should be one workflow. We fixed that.</p>
           </AnimatedSection>
           <PlatformTabs />
@@ -342,7 +320,7 @@ export function LandingPage() {
       <section id="waitlist" className="py-24 px-6 relative z-10">
         <div className="mx-auto max-w-5xl">
           <AnimatedSection className="text-center mb-10">
-            <h2 className="text-4xl font-bold tracking-tight lg:text-[56px] text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>We&apos;re building this for you.<br />Come be part of it.</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight lg:text-[56px] text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>We&apos;re building this for you.<br />Come be part of it.</h2>
           </AnimatedSection>
           <UseCaseTabs />
           <div className="mt-16" />

@@ -15,6 +15,7 @@ import { CategoryColumn } from './CategoryColumn'
 import { AIAnalysisPanel } from './AIAnalysisPanel'
 import { AISortWorkspace } from './AISortWorkspace'
 import { AISortPreferences } from './AISortPreferences'
+import { VibePresetsTab } from './VibePresetsTab'
 import { CullSliderBar } from './CullSliderBar'
 import { WorkspaceSelectionToolbar } from './WorkspaceSelectionToolbar'
 
@@ -214,9 +215,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
             ) : activeSubTab === 'preferences' ? (
               <AISortPreferences />
             ) : activeSubTab === 'vibe-presets' ? (
-              <div className="flex items-center justify-center flex-1 text-white/30 text-lg">
-                Vibe Presets — coming soon
-              </div>
+              <VibePresetsTab projectId={project.id} />
             ) : (
               <div className="flex gap-4 flex-1 min-h-0">
                 <div className="flex gap-3 flex-1 min-h-0">

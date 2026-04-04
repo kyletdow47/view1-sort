@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 export const dynamic = 'force-dynamic'
 import { getProject } from '@/lib/queries/projects'
 import { getMedia } from '@/lib/queries/media'
-import { WorkspaceView } from '@/components/features/workspace/WorkspaceView'
+import { AIWorkspaceView } from '@/components/features/AIWorkspace'
 import type { Media, Project } from '@/types/supabase'
 
 interface ProjectPageProps {
@@ -35,7 +35,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const isDemo = cookieStore.get('demo_mode')?.value === 'true'
 
   if (isDemo) {
-    return <WorkspaceView project={{ ...DEMO_PROJECT, id, name: id === 'demo-1' ? 'Johnson Wedding' : id === 'demo-2' ? '123 Oak Street Listing' : 'Project' } as Project} initialMedia={[] as Media[]} />
+    return <AIWorkspaceView project={{ ...DEMO_PROJECT, id, name: id === 'demo-1' ? 'Johnson Wedding' : id === 'demo-2' ? '123 Oak Street Listing' : 'Project' } as Project} initialMedia={[] as Media[]} />
   }
 
   const supabase = await createClient()
@@ -50,5 +50,5 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   const media = await getMedia(supabase, id)
 
-  return <WorkspaceView project={project as Project} initialMedia={media as Media[]} />
+  return <AIWorkspaceView project={project as Project} initialMedia={media as Media[]} />
 }

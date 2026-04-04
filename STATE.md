@@ -20,9 +20,10 @@ Current mode: standby — run coordinator to begin
 
 ### 12-Page App Architecture (see docs/strategy/APP-ARCHITECTURE.html)
 - [ ] Dashboard page — AI briefing, stat cards, quick actions, week calendar
-- [ ] Projects page — filter bar, project cards, AI prompt creation
-- [ ] AI Workspace page — scene tabs, review modes, shot list
-- [ ] Gallery Builder page — AI curation, themes, slideshow, print store
+- [x] Projects page — filter bar, project cards, AI prompt creation (branch: feat/design-to-dev/projects-page)
+- [x] AI Workspace page — scene tabs, review modes, shot list (branch: feat/design-to-dev/ai-workspace-projects-route)
+- [x] AI Sort Vibe Presets Tab — NL style presets, AI extraction, before/after apply (branch: feat/design-to-dev/ai-sort-vibe-presets-tab)
+- [x] Gallery Builder page — split-panel builder with photo selector, themes, watermark, access controls (branch: feat/design-to-dev/gallery-builder, PR #24)
 - [ ] Booking page — packages, inquiry inbox, availability calendar
 - [ ] Clients & CRM page — Kanban pipeline, client profiles, workflow automation
 - [ ] Contracts page — AI generator, questionnaires
@@ -42,7 +43,7 @@ Window:             Manual session (2026-04-02)
 Started:            now
 Resets:             —
 Auto-resume:        —
-Tasks done:         3
+Tasks done:         8
 Avg tokens/task:    — (update every 3 tasks)
 % window remaining: 100%
 Tasks fit:          3 fix tasks
