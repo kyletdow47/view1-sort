@@ -13,7 +13,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { useProfile } from '@/hooks/useProfile'
 import { useNotifications } from '@/hooks/useNotifications'
 import { TopNav } from '@/components/features/dashboard-v2/TopNav'
-import { CommandBarProvider } from '@/components/features/command-bar'
 
 import type { Notification as DBNotification } from '@/types/supabase'
 
@@ -150,7 +149,6 @@ export function DashboardClientLayout({
 
   // Gradient shell for all dashboard pages (including main dashboard)
   return (
-    <CommandBarProvider>
     <div
       className="relative flex min-h-screen flex-col overflow-hidden text-white"
       style={{
@@ -187,6 +185,5 @@ export function DashboardClientLayout({
         </div>
       </main>
     </div>
-    </CommandBarProvider>
   )
 }
