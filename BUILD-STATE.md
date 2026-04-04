@@ -27,11 +27,13 @@ Last agent run: 2026-04-04T00:12Z
 - AI Sort Preferences Tab — PR #23 — branch feat/design-to-dev/ai-sort-preferences-tab — completed 2026-04-03 — 8-section preferences panel matching Pencil frame z7scV: Shooting Style chips, Auto-Sort Categories toggles, Confidence Threshold slider, Auto-Reject Rules, Hero Shot Scoring sliders, Vibe Keywords tag input, Delivery Defaults dropdowns. Glass-morphism cards, #5749F4 accent, auto-save debounce. 3 files, 732 lines added. QA passed 2026-04-04.
 - AI Sort Vibe Presets Tab — branch feat/design-to-dev/ai-sort-vibe-presets-tab — completed 2026-04-04 — VibePresetsTab: NL style input → AI parameter extraction → named preset cards with Apply/Edit/Delete, ApplyPresetModal with before/after comparison, mock /api/ai/parse-vibe route (TODO: Supabase Edge Function). 5 files, 856 lines. Push pending (no git creds in sandbox). QA passed 2026-04-04.
 - Gallery Builder Page — PR #24 — branch feat/design-to-dev/gallery-builder — completed 2026-04-04 — Split-panel interface: left controls (PhotoSelector, ThemePicker, WatermarkConfigurator, AccessControls), right live preview (GalleryPreviewPanel with desktop/mobile toggle). 4 themes, watermark position grid, access permissions. Route /dashboard/project/[id]/gallery-builder. 11 files, 1108 lines. Mock data (Supabase integration TODO). QA passed 2026-04-04.
+- Command Bar (⌘K) — merged to main (073227c) — completed 2026-04-04 — Global ⌘K command palette. CommandBarSetup wrapper in dashboard layout. Branch feat/design-to-dev/command-bar. QA passed 2026-04-04.
+- Client Gallery Viewer — committed to main (2e00363) — completed 2026-04-04 — Rebuilt /client page + 7 ClientPortal components + types. Pencil frames XOUvs + 4lzWb. 12 files, 953 lines. No PR (committed direct to main). QA task created.
 
 
 ## Currently Building
 
-- [P2] Command Bar (⌘K) — started 2026-04-04T01:11Z — branch feat/design-to-dev/command-bar
+- [P2] Publish Flow Page — started 2026-04-04T02:11Z — branch feat/design-to-dev/publish-flow
 
 ## Failed / Blocked
 
@@ -71,6 +73,7 @@ None.
 - 2026-04-04: QA review — 0 pages in Code Review queue. No tasks to review.
 - 2026-04-04: QA review — 7 pages reviewed, 7 passed, 0 failed. Pages: Dashboard v2, Projects, AI Workspace, AI Sort Workspace Tab, AI Sort Preferences Tab, AI Sort Vibe Presets Tab, Gallery Builder. No fix tasks created. Note: Pencil app was not running so comparison was against build specs only. Tasks marked complete in Asana (manual move to Deployed section needed).
 - 2026-04-04: QA review (second run) — 0 pages in Code Review queue. All 7 prior tasks already marked completed from earlier run. No new pages to review.
+- 2026-04-04: QA review (third run) — 1 page reviewed, 1 passed, 0 failed. Command Bar (⌘K): all interactions verified (open/close/search/arrow-nav/ESC/backdrop/mobile/cross-page). MINOR: missing Dialog.Title causes WCAG warning + Next.js "1 Issue" badge. Fix task created: [P0] Fix: Command Bar — Missing Dialog.Title causes accessibility warning.
 
 ## Shared Components Built
 
