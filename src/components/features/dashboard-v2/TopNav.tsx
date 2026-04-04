@@ -32,7 +32,7 @@ export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: To
   const { openCommandBar } = useCommandBar()
 
   return (
-    <nav className="relative z-20 flex h-14 w-full shrink-0 items-center justify-between border-b border-white/[0.09] bg-white/[0.04] px-10 backdrop-blur-sm">
+    <nav className="relative z-20 flex h-14 w-full shrink-0 items-center justify-between border-b border-white/[0.09] bg-white/[0.04] px-6 backdrop-blur-sm md:px-10">
       {/* Left: Brand */}
       <div className="flex items-center gap-2">
         <div className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-gradient-to-b from-indigo-400 to-indigo-600">
