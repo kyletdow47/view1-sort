@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useRef, useState } from 'react'
-import { Aperture, Bell, Settings } from 'lucide-react'
+import { Aperture, Bell, Search, Settings } from 'lucide-react'
 import { TodoTrigger, TodoDropdown } from './TodoPanel'
+import { useCommandBar } from '@/hooks/useCommandBar'
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard' },
@@ -28,6 +29,7 @@ export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: To
   const [todoOpen, setTodoOpen] = useState(false)
   const [completedCount, setCompletedCount] = useState(2)
   const todoButtonRef = useRef<HTMLButtonElement>(null)
+  const { openCommandBar } = useCommandBar()
 
   return (
     <nav className="relative z-20 flex h-14 w-full shrink-0 items-center justify-between border-b border-white/[0.09] bg-white/[0.04] px-10 backdrop-blur-sm">
@@ -64,6 +66,16 @@ export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: To
 
       {/* Right: Icons + Avatar */}
       <div className="relative flex items-center gap-3">
+        {/* Search / Command Bar trigger */}
+        <button
+          onClick={openCommandBar}
+          className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-white/40 transition-colors hover:border-white/20 hover:text-white/70 sm:flex"
+          aria-label="Open command bar"
+        >
+          <Search size={13} />
+          <span className="text-xs">Search</span>
+          <kbd className="rounded border border-white/10 bg-white/5 px-1 py-px text-[9px]">⌘K</kbd>
+        </button>
         <button
           onClick={onBellClick}
           className="relative text-white/[0.67] transition-colors hover:text-white"
