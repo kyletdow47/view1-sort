@@ -1,128 +1,167 @@
 'use client'
 
+import { useState } from 'react'
 import {
-  Camera,
-  ChevronRight,
-  Download,
-  Eye,
+  Images,
   Heart,
-  Mail,
+  ShoppingBag,
+  AlertCircle,
+  Eye,
+  ChevronRight,
 } from 'lucide-react'
 
-/* ─── Mock Data ───────────────────────────────────────────────────────────── */
+/* ─── Mock Data ──────────────────────────────────────────────────────────── */
 
-const activeGalleries = [
-  { name: 'Wedding — Smith', photos: 345, cover: 'from-rose-400/60 to-pink-600/60', badge: 'New' },
-  { name: 'Engagement Session', photos: 230, cover: 'from-amber-400/60 to-orange-600/60', badge: null },
-  { name: 'Family Portraits', photos: 180, cover: 'from-emerald-400/60 to-teal-600/60', badge: null },
-  { name: 'Corporate Event', photos: 95, cover: 'from-violet-400/60 to-purple-600/60', badge: null },
+type GalleryStatus = 'Awaiting Approval' | 'Delivered' | 'Ready to View'
+
+interface Gallery {
+  id: string
+  name: string
+  status: GalleryStatus
+  photos: number
+  cover: string
+}
+
+const GALLERIES: Gallery[] = [
+  { id: 'g1', name: 'Autumn Wedding',    status: 'Awaiting Approval', photos: 123, cover: 'from-rose-400/50 to-pink-600/50' },
+  { id: 'g2', name: 'Spring Portraits',  status: 'Delivered',         photos: 90,  cover: 'from-emerald-400/50 to-teal-600/50' },
+  { id: 'g3', name: 'Engagement Session',status: 'Ready to View',     photos: 201, cover: 'from-amber-400/50 to-orange-500/50' },
 ]
 
-const allGalleries = [
-  { name: 'Wedding — Smith', photos: 345, status: 'Ready to View', statusColor: 'bg-white/10 text-white/70', cover: 'from-rose-400/40 to-pink-600/40' },
-  { name: 'Engagement Session', photos: 230, status: 'Pending Selection', statusColor: 'bg-orange-500/20 text-orange-400', cover: 'from-amber-400/40 to-orange-600/40' },
-  { name: 'Family Portraits', photos: 180, status: 'Download Ready', statusColor: 'bg-emerald-500/20 text-emerald-400', cover: 'from-emerald-400/40 to-teal-600/40' },
-  { name: 'Corporate Event', photos: 95, status: 'Ready to View', statusColor: 'bg-white/10 text-white/70', cover: 'from-violet-400/40 to-purple-600/40' },
-  { name: 'Product Shoot', photos: 78, status: 'Ready to View', statusColor: 'bg-white/10 text-white/70', cover: 'from-sky-400/40 to-blue-600/40' },
-  { name: 'Headshots', photos: 54, status: 'Download Ready', statusColor: 'bg-emerald-500/20 text-emerald-400', cover: 'from-cyan-400/40 to-teal-600/40' },
+const STATUS_STYLE: Record<GalleryStatus, string> = {
+  'Awaiting Approval': 'bg-amber-500/15 text-amber-400 border border-amber-400/20',
+  'Delivered':         'bg-emerald-500/15 text-emerald-400 border border-emerald-400/20',
+  'Ready to View':     'bg-white/10 text-white/60 border border-white/15',
+}
+
+const NAV_ITEMS = [
+  { label: 'My Galleries', icon: Images },
+  { label: 'Favorites',    icon: Heart },
+  { label: 'Orders',       icon: ShoppingBag },
 ]
 
-const favoriteColors = [
-  'bg-rose-600', 'bg-emerald-600', 'bg-blue-600', 'bg-amber-600',
-  'bg-violet-600', 'bg-cyan-600', 'bg-pink-600', 'bg-lime-600',
+const FAVORITES = [
+  'bg-rose-500', 'bg-emerald-500', 'bg-sky-500',
+  'bg-amber-500', 'bg-violet-500', 'bg-cyan-500',
+  'bg-pink-500',  'bg-lime-500',
 ]
 
-/* ─── Page ────────────────────────────────────────────────────────────────── */
+/* ─── Page ───────────────────────────────────────────────────────────────── */
 
-export default function ClientPortalHomePage() {
+export default function ClientPortalPage() {
+  const [activeNav, setActiveNav] = useState('My Galleries')
+
+  const pendingApproval = GALLERIES.filter((g) => g.status === 'Awaiting Approval')
+
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0F1B3D 0%, #1A2D6B 30%, #1E3A8A 60%, #2D4A9E 100%)' }}>
-      {/* Header */}
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-8">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-sm font-bold text-white ring-2 ring-white/20">
-            KD
-          </div>
-          <div>
-            <h1 className="font-headline text-xl font-bold text-white">Kyle Davis Photography</h1>
-            <p className="text-xs text-white/50">Capturing moments that matter</p>
-          </div>
+    <div
+      className="flex min-h-screen text-white"
+      style={{
+        background: 'linear-gradient(135deg, #0F1B3D 0%, #1A2D6B 30%, #1E3A8A 60%, #2D4A9E 100%)',
+      }}
+    >
+      {/* ── Sidebar ── */}
+      <aside className="flex w-[180px] shrink-0 flex-col border-r border-white/[0.08] bg-white/[0.03] px-4 py-6">
+        {/* Brand */}
+        <div className="mb-8">
+          <p className="font-headline text-xs font-bold text-white">view1</p>
+          <p className="text-[10px] text-white/40">Sarah Davis</p>
         </div>
-        <button className="flex items-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5">
-          <Mail className="h-4 w-4" /> Contact
-        </button>
-      </div>
 
-      <div className="mx-auto max-w-[1200px] space-y-10 px-6 pb-12">
-        {/* Active Galleries */}
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white">Your Active Galleries</h2>
-            <button className="flex items-center gap-1 text-xs text-white/40 hover:text-white">
-              View All <ChevronRight className="h-3 w-3" />
+        {/* Nav */}
+        <nav className="space-y-1">
+          {NAV_ITEMS.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              onClick={() => setActiveNav(label)}
+              className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-xs font-medium transition-colors ${
+                activeNav === label
+                  ? 'bg-indigo-500/15 text-indigo-300'
+                  : 'text-white/50 hover:text-white hover:bg-white/[0.05]'
+              }`}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              {label}
             </button>
-          </div>
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {activeGalleries.map((g) => (
-              <div key={g.name} className="group w-[200px] shrink-0 cursor-pointer rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)' }}>
-                <div className={`relative h-32 bg-gradient-to-br ${g.cover}`}>
-                  {g.badge && (
-                    <span className="absolute top-2 left-2 rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-bold text-white">{g.badge}</span>
-                  )}
-                </div>
-                <div className="bg-white/5 p-3">
-                  <p className="text-xs font-medium text-white truncate">{g.name}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+          ))}
+        </nav>
+      </aside>
 
-        {/* All Galleries */}
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white">All Galleries</h2>
-            <span className="text-[10px] text-white/30">{allGalleries.length} galleries</span>
+      {/* ── Main Content ── */}
+      <main className="flex-1 overflow-auto px-8 py-8">
+        {/* Pending action banner */}
+        {pendingApproval.length > 0 && (
+          <div className="mb-6 flex items-center gap-3 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3">
+            <AlertCircle className="h-4 w-4 shrink-0 text-amber-400" />
+            <p className="text-sm text-amber-200">
+              <span className="font-semibold">Action Required:</span>{' '}
+              {pendingApproval[0].name} gallery is awaiting your approval.
+            </p>
+            <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-amber-400" />
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            {allGalleries.map((g) => (
+        )}
+
+        {/* Section heading */}
+        <h1 className="mb-6 font-headline text-2xl font-bold text-white">
+          {activeNav}
+        </h1>
+
+        {activeNav === 'My Galleries' && (
+          <div className="grid grid-cols-2 gap-4 xl:grid-cols-3">
+            {GALLERIES.map((gallery) => (
               <div
-                key={g.name}
-                className="group cursor-pointer rounded-2xl overflow-hidden transition-all hover:ring-2 hover:ring-white/20"
-                style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+                key={gallery.id}
+                className="group cursor-pointer overflow-hidden rounded-2xl border border-white/[0.1] bg-white/[0.05] transition-all hover:border-white/[0.2] hover:bg-white/[0.08]"
               >
-                <div className={`h-36 bg-gradient-to-br ${g.cover} relative`}>
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                {/* Cover */}
+                <div className={`relative h-36 bg-gradient-to-br ${gallery.cover}`}>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 bg-black/20 transition-opacity group-hover:opacity-100">
                     <Eye className="h-6 w-6 text-white/80" />
                   </div>
                 </div>
-                <div className="flex items-center justify-between bg-white/5 p-4">
-                  <div>
-                    <p className="text-[10px] text-white/30">{g.photos} photos</p>
-                    <p className="text-sm font-medium text-white">{g.name}</p>
+                {/* Info */}
+                <div className="p-4">
+                  <p className="mb-1 font-headline text-sm font-semibold text-white">{gallery.name}</p>
+                  <p className="mb-3 text-xs text-white/40">{gallery.photos} photos</p>
+                  <div className="flex items-center justify-between">
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${STATUS_STYLE[gallery.status]}`}>
+                      {gallery.status}
+                    </span>
+                    <button className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      gallery.status === 'Awaiting Approval'
+                        ? 'bg-indigo-600 text-white hover:bg-indigo-500'
+                        : 'border border-white/[0.15] text-white/60 hover:text-white'
+                    }`}>
+                      {gallery.status === 'Awaiting Approval' ? 'Review Now' : 'View Gallery'}
+                    </button>
                   </div>
-                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${g.statusColor}`}>
-                    {g.status}
-                  </span>
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        )}
 
-        {/* Favorites */}
-        <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white">Your Favorites</h2>
-            <span className="text-[10px] text-white/30">12 photos</span>
+        {activeNav === 'Favorites' && (
+          <div className="space-y-4">
+            <p className="text-sm text-white/50">{FAVORITES.length} favorited photos</p>
+            <div className="flex flex-wrap gap-2">
+              {FAVORITES.map((c, i) => (
+                <div
+                  key={i}
+                  className={`h-16 w-16 cursor-pointer rounded-xl ${c} transition-all hover:ring-2 hover:ring-white/30`}
+                />
+              ))}
+            </div>
           </div>
-          <div className="flex gap-2">
-            {favoriteColors.map((c, i) => (
-              <div key={i} className={`h-16 w-16 rounded-xl ${c} hover:ring-2 hover:ring-white/30 cursor-pointer transition-all`} />
-            ))}
+        )}
+
+        {activeNav === 'Orders' && (
+          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] px-6 py-12 text-center">
+            <ShoppingBag className="mx-auto mb-3 h-10 w-10 text-white/20" />
+            <p className="text-sm text-white/40">No orders yet</p>
           </div>
-        </section>
-      </div>
+        )}
+      </main>
     </div>
   )
 }
