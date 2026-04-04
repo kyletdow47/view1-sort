@@ -91,7 +91,7 @@ export default function ContentHubPage() {
         <div className="flex items-center gap-2">
           {platformTabs.map((tab) => (
             <button key={tab} onClick={() => setActivePlatform(tab)}
-              className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${activePlatform === tab ? 'bg-indigo-600 text-white' : 'bg-white/10 text-white/60 hover:text-white'}`}
+              className={`rounded-full px-4 py-1.5 text-xs font-medium transition-colors ${activePlatform === tab ? 'bg-cta text-white' : 'bg-white/10 text-white/60 hover:text-white'}`}
             >{tab}</button>
           ))}
         </div>
@@ -182,7 +182,7 @@ export default function ContentHubPage() {
               <textarea placeholder="Write your caption..." rows={2} className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white placeholder:text-white/30 resize-none focus:outline-none" />
             </div>
             <div className="flex gap-2">
-              <button className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600/50 py-2 text-xs font-medium text-white hover:bg-indigo-600/70">
+              <button className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600/50 py-2 text-xs font-medium text-white hover:opacity-90/70">
                 <Sparkles className="h-3 w-3" /> Generate
               </button>
               <button className="flex-1 rounded-lg border border-white/15 py-2 text-xs text-white/60 hover:text-white">

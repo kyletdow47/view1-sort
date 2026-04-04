@@ -214,7 +214,7 @@ export default function AIPreferencesPage() {
         </button>
         <button
           onClick={handleSave}
-          className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors"
+          className="flex items-center gap-2 rounded-xl bg-cta px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-colors"
         >
           {saved ? <Save className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
           {saved ? 'Saved!' : 'Apply to Current Sort'}

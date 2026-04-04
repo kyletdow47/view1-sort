@@ -86,7 +86,7 @@ export default function FinancesPage() {
         <div className="flex items-center gap-2">
           {subTabs.map((tab) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${activeTab === tab ? 'bg-indigo-600 text-white' : 'bg-white/10 text-white/70 hover:text-white'}`}
+              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${activeTab === tab ? 'bg-cta text-white' : 'bg-white/10 text-white/70 hover:text-white'}`}
             >{tab}</button>
           ))}
         </div>

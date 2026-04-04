@@ -118,7 +118,7 @@ export default function PhotoPageBuilderPage() {
           </button>
           <button
             onClick={() => setPublished(true)}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500 transition-colors"
+            className="flex items-center gap-2 rounded-xl bg-cta px-4 py-2 text-xs font-semibold text-white hover:opacity-90 transition-colors"
           >
             <Globe className="h-3.5 w-3.5" />
             {published ? 'Published ✓' : 'Publish'}
@@ -237,7 +237,7 @@ export default function PhotoPageBuilderPage() {
               {/* Preview nav */}
               <div className="mb-4 flex items-center justify-between">
                 <span className="font-headline text-sm font-bold text-white">{pageTitle}</span>
-                <button className="rounded-full bg-indigo-600 px-3 py-1 text-[11px] font-semibold text-white">Book Now</button>
+                <button className="rounded-full bg-cta px-3 py-1 text-[11px] font-semibold text-white">Book Now</button>
               </div>
               {/* Render blocks */}
               {blocks.map((b) => (

@@ -81,6 +81,14 @@ const config: Config = {
         'brand-dark':   'var(--brand-dark)',
       },
 
+      backgroundImage: {
+        // Metallic rainbow CTA — amber → pink → violet (Pencil primary gradient)
+        'cta':    'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)',
+        'cta-r':  'linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #f59e0b 100%)',
+        // Rainbow border gradient (matches Pencil frame strokes)
+        'rainbow-border': 'linear-gradient(135deg, #F59E0B 0%, #3B82F6 25%, #A855F7 50%, #EC4899 75%, #F59E0B 100%)',
+      },
+
       fontFamily: {
         // Inter: body, UI elements
         sans:     ['var(--font-inter)', 'Inter', 'sans-serif'],

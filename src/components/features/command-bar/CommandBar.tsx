@@ -305,13 +305,13 @@ export function CommandBar() {
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
         <Dialog.Content
-          aria-label="Command bar"
           className="fixed left-1/2 top-[20%] z-50 w-full max-w-xl -translate-x-1/2 rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl focus:outline-none"
           onOpenAutoFocus={(e) => {
             e.preventDefault()
             inputRef.current?.focus()
           }}
         >
+          <Dialog.Title className="sr-only">Command Bar</Dialog.Title>
           {/* Search input */}
           <div className="flex items-center gap-3 border-b border-white/8 px-4 py-3.5">
             <Search size={18} className="shrink-0 text-white/40" />

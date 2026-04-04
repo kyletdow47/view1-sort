@@ -214,7 +214,7 @@ export default function MessagesPage() {
               )}
               <div className={`max-w-[65%] rounded-2xl px-3.5 py-2.5 text-sm ${
                 msg.from === 'me'
-                  ? 'rounded-br-sm bg-indigo-600 text-white'
+                  ? 'rounded-br-sm bg-cta text-white'
                   : 'rounded-bl-sm bg-white/[0.1] text-white/90'
               }`}>
                 {msg.text}
@@ -243,7 +243,7 @@ export default function MessagesPage() {
             <button
               onClick={sendMessage}
               disabled={!input.trim()}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-white transition-opacity disabled:opacity-40"
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-cta text-white transition-opacity disabled:opacity-40"
             >
               <Send className="h-3.5 w-3.5" />
             </button>

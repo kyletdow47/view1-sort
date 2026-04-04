@@ -4,17 +4,18 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div
       className="relative overflow-hidden"
-      style={{
-        background:
-          'linear-gradient(135deg, #1A3A8F 0%, #2D60D4 20%, #3B7DE8 40%, #5A6FE8 60%, #7B5EA7 80%, #1E2FA8 100%)',
-      }}
+      style={{ background: '#050508' }}
     >
-      {/* Radial highlight — matches dashboard shell */}
+      {/* Metallic rainbow mesh gradient — matches dashboard shell */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
-          background:
-            'radial-gradient(ellipse 70% 60% at 20% 10%, rgba(255,255,255,0.07) 0%, transparent 100%)',
+          background: [
+            'radial-gradient(ellipse 80% 55% at 0% 0%,   rgba(245,158,11,0.22) 0%, transparent 65%)',
+            'radial-gradient(ellipse 65% 55% at 100% 15%, rgba(59,130,246,0.20) 0%, transparent 60%)',
+            'radial-gradient(ellipse 70% 55% at 55% 100%,rgba(168,85,247,0.22) 0%, transparent 60%)',
+            'radial-gradient(ellipse 50% 45% at 95% 85%,  rgba(236,72,153,0.18) 0%, transparent 55%)',
+          ].join(','),
         }}
       />
       {children}

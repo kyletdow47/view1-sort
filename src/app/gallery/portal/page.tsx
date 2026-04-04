@@ -57,7 +57,7 @@ export default function ClientPortalPage() {
     <div
       className="flex min-h-screen text-white"
       style={{
-        background: 'linear-gradient(135deg, #0F1B3D 0%, #1A2D6B 30%, #1E3A8A 60%, #2D4A9E 100%)',
+        background: '#050508',
       }}
     >
       {/* ── Sidebar ── */}
@@ -129,7 +129,7 @@ export default function ClientPortalPage() {
                     </span>
                     <button className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors ${
                       gallery.status === 'Awaiting Approval'
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-500'
+                        ? 'bg-cta text-white hover:opacity-90'
                         : 'border border-white/[0.15] text-white/60 hover:text-white'
                     }`}>
                       {gallery.status === 'Awaiting Approval' ? 'Review Now' : 'View Gallery'}
