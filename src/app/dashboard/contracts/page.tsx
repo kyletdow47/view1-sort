@@ -164,7 +164,7 @@ function ContractPreview({ contract, onClose }: { contract: Contract; onClose: (
       <div className="flex gap-3 p-5" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
         <button
           className="flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
         >
           <Send className="h-3.5 w-3.5" />
           Send to Client
@@ -281,7 +281,7 @@ function TemplatesTab() {
         <p className="text-[13px] text-white/50">{MOCK_TEMPLATES.length} templates available</p>
         <button
           className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[12px] font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
         >
           <Plus className="h-3.5 w-3.5" />
           New Template
@@ -321,7 +321,7 @@ function QuestionnairesTab() {
         <p className="text-[13px] text-white/50">{MOCK_QUESTIONNAIRES.length} questionnaires</p>
         <button
           className="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[12px] font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
         >
           <Plus className="h-3.5 w-3.5" />
           New Questionnaire

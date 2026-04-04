@@ -53,7 +53,7 @@ export function ClientNav({
       </div>
 
       {/* Center: Tab navigation */}
-      <nav className="hidden sm:flex items-center gap-1 rounded-xl p-1 bg-white/[0.07] border border-white/[0.08]">
+      <nav className="flex overflow-x-auto items-center gap-1 rounded-xl p-1 bg-white/[0.07] border border-white/[0.08]">
         {TABS.map((tab) => (
           <button
             key={tab}

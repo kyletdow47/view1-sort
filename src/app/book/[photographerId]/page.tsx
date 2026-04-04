@@ -66,7 +66,7 @@ export default function PublicBookingPage() {
     <div
       className="min-h-screen text-white"
       style={{
-        background: 'linear-gradient(135deg, #1A3A8F 0%, #2D60D4 20%, #3B7DE8 40%, #5A6FE8 60%, #7B5EA7 80%, #1E2FA8 100%)',
+        background: '#050508',
       }}
     >
       <div className="mx-auto max-w-5xl px-6 py-10">
@@ -78,7 +78,7 @@ export default function PublicBookingPage() {
             <div className="flex flex-col items-start gap-3">
               <div
                 className="flex h-16 w-16 items-center justify-center rounded-2xl text-[20px] font-bold text-white"
-                style={{ background: 'linear-gradient(135deg, #6366F1, #8B5CF6)' }}
+                style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
               >
                 JD
               </div>
@@ -206,7 +206,7 @@ export default function PublicBookingPage() {
                       }`}
                       style={
                         isSelected
-                          ? { background: 'linear-gradient(135deg, #6366F1, #8B5CF6)' }
+                          ? { background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }
                           : {}
                       }
                     >
@@ -232,7 +232,7 @@ export default function PublicBookingPage() {
                         onClick={() => setSelectedTime(time)}
                         className="rounded-xl px-5 py-2 text-[13px] font-medium transition-all"
                         style={{
-                          background: active ? 'linear-gradient(135deg, #6366F1, #8B5CF6)' : 'rgba(255,255,255,0.08)',
+                          background: active ? 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' : 'rgba(255,255,255,0.08)',
                           border: `1px solid ${active ? 'transparent' : 'rgba(255,255,255,0.12)'}`,
                           color: active ? '#ffffff' : 'rgba(255,255,255,0.70)',
                         }}
@@ -319,7 +319,7 @@ export default function PublicBookingPage() {
                     </span>
                     <button
                       onClick={() => setPayDeposit(!payDeposit)}
-                      className={`relative h-6 w-11 rounded-full transition-colors ${payDeposit ? 'bg-indigo-500' : 'bg-white/20'}`}
+                      className={`relative h-6 w-11 rounded-full transition-colors ${payDeposit ? 'bg-violet-500' : 'bg-white/20'}`}
                     >
                       <span
                         className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${payDeposit ? 'left-[22px]' : 'left-0.5'}`}
@@ -332,7 +332,7 @@ export default function PublicBookingPage() {
               {/* Confirm button */}
               <button
                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-[15px] font-bold text-white transition-opacity hover:opacity-90"
-                style={{ background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}
+                style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
               >
                 <DollarSign className="h-4 w-4" />
                 Confirm Booking

@@ -171,7 +171,7 @@ export default function MessagesPage() {
                 <p className="truncate text-[11px] text-white/40">{t.lastMessage}</p>
               </div>
               {t.unread > 0 && (
-                <span className="mt-1 flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-[9px] font-bold text-white">
+                <span className="mt-1 flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-violet-500 text-[9px] font-bold text-white">
                   {t.unread}
                 </span>
               )}

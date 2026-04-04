@@ -4,7 +4,7 @@
 > It serves as build memory — what's done, what's next, what broke, what was learned.
 
 Last updated: 2026-04-04
-Last agent run: 2026-04-04T00:12Z
+Last agent run: 2026-04-04T04:11Z
 
 ## Priority Tiers (P0 = do first, P5 = do last)
 
@@ -28,17 +28,18 @@ Last agent run: 2026-04-04T00:12Z
 - AI Sort Vibe Presets Tab — branch feat/design-to-dev/ai-sort-vibe-presets-tab — completed 2026-04-04 — VibePresetsTab: NL style input → AI parameter extraction → named preset cards with Apply/Edit/Delete, ApplyPresetModal with before/after comparison, mock /api/ai/parse-vibe route (TODO: Supabase Edge Function). 5 files, 856 lines. Push pending (no git creds in sandbox). QA passed 2026-04-04.
 - Gallery Builder Page — PR #24 — branch feat/design-to-dev/gallery-builder — completed 2026-04-04 — Split-panel interface: left controls (PhotoSelector, ThemePicker, WatermarkConfigurator, AccessControls), right live preview (GalleryPreviewPanel with desktop/mobile toggle). 4 themes, watermark position grid, access permissions. Route /dashboard/project/[id]/gallery-builder. 11 files, 1108 lines. Mock data (Supabase integration TODO). QA passed 2026-04-04.
 - Command Bar (⌘K) — merged to main (073227c) — completed 2026-04-04 — Global ⌘K command palette. CommandBarSetup wrapper in dashboard layout. Branch feat/design-to-dev/command-bar. QA passed 2026-04-04.
-- Client Gallery Viewer — committed to main (2e00363) — completed 2026-04-04 — Rebuilt /client page + 7 ClientPortal components + types. Pencil frames XOUvs + 4lzWb. 12 files, 953 lines. No PR (committed direct to main). QA task created.
+- Client Gallery Viewer — committed to main (2e00363) — completed 2026-04-04 — Rebuilt /client page + 7 ClientPortal components + types. Pencil frames XOUvs + 4lzWb. 12 files, 953 lines. No PR (committed direct to main). QA passed 2026-04-04 (after mobile nav fix applied).
+- Deliver Gallery (Publish Flow) — branch feat/design-to-dev/publish-flow (871154d) — completed 2026-04-04 — DeliverGalleryView: 3-stage flow (Preselection/Client Selection/Finals Ready), stage advancement CTAs, PROJECT STATS sidebar, success banner on completion. 5 files. QA passed 2026-04-04.
 
 
 ## Currently Building
 
-- [P2] Publish Flow Page — started 2026-04-04T02:11Z — branch feat/design-to-dev/publish-flow
+None. Last fix: Client Gallery Viewer mobile nav (PR #26, 2026-04-04).
 
 ## Failed / Blocked
 
 <!-- Format: - [page-name] — reason — date — what needs to happen -->
-None.
+- Client Gallery Viewer mobile nav — FIXED 2026-04-04 — PR #26 branch fix/design-to-dev/client-gallery-mobile-nav. Changed hidden sm:flex to flex overflow-x-auto on ClientNav line 56. QA passed 2026-04-04.
 
 ## Build Decisions Log
 
@@ -74,6 +75,10 @@ None.
 - 2026-04-04: QA review — 7 pages reviewed, 7 passed, 0 failed. Pages: Dashboard v2, Projects, AI Workspace, AI Sort Workspace Tab, AI Sort Preferences Tab, AI Sort Vibe Presets Tab, Gallery Builder. No fix tasks created. Note: Pencil app was not running so comparison was against build specs only. Tasks marked complete in Asana (manual move to Deployed section needed).
 - 2026-04-04: QA review (second run) — 0 pages in Code Review queue. All 7 prior tasks already marked completed from earlier run. No new pages to review.
 - 2026-04-04: QA review (third run) — 1 page reviewed, 1 passed, 0 failed. Command Bar (⌘K): all interactions verified (open/close/search/arrow-nav/ESC/backdrop/mobile/cross-page). MINOR: missing Dialog.Title causes WCAG warning + Next.js "1 Issue" badge. Fix task created: [P0] Fix: Command Bar — Missing Dialog.Title causes accessibility warning.
+- 2026-04-04: QA review (fourth run) — 2 pages reviewed, 1 passed, 1 failed. Deliver Gallery (Publish Flow): PASS — all 3 stage cards, full advancement flow tested, stats sidebar, success banner, mobile layout. Client Gallery Viewer: FAIL — mobile nav tabs hidden at <640px (hidden sm:flex), no mobile menu fallback. Fix tasks created: [P0] Fix: Client Gallery Viewer — Mobile nav tabs hidden at 375px.
+- 2026-04-04: QA review (sixth run) — 2 pages reviewed, 2 passed, 0 failed. Client Gallery Viewer: PASS — all sections present, tab switching works, mobile nav accessible via horizontal scroll after fix. Mobile nav fix (PR #26): PASS — flex overflow-x-auto confirmed, all 3 tabs in DOM, tab switching verified at 375px and desktop. MINOR: thumbnailUrl: '' in mock data causes 204 console errors (img src=""). Fix task created: [P0] Fix: Client Gallery Viewer — thumbnailUrl empty string causes 204 console errors (GID: 1213923424865236).
+- 2026-04-04: Command Bar Dialog.Title fix applied — PR #25 — branch fix/design-to-dev/command-bar-dialog-title. One-line fix: added sr-only Dialog.Title, removed aria-label on Dialog.Content. QA task created in Code Review queue.
+- 2026-04-04: QA review (fifth run) — 2 pages reviewed, 1 passed, 1 still failing. Command Bar Dialog.Title fix: PASS — Dialog.Title sr-only confirmed in main (CommandBar.tsx:314), all logic intact, task marked complete. Client Gallery Viewer: STILL FAIL — ClientNav.tsx line 56 still has hidden sm:flex, P0 fix task remains in Dev Pickup (GID: 1213923182545588).
 
 ## Shared Components Built
 
