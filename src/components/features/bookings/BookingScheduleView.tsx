@@ -27,7 +27,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   return (
     <button
       onClick={() => onChange(!on)}
-      className={`relative h-5 w-9 rounded-full transition-colors ${on ? 'bg-indigo-500' : 'bg-white/20'}`}
+      className={`relative h-5 w-9 rounded-full transition-colors ${on ? 'bg-violet-500' : 'bg-white/20'}`}
     >
       <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-4' : 'translate-x-0.5'}`} />
     </button>

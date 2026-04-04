@@ -615,7 +615,7 @@ export default function ProjectsPage() {
           type="button"
           onClick={() => setShowModal(true)}
           className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-semibold text-white"
-          style={{ background: 'linear-gradient(180deg, #6366F1 0%, #4F46E5 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
         >
           <Plus className="h-4 w-4" />
           New Project

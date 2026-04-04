@@ -48,7 +48,7 @@ export default function SignContractPage() {
     <div
       className="relative min-h-screen overflow-hidden text-white"
       style={{
-        background: 'linear-gradient(135deg, #1A3A8F 0%, #2D60D4 20%, #3B7DE8 40%, #5A6FE8 60%, #7B5EA7 80%, #1E2FA8 100%)',
+        background: '#050508',
       }}
     >
       {/* Radial highlight */}

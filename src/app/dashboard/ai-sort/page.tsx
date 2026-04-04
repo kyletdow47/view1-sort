@@ -65,7 +65,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   return (
     <button
       onClick={() => onChange(!on)}
-      className={`relative h-5 w-9 rounded-full transition-colors ${on ? 'bg-indigo-500' : 'bg-white/20'}`}
+      className={`relative h-5 w-9 rounded-full transition-colors ${on ? 'bg-violet-500' : 'bg-white/20'}`}
     >
       <span
         className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-4' : 'translate-x-0.5'}`}
@@ -190,7 +190,7 @@ function SortSettingsPanel({
         disabled={disabled}
         className="flex h-12 w-full items-center justify-center gap-2 rounded-xl font-semibold text-white transition-opacity disabled:opacity-40 hover:opacity-90"
         style={{
-          background: 'linear-gradient(180deg, #6366F1 0%, #4F46E5 100%)',
+          background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)',
           boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
         }}
       >
@@ -247,7 +247,7 @@ function UploadZone({
       <button
         onClick={(e) => { e.stopPropagation(); inputRef.current?.click() }}
         className="flex items-center gap-2 rounded-xl px-7 py-3 text-[13px] font-semibold text-white"
-        style={{ background: 'linear-gradient(180deg, #6366F1 0%, #4F46E5 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
       >
         <Upload className="h-4 w-4" />
         Browse Files
@@ -389,7 +389,7 @@ function CullPhase({
             onClick={() => onContinue(items)}
             disabled={analysing}
             className="flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
-            style={{ background: 'linear-gradient(180deg, #6366F1 0%, #4F46E5 100%)' }}
+            style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
           >
             Continue with {kept.length} photos
             <ChevronRight className="h-4 w-4" />
@@ -601,7 +601,7 @@ function ResultsPhase({ files }: { files: SortableFile[] }) {
         <Link
           href="/dashboard/gallery"
           className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white"
-          style={{ background: 'linear-gradient(180deg, #6366F1 0%, #4F46E5 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
         >
           View in Gallery
           <ChevronRight className="h-4 w-4" />

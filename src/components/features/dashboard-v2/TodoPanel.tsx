@@ -269,7 +269,7 @@ export function TodoTrigger({
       aria-label="Toggle to-do list"
     >
       <CheckSquare className="h-[18px] w-[18px]" />
-      <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[9px] font-bold text-white">
+      <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-violet-500 text-[9px] font-bold text-white">
         {completedCount}
       </span>
     </button>
