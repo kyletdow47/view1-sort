@@ -131,7 +131,7 @@ export default function ManagerPage() {
               </button>
             ))}
           </div>
-          <button className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-500 transition-colors">
+          <button className="flex items-center gap-1.5 rounded-xl bg-cta px-3 py-2 text-xs font-semibold text-white hover:opacity-90 transition-colors">
             <Plus className="h-3.5 w-3.5" />
             New Project
           </button>

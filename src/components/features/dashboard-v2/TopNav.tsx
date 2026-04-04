@@ -35,7 +35,10 @@ export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: To
     <nav className="relative z-20 flex h-14 w-full shrink-0 items-center justify-between border-b border-white/[0.09] bg-white/[0.04] px-6 backdrop-blur-sm md:px-10">
       {/* Left: Brand */}
       <div className="flex items-center gap-2">
-        <div className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-gradient-to-b from-indigo-400 to-indigo-600">
+        <div
+          className="flex h-[30px] w-[30px] items-center justify-center rounded-lg"
+          style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
+        >
           <Aperture className="h-[18px] w-[18px] text-white" />
         </div>
         <span className="font-headline text-[15px] font-bold text-white">View1 Sort</span>
@@ -96,7 +99,7 @@ export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: To
         <Link href="/dashboard/settings" className="text-white/[0.67] transition-colors hover:text-white">
           <Settings className="h-[18px] w-[18px]" />
         </Link>
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white ring-2 ring-white/25">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold text-white ring-2 ring-white/20" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 60%, #a855f7 100%)' }}>
           {userInitials}
         </div>
 

@@ -111,7 +111,7 @@ function IntegrationCard({ integration, onToggle }: {
         ) : (
           <button
             onClick={() => onToggle(integration.id)}
-            className="flex items-center gap-1.5 rounded-xl border border-indigo-400/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-medium text-indigo-300 hover:bg-indigo-500/20 transition-colors"
+            className="flex items-center gap-1.5 rounded-xl border border-indigo-400/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-medium text-indigo-300 hover:opacity-90/20 transition-colors"
           >
             <ExternalLink className="h-3 w-3" />
             Connect
@@ -167,7 +167,7 @@ export default function IntegrationsPage() {
             onClick={() => setActiveCategory(c)}
             className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
               activeCategory === c
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-cta text-white'
                 : 'bg-white/[0.07] text-white/60 hover:text-white'
             }`}
           >

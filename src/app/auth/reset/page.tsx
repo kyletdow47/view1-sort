@@ -137,7 +137,7 @@ export default function ResetPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg bg-cta px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? 'Updating…' : 'Update password'}
             </button>
@@ -163,7 +163,7 @@ export default function ResetPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg bg-cta px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? 'Sending…' : 'Send reset link'}
             </button>
