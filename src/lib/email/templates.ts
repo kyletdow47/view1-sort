@@ -161,3 +161,108 @@ export function projectPublishedEmail(
     `),
   }
 }
+
+export function contractSentEmail(
+  clientName: string,
+  photographerName: string,
+  contractTitle: string,
+  signingUrl: string
+): { subject: string; html: string } {
+  return {
+    subject: `Please sign your contract — ${contractTitle}`,
+    html: layout(`
+      <h1 style="font-size:28px;font-weight:800;color:${TEXT_COLOR};margin:0 0 16px;">Contract Ready to Sign</h1>
+      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 8px;">
+        Hi ${clientName},
+      </p>
+      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 24px;">
+        <strong style="color:${TEXT_COLOR};">${photographerName}</strong> has sent you a contract to review and sign:
+        <strong style="color:${BRAND_COLOR};">${contractTitle}</strong>
+      </p>
+      ${button('Review & Sign Contract', signingUrl)}
+      <p style="color:${MUTED_COLOR};font-size:12px;margin-top:24px;">
+        This link is unique to you. The contract will be locked once all parties have signed.
+      </p>
+    `),
+  }
+}
+
+export function bookingConfirmationEmail(
+  clientName: string,
+  photographerName: string,
+  shootType: string,
+  shootDate: string,
+  location: string | undefined,
+  packageDetails: string | undefined,
+  dashboardUrl: string
+): { subject: string; html: string } {
+  return {
+    subject: `Booking confirmed — ${shootType} with ${photographerName}`,
+    html: layout(`
+      <h1 style="font-size:28px;font-weight:800;color:${TEXT_COLOR};margin:0 0 16px;">Booking Confirmed!</h1>
+      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 24px;">
+        Hi ${clientName}, your booking with <strong style="color:${TEXT_COLOR};">${photographerName}</strong> is confirmed.
+      </p>
+      <table style="width:100%;margin-bottom:24px;border:1px solid #534439;border-radius:12px;overflow:hidden;">
+        <tr style="background:#251e1a;">
+          <td style="color:${MUTED_COLOR};font-size:13px;padding:12px 16px;">Shoot Type</td>
+          <td style="color:${TEXT_COLOR};font-size:13px;font-weight:600;padding:12px 16px;text-align:right;">${shootType}</td>
+        </tr>
+        <tr>
+          <td style="color:${MUTED_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid #534439;">Date</td>
+          <td style="color:${BRAND_COLOR};font-size:13px;font-weight:700;padding:12px 16px;border-top:1px solid #534439;text-align:right;">${shootDate}</td>
+        </tr>
+        ${location ? `<tr style="background:#251e1a;"><td style="color:${MUTED_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid #534439;">Location</td><td style="color:${TEXT_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid #534439;text-align:right;">${location}</td></tr>` : ''}
+        ${packageDetails ? `<tr><td style="color:${MUTED_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid #534439;">Package</td><td style="color:${TEXT_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid #534439;text-align:right;">${packageDetails}</td></tr>` : ''}
+      </table>
+      <p style="color:${MUTED_COLOR};font-size:13px;line-height:1.6;margin:0 0 24px;">
+        You will receive your gallery link via email after the shoot is processed. Questions? Reply to this email.
+      </p>
+    `),
+  }
+}
+
+export function editRequestUpdateEmail(
+  clientName: string,
+  photoTitle: string,
+  newStatus: 'priced' | 'in_progress' | 'delivered',
+  price: number | null,
+  approvalUrl: string | null,
+  deliveryUrl: string | null
+): { subject: string; html: string } {
+  const statusLabels: Record<typeof newStatus, string> = {
+    priced: 'Priced — Awaiting Your Approval',
+    in_progress: 'In Progress',
+    delivered: 'Delivered',
+  }
+  const statusColors: Record<typeof newStatus, string> = {
+    priced: '#FBBF24',
+    in_progress: '#A78BFA',
+    delivered: '#34D399',
+  }
+  const label = statusLabels[newStatus]
+  const color = statusColors[newStatus]
+
+  const ctaHtml = newStatus === 'priced' && approvalUrl && price !== null
+    ? `<p style="color:${MUTED_COLOR};font-size:14px;margin:0 0 16px;">Price: <strong style="color:${BRAND_COLOR};">$${price}</strong></p>${button('Approve Edit Request', approvalUrl)}`
+    : newStatus === 'delivered' && deliveryUrl
+    ? button('View Delivered Edit', deliveryUrl)
+    : ''
+
+  return {
+    subject: `Edit request update — ${photoTitle}`,
+    html: layout(`
+      <h1 style="font-size:28px;font-weight:800;color:${TEXT_COLOR};margin:0 0 16px;">Edit Request Update</h1>
+      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 16px;">
+        Hi ${clientName}, your edit request for <strong style="color:${TEXT_COLOR};">${photoTitle}</strong> has been updated.
+      </p>
+      <div style="display:inline-block;background:rgba(255,255,255,0.06);border:1px solid #534439;border-radius:10px;padding:10px 18px;margin-bottom:24px;">
+        <span style="color:${color};font-size:13px;font-weight:700;">${label}</span>
+      </div>
+      ${ctaHtml}
+      <p style="color:${MUTED_COLOR};font-size:12px;margin-top:24px;">
+        If you have questions, reply to this email to reach your photographer.
+      </p>
+    `),
+  }
+}

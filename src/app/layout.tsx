@@ -31,6 +31,16 @@ export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: { default: TITLE, template: '%s — View1 Sort' },
   description: DESCRIPTION,
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'View1 Sort',
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'msapplication-TileColor': '#0D0B1A',
+  },
   keywords: [
     'AI photo sorting', 'photo culling software', 'photographer gallery delivery',
     'client photo selection', 'photo workflow software', 'wedding photographer tools',

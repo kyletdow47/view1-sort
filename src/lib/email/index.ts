@@ -11,6 +11,9 @@ import { ProjectPublishedEmail } from './templates/project-published'
 import { PaymentConfirmationEmail } from './templates/payment-confirmation'
 import { PaymentReceivedEmail } from './templates/payment-received'
 import { PaymentFailedEmail } from './templates/payment-failed'
+import { ContractSentEmail } from './templates/contract-sent'
+import { BookingConfirmationEmail } from './templates/booking-confirmation'
+import { EditRequestUpdateEmail } from './templates/edit-request-update'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://view1.studio'
 
@@ -101,5 +104,73 @@ export async function sendPaymentFailedEmail(
     subject: `Payment failed — ${amount} for ${projectName}`,
     template: 'payment_failed',
     react: React.createElement(PaymentFailedEmail, { clientName, projectName, amount, retryUrl }),
+  })
+}
+
+export async function sendContractSentEmail(
+  to: string,
+  clientName: string,
+  photographerName: string,
+  contractTitle: string,
+  signingUrl: string,
+) {
+  return sendEmail({
+    to,
+    subject: `Please sign your contract — ${contractTitle}`,
+    template: 'contract_sent',
+    react: React.createElement(ContractSentEmail, { clientName, photographerName, contractTitle, signingUrl }),
+  })
+}
+
+export async function sendBookingConfirmationEmail(
+  to: string,
+  clientName: string,
+  photographerName: string,
+  shootType: string,
+  shootDate: string,
+  location?: string,
+  packageDetails?: string,
+) {
+  return sendEmail({
+    to,
+    subject: `Booking confirmed — ${shootType} with ${photographerName}`,
+    template: 'booking_confirmation',
+    react: React.createElement(BookingConfirmationEmail, {
+      clientName,
+      photographerName,
+      shootType,
+      shootDate,
+      location,
+      packageDetails,
+    }),
+  })
+}
+
+export async function sendEditRequestUpdateEmail(
+  to: string,
+  clientName: string,
+  photoTitle: string,
+  newStatus: 'priced' | 'in_progress' | 'delivered',
+  price?: number,
+  approvalUrl?: string,
+  deliveryUrl?: string,
+) {
+  const statusLabels = {
+    priced: 'Priced — awaiting approval',
+    in_progress: 'In Progress',
+    delivered: 'Delivered',
+  }
+  return sendEmail({
+    to,
+    subject: `Edit request update — ${statusLabels[newStatus]} for "${photoTitle}"`,
+    template: 'edit_request_update',
+    react: React.createElement(EditRequestUpdateEmail, {
+      clientName,
+      photoTitle,
+      newStatus,
+      price,
+      approvalUrl,
+      deliveryUrl,
+    }),
   })
 }

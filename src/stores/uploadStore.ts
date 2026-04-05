@@ -111,8 +111,8 @@ export const useUploadStore = create<UploadState>((set, get) => {
     const { data, error } = await supabase.from('media').insert({
       project_id: task.projectId,
       storage_path: task.storagePath,
-      file_name: task.file.name,
-      file_size: task.file.size,
+      filename: task.file.name,
+      size_bytes: task.file.size,
       mime_type: task.mimeType,
       file_hash: task.fileHash,
       status: 'uploaded',
