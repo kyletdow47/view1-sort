@@ -48,7 +48,7 @@ const CAPTION_MOCK: Record<CaptionTone, string[]> = {
     'Award-winning imagery crafted for those who appreciate the art of photography. Inquiries open for 2026 dates.',
   ],
   casual: [
-    'Honestly, days like this are why I do what I do 📸✨ The light was *chef's kiss* and the vibes were immaculate.',
+    "Honestly, days like this are why I do what I do 📸✨ The light was *chef's kiss* and the vibes were immaculate.",
     "Look at them go!! Still smiling thinking about this session — easily one of my favorites from the past month 🫶",
     "Can't stop, won't stop obsessing over this golden hour magic. Who else is a sucker for that warm glow? 🌅",
   ],
