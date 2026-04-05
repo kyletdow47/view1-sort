@@ -2,16 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import NextImage from 'next/image'
-import { Brain, Check, CreditCard, FolderOpen } from 'lucide-react'
-
-/* ── Shared glass style for floating product cards ── */
-const CARD_GLASS = [
-  'rounded-2xl overflow-hidden',
-  'bg-gradient-to-b from-white/[0.12] to-white/[0.04]',
-  'border border-white/[0.10]',
-  'backdrop-blur-[20px]',
-  'shadow-[0_8px_24px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.06)]',
-].join(' ')
+import { Brain } from 'lucide-react'
 
 /* ── Helpers ── */
 function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)) }
@@ -87,234 +78,232 @@ function Tag2Words({ refs, containerRef, geist }: {
   )
 }
 
-/* ── Inline waitlist form for mobile (avoids cross-module import issue) ── */
-function MobileWaitlistForm({ geist }: { geist: Record<string, string> }) {
-  const [email, setEmail] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!email) return
-    setLoading(true)
-    setError('')
-    try {
-      const res = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-      if (!res.ok) {
-        const data = await res.json() as { error?: string }
-        throw new Error(data.error ?? 'Failed')
-      }
-      setSubmitted(true)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  if (submitted) {
-    return (
-      <div className="flex flex-col items-center gap-2 py-4 text-center">
-        <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.3)' }}>
-          <Check size={20} className="text-violet-400" />
-        </div>
-        <p className="font-semibold text-white text-lg" style={geist}>You&apos;re on the list.</p>
-        <p className="text-sm text-white/40">We&apos;ll email you when access opens.</p>
-      </div>
-    )
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
-      <div className="flex gap-0 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)' }}>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-          className="flex-1 px-4 py-4 text-sm text-white placeholder-white/30 outline-none bg-transparent"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="shrink-0 px-5 py-4 text-sm font-medium text-white btn-rainbow disabled:opacity-60 transition-all"
-        >
-          {loading ? 'Joining…' : 'Join'}
-        </button>
-      </div>
-      {error && <p className="text-xs text-red-400">{error}</p>}
-      <p className="text-center text-xs text-white/30">Free to join · Founding member pricing locked in forever</p>
-    </form>
-  )
-}
-
-/* ── Static mobile hero (no scroll-jacking) ── */
-function MobileHero() {
+/* ── Mobile scroll-jacked hero ── */
+function MobileScrollHero() {
   const geist = { fontFamily: "'Geist', system-ui, sans-serif" } as const
+  const outerRef = useRef<HTMLDivElement>(null)
+  const raf = useRef(0)
+  const hlContainerRef = useRef<HTMLDivElement>(null)
+  const hlH1Ref = useRef<HTMLHeadingElement>(null)
+  const wordRefs = useRef<(HTMLDivElement | null)[]>([])
+  const tag1Ref = useRef<HTMLParagraphElement>(null)
+  const tag2Ref = useRef<HTMLParagraphElement>(null)
+  const mockupRef = useRef<HTMLDivElement>(null)
+  const chatRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function animate() {
+      const el = outerRef.current
+      if (!el) { raf.current = requestAnimationFrame(animate); return }
+      const vh = window.visualViewport?.height ?? window.innerHeight
+      const rect = el.getBoundingClientRect()
+      const runway = el.offsetHeight - vh
+      if (runway <= 0) { raf.current = requestAnimationFrame(animate); return }
+      const p = clamp(-rect.top / runway, 0, 1)
+
+      /* ══ Scene 1: Headline + rainbow sweep (0.00–0.20) ══ */
+      if (hlH1Ref.current) {
+        // sweep background-position 0%→100% → rainbow rolls left-to-right through text
+        hlH1Ref.current.style.backgroundPositionX = `${easeOut(sp(p, 0, 0.13)) * 100}%`
+      }
+      if (hlContainerRef.current) {
+        const out = easeOut(sp(p, 0.14, 0.20))
+        hlContainerRef.current.style.opacity = `${1 - out}`
+        hlContainerRef.current.style.transform = `translateY(${out * -50}px)`
+      }
+
+      /* ══ Scene 2: Word carousel (0.20–0.63) ══ */
+      const WINDOWS = [
+        [0.20, 0.29], [0.29, 0.38], [0.38, 0.47], [0.47, 0.56], [0.54, 0.63],
+      ] as const
+      const DIRS = [-1, 1, -1, 1, -1]
+      wordRefs.current.forEach((wEl, i) => {
+        if (!wEl) return
+        const [wS, wE] = WINDOWS[i]
+        const wD = wE - wS
+        const inEnd = wS + wD * 0.35
+        const holdEnd = wS + wD * 0.58
+        if (p < wS || p > wE) { wEl.style.opacity = '0'; return }
+        const dir = DIRS[i]
+        if (p <= inEnd) {
+          const t = easeOut(sp(p, wS, inEnd))
+          wEl.style.opacity = `${t}`
+          wEl.style.transform = `translateX(${dir * (1 - t) * -130}px) scale(${0.65 + t * 0.60})`
+        } else if (p <= holdEnd) {
+          wEl.style.opacity = '1'
+          wEl.style.transform = 'translateX(0) scale(1.25)'
+        } else {
+          const t = easeOut(sp(p, holdEnd, wE))
+          wEl.style.opacity = `${1 - t}`
+          wEl.style.transform = `translateX(0) scale(${1.25 - t * 0.65})`
+        }
+      })
+
+      /* ══ Scene 3: Taglines (0.63–0.76) ══ */
+      const t1In = easeOut(sp(p, 0.63, 0.68)); const t1Out = easeOut(sp(p, 0.72, 0.76))
+      if (tag1Ref.current) {
+        tag1Ref.current.style.opacity = `${t1In * (1 - t1Out)}`
+        tag1Ref.current.style.transform = `translateY(${(1 - t1In) * 28}px)`
+      }
+      const t2In = easeOut(sp(p, 0.66, 0.70)); const t2Out = easeOut(sp(p, 0.72, 0.76))
+      if (tag2Ref.current) {
+        tag2Ref.current.style.opacity = `${t2In * (1 - t2Out)}`
+        tag2Ref.current.style.transform = `translateY(${(1 - t2In) * 28}px)`
+      }
+
+      /* ══ Scene 4: Mockup slides in, zooms out (0.74–0.93) ══ */
+      if (mockupRef.current) {
+        if (p < 0.74) {
+          mockupRef.current.style.opacity = '0'
+          mockupRef.current.style.transform = 'translateY(80px) scale(0.9)'
+        } else if (p <= 0.86) {
+          const t = easeOut(sp(p, 0.74, 0.82))
+          mockupRef.current.style.opacity = `${t}`
+          mockupRef.current.style.transform = `translateY(${(1 - t) * 80}px) scale(${0.9 + t * 0.12})`
+        } else {
+          const t = easeOut(sp(p, 0.86, 0.93))
+          mockupRef.current.style.opacity = `${1 - t}`
+          mockupRef.current.style.transform = `scale(${1.02 + t * 0.13})`
+        }
+      }
+
+      /* ══ Scene 5: AI chat bubble floats up (0.90–1.00) ══ */
+      if (chatRef.current) {
+        const cIn = easeOut(sp(p, 0.90, 0.95))
+        const cOut = easeOut(sp(p, 0.96, 1.00))
+        chatRef.current.style.opacity = `${cIn * (1 - cOut)}`
+        chatRef.current.style.transform = `translateY(${(1 - cIn) * 50 - cOut * 80}px)`
+      }
+
+      raf.current = requestAnimationFrame(animate)
+    }
+    raf.current = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(raf.current)
+  }, [])
+
   return (
-    <>
-      <style>{`
-        @keyframes mFloatA {
-          0%,100% { transform: translateY(0px) rotate(-1.5deg); }
-          50% { transform: translateY(-10px) rotate(-1.5deg); }
-        }
-        @keyframes mFloatB {
-          0%,100% { transform: translateY(-4px) rotate(2deg); }
-          50% { transform: translateY(8px) rotate(2deg); }
-        }
-        @keyframes mFloatC {
-          0%,100% { transform: translateY(0px) rotate(-0.5deg); }
-          50% { transform: translateY(-13px) rotate(-0.5deg); }
-        }
-        @keyframes mFloatD {
-          0%,100% { transform: translateY(-7px) rotate(1deg); }
-          50% { transform: translateY(5px) rotate(1deg); }
-        }
-        @keyframes mFloatE {
-          0%,100% { transform: translateY(0px) rotate(1.5deg); }
-          50% { transform: translateY(-9px) rotate(1.5deg); }
-        }
-        @keyframes mFadeUp {
-          from { opacity: 0; transform: translateY(22px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes mDot {
-          0%,100% { opacity: 0.4; }
-          50% { opacity: 1; }
-        }
-      `}</style>
+    <div ref={outerRef} style={{ height: '500svh' }} className="relative z-10">
+      <div className="sticky top-0 w-full" style={{ height: '100svh', overflow: 'clip' }}>
 
-      <div className="relative z-10 px-5 pt-28 pb-20 flex flex-col items-center gap-8">
-
-        {/* Headline */}
-        <div className="text-center" style={{ animation: 'mFadeUp 0.7s ease both' }}>
-          <h1 className="text-[40px] font-bold leading-[1.05] tracking-tight" style={geist}>
-            <span className="text-white">You shoot.<br /></span>
-            <span style={{
-              background: 'linear-gradient(90deg, #F59E0B 0%, #A855F7 55%, #3B82F6 100%)',
+        {/* Scene 1: Headline */}
+        <div
+          ref={hlContainerRef}
+          className="absolute inset-0 flex items-center justify-center px-6 will-change-[transform,opacity]"
+        >
+          <h1
+            ref={hlH1Ref}
+            className="text-[42px] sm:text-[52px] font-bold text-center leading-[1.05] tracking-tight will-change-[background-position]"
+            style={{
+              ...geist,
+              backgroundImage: 'linear-gradient(90deg, white 0%, white 30%, #F59E0B 42%, #A855F7 56%, #3B82F6 68%, white 78%, white 100%)',
+              backgroundSize: '300% 100%',
+              backgroundPositionX: '0%',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
-            }}>
-              We handle the rest.
-            </span>
+            }}
+          >
+            You shoot the photos.<br />We&apos;ll handle the rest.
           </h1>
-          <p className="mt-3 text-[15px] text-white/40 leading-relaxed max-w-[260px] mx-auto">
-            AI sorting, delivery, and business ops — one workflow.
+        </div>
+
+        {/* Scene 2: Word carousel */}
+        {LIST_ITEMS.map((word, i) => (
+          <div
+            key={word}
+            ref={el => { wordRefs.current[i] = el }}
+            className="absolute inset-0 flex items-center justify-center px-6 will-change-[transform,opacity]"
+            style={{ opacity: 0 }}
+          >
+            <span
+              className="font-extrabold text-white text-center leading-none tracking-tight"
+              style={{ ...geist, fontSize: 'clamp(40px, 12vw, 64px)' }}
+            >
+              {word}
+            </span>
+          </div>
+        ))}
+
+        {/* Scene 3: Taglines */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-8 gap-4 text-center pointer-events-none">
+          <p
+            ref={tag1Ref}
+            className="text-[26px] sm:text-[30px] font-bold text-white leading-tight will-change-[transform,opacity]"
+            style={{ ...geist, opacity: 0 }}
+          >
+            {TAGLINE_1}
+          </p>
+          <p
+            ref={tag2Ref}
+            className="text-[14px] sm:text-[16px] font-medium text-white/40 leading-relaxed max-w-[270px] will-change-[transform,opacity]"
+            style={{ ...geist, opacity: 0 }}
+          >
+            {TAGLINE_2}
           </p>
         </div>
 
-        {/* Floating product UI cards */}
-        <div className="relative w-full px-3" style={{ height: 300, animation: 'mFadeUp 0.7s 0.2s ease both', overflow: 'hidden' }}>
-
-          {/* Ambient glow behind the card cluster */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div style={{ position: 'absolute', top: '20%', left: '30%', width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.13) 0%, transparent 70%)', transform: 'translate(-50%,-50%)' }} />
-            <div style={{ position: 'absolute', bottom: '15%', right: '20%', width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(59,130,246,0.10) 0%, transparent 70%)' }} />
-          </div>
-
-          {/* Card 1: AI Sorting progress — top center */}
-          <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 208, animation: 'mFloatA 4.4s ease-in-out infinite' }}>
-            <div className={CARD_GLASS + ' p-3.5'}>
-              <div className="flex items-center gap-2 mb-2.5">
-                <div className="h-5 w-5 rounded-md bg-violet-400/20 flex items-center justify-center">
-                  <Brain size={11} className="text-violet-400" />
-                </div>
-                <span className="text-[11px] font-semibold text-white/80">AI Sorting</span>
-                <span className="ml-auto text-[11px] font-bold text-violet-400">92%</span>
+        {/* Scene 4: Mockup */}
+        <div
+          ref={mockupRef}
+          className="absolute inset-0 flex items-center justify-center px-4 will-change-[transform,opacity]"
+          style={{ opacity: 0 }}
+        >
+          <div className="w-full max-w-[360px]">
+            <div className="rounded-[18px] overflow-hidden border border-white/[0.14] shadow-[0_24px_72px_rgba(0,0,0,0.65)]" style={{ background: '#0c0c10' }}>
+              <div className="flex items-center gap-1.5 px-3.5 py-2.5 border-b border-white/[0.08]" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                <div className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+                <div className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
+                <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
+                <span className="ml-2 text-[10px] text-white/25">View1 Sort</span>
               </div>
-              <p className="text-[10px] text-white/35 mb-2">847 photos · beach wedding</p>
-              <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                <div className="h-full rounded-full" style={{ width: '92%', background: 'linear-gradient(90deg, #3B82F6, #A855F7, #EC4899)' }} />
-              </div>
+              <NextImage
+                src="/images/dashboard-v2-preview.png"
+                alt="View1 Sort Dashboard"
+                width={2940}
+                height={1842}
+                className="w-full h-auto block"
+                style={{ maxHeight: '56vh', objectFit: 'cover', objectPosition: 'top' }}
+              />
             </div>
           </div>
-
-          {/* Card 2: Gallery delivered — left */}
-          <div style={{ position: 'absolute', top: 112, left: 0, width: 172, animation: 'mFloatB 5s ease-in-out infinite' }}>
-            <div className={CARD_GLASS + ' p-3'}>
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(52,211,153,0.15)' }}>
-                  <Check size={13} className="text-emerald-400" />
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold text-white leading-tight">Gallery ready</p>
-                  <p className="text-[10px] mt-0.5 leading-tight text-white/35">Client link sent</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: AI chat bubble — right */}
-          <div style={{ position: 'absolute', top: 100, right: 0, width: 168, animation: 'mFloatC 3.9s ease-in-out infinite' }}>
-            <div className="rounded-2xl rounded-tr-sm border border-white/10 p-3" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(168,85,247,0.08))', backdropFilter: 'blur(20px)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <div className="h-1.5 w-1.5 rounded-full bg-violet-400" style={{ animation: 'mDot 2s ease-in-out infinite' }} />
-                <span className="text-[9px] font-semibold uppercase tracking-wider text-violet-300/70">AI Workspace</span>
-              </div>
-              <p className="text-[10px] leading-relaxed text-white/65">Prioritizing emotional candids → ceremony moments ✨</p>
-            </div>
-          </div>
-
-          {/* Card 4: Invoice paid — bottom right */}
-          <div style={{ position: 'absolute', bottom: 18, right: '6%', width: 160, animation: 'mFloatD 4.7s ease-in-out infinite' }}>
-            <div className={CARD_GLASS + ' p-3'}>
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(99,102,241,0.15)' }}>
-                  <CreditCard size={12} className="text-indigo-400" />
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold text-white leading-tight">Invoice paid</p>
-                  <p className="text-[10px] mt-0.5 leading-tight text-white/35">$2,400 · Stripe</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 5: Categories sorted — bottom left */}
-          <div style={{ position: 'absolute', bottom: 10, left: '4%', width: 152, animation: 'mFloatE 3.6s 0.9s ease-in-out infinite' }}>
-            <div className={CARD_GLASS + ' p-3'}>
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(245,158,11,0.15)' }}>
-                  <FolderOpen size={12} className="text-amber-400" />
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold text-white leading-tight">80 photos sorted</p>
-                  <p className="text-[10px] mt-0.5 leading-tight text-white/35">6 categories</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
 
-        {/* Feature list */}
-        <div className="flex flex-col gap-2.5 w-full max-w-[260px]" style={{ animation: 'mFadeUp 0.6s 0.45s ease both' }}>
-          {LIST_ITEMS.map((item, i) => (
-            <div key={item} className="flex items-center gap-3" style={{ animation: `mFadeUp 0.5s ${0.5 + i * 0.07}s ease both` }}>
-              <div className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: 'linear-gradient(135deg, #A855F7, #3B82F6)' }} />
-              <span className="text-base font-semibold text-white/85" style={geist}>{item}</span>
+        {/* Scene 5: Floating AI chat bubble */}
+        <div className="absolute inset-0 flex items-center justify-center px-6 pointer-events-none">
+          <div
+            ref={chatRef}
+            className="will-change-[transform,opacity] w-full max-w-[320px]"
+            style={{ opacity: 0 }}
+          >
+            <div
+              className="rounded-2xl border border-white/[0.12] p-5"
+              style={{
+                background: 'linear-gradient(135deg, rgba(99,102,241,0.20), rgba(168,85,247,0.10))',
+                backdropFilter: 'blur(32px)',
+                boxShadow: '0 16px 48px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.06)',
+              }}
+            >
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shrink-0">
+                  <Brain size={13} className="text-white" />
+                </div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-violet-300">View1 AI</span>
+                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <p className="text-[13px] text-white/55 mb-3 leading-relaxed">
+                Ask View1, &ldquo;<span className="text-white font-medium">which clients haven&apos;t completed payment?</span>&rdquo;
+              </p>
+              <div className="rounded-xl border border-white/[0.08] px-3.5 py-3" style={{ background: 'rgba(255,255,255,0.07)' }}>
+                <p className="text-[12px] text-white/65 leading-relaxed">
+                  3 outstanding — Johnson Wedding ($2,400), Oak Street Realty ($850), Martin Events ($1,200)
+                </p>
+              </div>
             </div>
-          ))}
-        </div>
-
-        {/* Waitlist CTA */}
-        <div className="w-full" style={{ animation: 'mFadeUp 0.7s 0.85s ease both' }}>
-          <div className="rounded-[20px] border border-white/[0.12] p-5" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03))', backdropFilter: 'blur(32px)', boxShadow: '0 8px 32px rgba(0,0,0,0.35)' }}>
-            <p className="text-xl font-bold text-white text-center mb-1" style={geist}>Join the waitlist</p>
-            <p className="text-sm text-white/35 text-center mb-4">Early access + founding member pricing.</p>
-            <MobileWaitlistForm geist={geist} />
           </div>
         </div>
 
       </div>
-    </>
+    </div>
   )
 }
 
@@ -470,7 +459,7 @@ export function ScrollHero() {
 
   const geist = { fontFamily: "'Geist', system-ui, sans-serif" } as const
 
-  if (isMobile) return <MobileHero />
+  if (isMobile) return <MobileScrollHero />
 
   return (
     <div ref={outerRef} style={{ height: '275svh' }} className="relative z-10">
