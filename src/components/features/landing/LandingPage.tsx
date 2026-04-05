@@ -87,7 +87,7 @@ function PreviewAIProfiles() {
       <p className="text-[10px] text-white/30 uppercase tracking-widest">Sorting Preset</p>
       <div className="flex flex-wrap gap-1.5">
         {presets.map((p, i) => (
-          <span key={p} className={`rounded-lg px-2.5 py-1 text-[11px] font-medium border ${i === 0 ? 'bg-violet-500/20 border-violet-500/40 text-violet-300' : 'bg-white/[0.04] border-white/[0.08] text-white/40'}`}>{p}</span>
+          <span key={p} className={`rounded-lg px-2.5 py-1 text-[11px] font-medium ${i === 0 ? 'text-violet-300' : 'text-white/35'}`}>{p}</span>
         ))}
       </div>
     </div>
@@ -107,9 +107,9 @@ function PreviewCategoryFolders() {
   return (
     <div className="w-full space-y-2">
       <p className="text-[10px] text-white/30 uppercase tracking-widest">Category Configuration</p>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-x-3 gap-y-1.5">
         {cats.map(c => (
-          <span key={c.label} className="flex items-center gap-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] px-2.5 py-1 text-[11px] text-white/60">
+          <span key={c.label} className="flex items-center gap-1.5 text-[11px] text-white/50">
             <span className={`h-1.5 w-1.5 rounded-full ${c.color}`} />
             {c.label}
           </span>
@@ -142,12 +142,12 @@ function PreviewBatchProcessing() {
 function PreviewMagicLink() {
   return (
     <div className="w-full space-y-2.5">
-      <div className="flex items-center gap-2 rounded-lg bg-white/[0.05] border border-white/[0.08] px-3 py-2">
+      <div className="flex items-center gap-2 px-1">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/30 shrink-0"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
         <span className="text-[11px] text-white/35 truncate flex-1">view1.app/g/autumn-wed-2024</span>
         <span className="shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold text-white" style={{ background: 'linear-gradient(90deg, #6366f1, #a855f7)' }}>Copy</span>
       </div>
-      <div className="flex gap-3 text-[10px] text-white/25">
+      <div className="flex gap-3 text-[10px] text-white/25 px-1">
         <span>🔗 No login required</span>
         <span>·</span>
         <span>Any device</span>
@@ -189,8 +189,8 @@ function PreviewOrganizedDownloads() {
         <span className="rounded-full bg-violet-500/15 border border-violet-500/25 px-2 py-0.5 text-[9px] text-violet-400">ZIP</span>
       </div>
       {folders.map(f => (
-        <div key={f.name} className="flex items-center justify-between pl-3 py-1 rounded-md bg-white/[0.03] border border-white/[0.05]">
-          <span className="text-[11px] text-white/50">📂 {f.name}</span>
+        <div key={f.name} className="flex items-center justify-between pl-3 py-0.5">
+          <span className="text-[11px] text-white/45">📂 {f.name}</span>
           <span className="text-[10px] text-white/25">{f.count} photos</span>
         </div>
       ))}
@@ -202,10 +202,10 @@ function PreviewOrganizedDownloads() {
 function PreviewESign() {
   return (
     <div className="w-full space-y-3">
-      <div className="rounded-lg border border-dashed border-white/[0.12] bg-white/[0.02] px-4 py-3">
-        <p className="text-[10px] text-white/25 mb-1.5">Client Signature</p>
-        <p className="text-[13px] text-white/15 italic" style={{ fontFamily: 'Georgia, serif' }}>Sign here</p>
-        <div className="mt-1.5 h-px bg-white/[0.08]" />
+      <div className="px-1">
+        <p className="text-[10px] text-white/25 mb-2">Client Signature</p>
+        <p className="text-[13px] text-white/20 italic mb-1.5" style={{ fontFamily: 'Georgia, serif' }}>Sign here</p>
+        <div className="h-px bg-white/[0.10]" />
       </div>
       <button className="w-full rounded-lg py-2 text-[12px] font-semibold text-white" style={{ background: 'linear-gradient(90deg, #f59e0b, #ec4899)' }}>
         ✍ Sign Contract
@@ -218,9 +218,9 @@ function PreviewESign() {
 function PreviewInvoicing() {
   return (
     <div className="w-full space-y-2.5">
-      <div className="flex items-center justify-between rounded-lg bg-white/[0.04] border border-white/[0.08] px-3 py-2.5">
+      <div className="flex items-center justify-between px-1 py-1">
         <span className="text-[12px] text-white/40 font-medium">Total</span>
-        <span className="text-[18px] font-bold text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>$4,374</span>
+        <span className="text-[22px] font-bold text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>$4,374</span>
       </div>
       <button className="w-full rounded-lg py-2 text-[12px] font-semibold text-white" style={{ background: 'linear-gradient(90deg, #f59e0b, #ec4899)' }}>
         Send Invoice →
@@ -239,7 +239,7 @@ function PreviewNotifications() {
   return (
     <div className="w-full space-y-1.5">
       {notifs.map(n => (
-        <div key={n.label} className="flex items-center gap-2.5 rounded-lg bg-white/[0.04] border border-white/[0.06] px-2.5 py-1.5">
+        <div key={n.label} className="flex items-center gap-2.5 px-1 py-1">
           <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${n.dot}`} />
           <div className="min-w-0">
             <p className="text-[11px] text-white/60 font-medium truncate">{n.label}</p>
@@ -269,14 +269,14 @@ function PreviewRevenue() {
 function PreviewClientInsights() {
   return (
     <div className="w-full grid grid-cols-2 gap-2">
-      <div className="rounded-xl bg-white/[0.05] border border-white/[0.08] p-3 space-y-1">
+      <div className="p-1 space-y-1">
         <p className="text-[10px] text-white/30 uppercase tracking-wider">Repeat Rate</p>
-        <p className="text-[22px] font-bold text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>64%</p>
+        <p className="text-[24px] font-bold text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>64%</p>
         <p className="text-[10px] text-emerald-400">↑ +8%</p>
       </div>
-      <div className="rounded-xl bg-white/[0.05] border border-white/[0.08] p-3 space-y-1">
+      <div className="p-1 space-y-1">
         <p className="text-[10px] text-white/30 uppercase tracking-wider">Avg Rating</p>
-        <p className="text-[22px] font-bold text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>4.9</p>
+        <p className="text-[24px] font-bold text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>4.9</p>
         <p className="text-[10px] text-amber-400">★ ★ ★ ★ ★</p>
       </div>
     </div>
