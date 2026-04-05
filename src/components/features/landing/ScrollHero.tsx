@@ -108,8 +108,8 @@ function MobileHero() {
         <NextImage
           src="/images/dashboard-v2-preview.png"
           alt="View1 Sort Dashboard"
-          width={4160}
-          height={3080}
+          width={2940}
+          height={1842}
           className="w-full h-auto"
           priority
         />

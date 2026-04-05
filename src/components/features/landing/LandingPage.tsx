@@ -651,14 +651,41 @@ export function LandingPage() {
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
 
               <div className={`p-8 ${glass} ${glassHighlight}`}>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-red-400/80 mb-5">Everyone Else</p>
-                <p className="text-sm text-white/40 leading-relaxed">Flag blurry and duplicate images. Score photos by technical quality. Sort by sharpness and exposure. Treat every shoot the same way. Miss the photos that actually matter.</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-red-400/80 mb-6">Everyone Else</p>
+                <ul className="space-y-4">
+                  {[
+                    'Flags blurry + duplicate images',
+                    'Scores by sharpness and exposure',
+                    'Treats every shoot identically',
+                    'Misses emotionally important shots',
+                    'No context about your shoot',
+                  ].map(item => (
+                    <li key={item} className="flex items-start gap-3">
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-400/50 shrink-0" />
+                      <span className="text-[15px] font-semibold text-white/35 leading-snug">{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
+
               <div className="p-[1px] rounded-[20px]" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.5) 0%, rgba(59,130,246,0.4) 25%, rgba(168,85,247,0.4) 50%, rgba(236,72,153,0.4) 75%, rgba(245,158,11,0.5) 100%)' }}>
                 <div className="relative rounded-[19px] overflow-hidden bg-gradient-to-b from-white/[0.12] to-white/[0.03] backdrop-blur-[32px] p-8 shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
                   <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-400 mb-5">View1 Sort</p>
-                  <p className="text-sm text-white/50 leading-relaxed">You describe the shoot — the AI sorts with that context. Sorts by story and emotional weight, not just pixels. Smart culling flags the obvious misses — you make the final call. Build sorting presets by just talking to the AI. Over time, it starts to sort the way you would.</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-400 mb-6">View1 Sort</p>
+                  <ul className="space-y-4">
+                    {[
+                      'Sorts by story and emotional weight',
+                      'You describe the shoot — AI uses that context',
+                      'Flags obvious misses, you make the final call',
+                      'Build presets just by talking to the AI',
+                      'Learns your style over time',
+                    ].map(item => (
+                      <li key={item} className="flex items-start gap-3">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0" />
+                        <span className="text-[15px] font-semibold text-white/80 leading-snug">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
@@ -686,7 +713,7 @@ export function LandingPage() {
               <div className={`p-6 ${glass} ${glassHighlight}`}>
                 <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-white/10">
                   <div className="h-2 w-2 rounded-full bg-violet-400" />
-                  <span className="text-[13px] font-semibold text-white/70">AI Workspace</span>
+                  <span className="text-[13px] font-semibold text-white/70">AI Sort</span>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-end"><div className="max-w-[300px] rounded-[14px] rounded-br-[4px] bg-gradient-to-r from-indigo-500 to-violet-500 px-3.5 py-2.5 text-[13px] text-white leading-relaxed">It&apos;s a golden hour beach wedding, very emotional ceremony, lots of candid family moments</div></div>
