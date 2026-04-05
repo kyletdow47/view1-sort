@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { AnimatedSection } from './animated-section'
 import { AnimatedCounter } from './animated-counter'
 import { TextColor } from '@/components/ui/text-color'
@@ -12,7 +11,7 @@ import { ProductPreview } from './ProductPreview'
 import {
   Brain, Camera, FolderOpen, Zap, Check, ChevronDown,
   CreditCard, BarChart3, Globe, MessageSquare, Download,
-  Heart, FileText, Smartphone, Bell, Menu, X,
+  Heart, FileText, Smartphone, Bell,
 } from 'lucide-react'
 
 /* Normal glass card — subtle white/glass border like dashboard interior cards */
@@ -539,7 +538,6 @@ function UseCaseTabs() {
 ───────────────────────────────────────────── */
 export function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20)
@@ -562,44 +560,8 @@ export function LandingPage() {
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-500"><Camera size={13} className="text-white" /></div>
             <span className="text-base font-semibold tracking-tight text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>View1 Sort</span>
           </div>
-          <div className="hidden items-center gap-8 md:flex">
-            {['Features', 'Integrations', 'Pricing', 'Blog'].map(item => (
-              <a key={item} href={`#${item.toLowerCase()}`} className="text-sm text-white/40 transition-colors hover:text-white">{item}</a>
-            ))}
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/auth/login" className="hidden text-sm text-white/40 transition-colors hover:text-white md:block">Sign In</Link>
-            <a href="#waitlist" className="rounded-lg btn-rainbow px-5 py-2 text-sm transition-all hidden md:inline-flex">Get Early Access</a>
-            <button
-              className="md:hidden p-2 text-white/60 hover:text-white transition-colors"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
+          <a href="#waitlist" className="rounded-lg btn-rainbow px-5 py-2 text-sm transition-all">Get Early Access</a>
         </div>
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-b border-white/10 bg-black/80 backdrop-blur-xl px-6 py-5">
-            <div className="flex flex-col gap-5">
-              {['Features', 'Integrations', 'Pricing', 'Blog'].map(item => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
-                  className="text-sm text-white/60 transition-colors hover:text-white"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item}
-                </a>
-              ))}
-              <div className="flex flex-col gap-3 pt-2 border-t border-white/10">
-                <Link href="/auth/login" className="text-sm text-white/40 transition-colors hover:text-white" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
-                <a href="#waitlist" className="rounded-lg btn-rainbow px-5 py-2.5 text-sm text-center transition-all" onClick={() => setMobileMenuOpen(false)}>Get Early Access</a>
-              </div>
-            </div>
-          </div>
-        )}
       </nav>
 
       {/* ── SCROLL-JACKED HERO ── */}
@@ -789,8 +751,16 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ── STICKY MOBILE CTA BAR ── */}
+      <div className={`fixed bottom-0 inset-x-0 z-40 md:hidden transition-all duration-500 ${scrolled ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
+        <div className="border-t border-white/10 bg-black/85 backdrop-blur-xl px-5 py-3 flex items-center justify-between gap-3">
+          <p className="text-sm text-white/50 truncate">Founding member pricing</p>
+          <a href="#waitlist" className="rounded-lg btn-rainbow px-4 py-2 text-sm font-medium shrink-0">Get Early Access</a>
+        </div>
+      </div>
+
       {/* ── FOOTER ── */}
-      <footer className="border-t border-white/10 py-10 px-6 relative z-10">
+      <footer className="border-t border-white/10 py-10 px-6 relative z-10 mb-[56px] md:mb-0">
         <div className="mx-auto max-w-7xl flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
             <div className="flex h-5 w-5 items-center justify-center rounded bg-indigo-500"><Camera size={10} className="text-white" /></div>
