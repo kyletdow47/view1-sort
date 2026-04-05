@@ -2,6 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react'
 import NextImage from 'next/image'
+import { Brain, Check, CreditCard, FolderOpen } from 'lucide-react'
+
+/* ── Shared glass style for floating product cards ── */
+const CARD_GLASS = [
+  'rounded-2xl overflow-hidden',
+  'bg-gradient-to-b from-white/[0.12] to-white/[0.04]',
+  'border border-white/[0.10]',
+  'backdrop-blur-[20px]',
+  'shadow-[0_8px_24px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.06)]',
+].join(' ')
 
 /* ── Helpers ── */
 function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)) }
@@ -77,51 +87,234 @@ function Tag2Words({ refs, containerRef, geist }: {
   )
 }
 
+/* ── Inline waitlist form for mobile (avoids cross-module import issue) ── */
+function MobileWaitlistForm({ geist }: { geist: Record<string, string> }) {
+  const [email, setEmail] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email) return
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      if (!res.ok) {
+        const data = await res.json() as { error?: string }
+        throw new Error(data.error ?? 'Failed')
+      }
+      setSubmitted(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-4 text-center">
+        <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.3)' }}>
+          <Check size={20} className="text-violet-400" />
+        </div>
+        <p className="font-semibold text-white text-lg" style={geist}>You&apos;re on the list.</p>
+        <p className="text-sm text-white/40">We&apos;ll email you when access opens.</p>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
+      <div className="flex gap-0 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)' }}>
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+          className="flex-1 px-4 py-4 text-sm text-white placeholder-white/30 outline-none bg-transparent"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="shrink-0 px-5 py-4 text-sm font-medium text-white btn-rainbow disabled:opacity-60 transition-all"
+        >
+          {loading ? 'Joining…' : 'Join'}
+        </button>
+      </div>
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      <p className="text-center text-xs text-white/30">Free to join · Founding member pricing locked in forever</p>
+    </form>
+  )
+}
+
 /* ── Static mobile hero (no scroll-jacking) ── */
 function MobileHero() {
   const geist = { fontFamily: "'Geist', system-ui, sans-serif" } as const
   return (
-    <div className="relative z-10 px-5 pt-28 pb-16 flex flex-col items-center gap-12">
-      {/* Headline */}
-      <h1 className="text-4xl font-bold text-white text-center leading-[1.05] tracking-tight" style={geist}>
-        You shoot the photos.<br />We&apos;ll handle the rest.
-      </h1>
+    <>
+      <style>{`
+        @keyframes mFloatA {
+          0%,100% { transform: translateY(0px) rotate(-1.5deg); }
+          50% { transform: translateY(-10px) rotate(-1.5deg); }
+        }
+        @keyframes mFloatB {
+          0%,100% { transform: translateY(-4px) rotate(2deg); }
+          50% { transform: translateY(8px) rotate(2deg); }
+        }
+        @keyframes mFloatC {
+          0%,100% { transform: translateY(0px) rotate(-0.5deg); }
+          50% { transform: translateY(-13px) rotate(-0.5deg); }
+        }
+        @keyframes mFloatD {
+          0%,100% { transform: translateY(-7px) rotate(1deg); }
+          50% { transform: translateY(5px) rotate(1deg); }
+        }
+        @keyframes mFloatE {
+          0%,100% { transform: translateY(0px) rotate(1.5deg); }
+          50% { transform: translateY(-9px) rotate(1.5deg); }
+        }
+        @keyframes mFadeUp {
+          from { opacity: 0; transform: translateY(22px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes mDot {
+          0%,100% { opacity: 0.4; }
+          50% { opacity: 1; }
+        }
+      `}</style>
 
-      {/* List */}
-      <div className="space-y-2">
-        {LIST_ITEMS.map(item => (
-          <div key={item} className="flex items-center gap-3">
-            <div className="h-2 w-2 rounded-full bg-violet-400 shrink-0" />
-            <span className="text-xl font-bold text-white/90" style={geist}>{item}</span>
-          </div>
-        ))}
-      </div>
+      <div className="relative z-10 px-5 pt-28 pb-20 flex flex-col items-center gap-8">
 
-      {/* Tagline */}
-      <div className="text-center space-y-3">
-        <p className="text-2xl font-bold text-white leading-tight" style={geist}>It all lives in one place now.</p>
-        <p className="text-lg font-bold text-white/40 leading-tight" style={geist}>Built by a photographer who spent years doing it the hard way.</p>
-      </div>
-
-      {/* Mockup */}
-      <div className="w-full rounded-[18px] overflow-hidden border border-white/[0.14] shadow-[0_24px_72px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.05)]" style={{ background: '#0c0c10' }}>
-        {/* Title bar */}
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/[0.08]" style={{ background: 'rgba(255,255,255,0.04)' }}>
-          <div className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
-          <div className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
-          <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
+        {/* Headline */}
+        <div className="text-center" style={{ animation: 'mFadeUp 0.7s ease both' }}>
+          <h1 className="text-[40px] font-bold leading-[1.05] tracking-tight" style={geist}>
+            <span className="text-white">You shoot.<br /></span>
+            <span style={{
+              background: 'linear-gradient(90deg, #F59E0B 0%, #A855F7 55%, #3B82F6 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+              We handle the rest.
+            </span>
+          </h1>
+          <p className="mt-3 text-[15px] text-white/40 leading-relaxed max-w-[260px] mx-auto">
+            AI sorting, delivery, and business ops — one workflow.
+          </p>
         </div>
-        <NextImage
-          src="/images/dashboard-v2-preview.png"
-          alt="View1 Sort Dashboard"
-          width={2940}
-          height={1842}
-          className="w-full h-auto block"
-          priority
-        />
-      </div>
 
-    </div>
+        {/* Floating product UI cards */}
+        <div className="relative w-full px-3" style={{ height: 300, animation: 'mFadeUp 0.7s 0.2s ease both', overflow: 'hidden' }}>
+
+          {/* Ambient glow behind the card cluster */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div style={{ position: 'absolute', top: '20%', left: '30%', width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.13) 0%, transparent 70%)', transform: 'translate(-50%,-50%)' }} />
+            <div style={{ position: 'absolute', bottom: '15%', right: '20%', width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(59,130,246,0.10) 0%, transparent 70%)' }} />
+          </div>
+
+          {/* Card 1: AI Sorting progress — top center */}
+          <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 208, animation: 'mFloatA 4.4s ease-in-out infinite' }}>
+            <div className={CARD_GLASS + ' p-3.5'}>
+              <div className="flex items-center gap-2 mb-2.5">
+                <div className="h-5 w-5 rounded-md bg-violet-400/20 flex items-center justify-center">
+                  <Brain size={11} className="text-violet-400" />
+                </div>
+                <span className="text-[11px] font-semibold text-white/80">AI Sorting</span>
+                <span className="ml-auto text-[11px] font-bold text-violet-400">92%</span>
+              </div>
+              <p className="text-[10px] text-white/35 mb-2">847 photos · beach wedding</p>
+              <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                <div className="h-full rounded-full" style={{ width: '92%', background: 'linear-gradient(90deg, #3B82F6, #A855F7, #EC4899)' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Gallery delivered — left */}
+          <div style={{ position: 'absolute', top: 112, left: 0, width: 172, animation: 'mFloatB 5s ease-in-out infinite' }}>
+            <div className={CARD_GLASS + ' p-3'}>
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(52,211,153,0.15)' }}>
+                  <Check size={13} className="text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold text-white leading-tight">Gallery ready</p>
+                  <p className="text-[10px] mt-0.5 leading-tight text-white/35">Client link sent</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: AI chat bubble — right */}
+          <div style={{ position: 'absolute', top: 100, right: 0, width: 168, animation: 'mFloatC 3.9s ease-in-out infinite' }}>
+            <div className="rounded-2xl rounded-tr-sm border border-white/10 p-3" style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.18), rgba(168,85,247,0.08))', backdropFilter: 'blur(20px)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="h-1.5 w-1.5 rounded-full bg-violet-400" style={{ animation: 'mDot 2s ease-in-out infinite' }} />
+                <span className="text-[9px] font-semibold uppercase tracking-wider text-violet-300/70">AI Workspace</span>
+              </div>
+              <p className="text-[10px] leading-relaxed text-white/65">Prioritizing emotional candids → ceremony moments ✨</p>
+            </div>
+          </div>
+
+          {/* Card 4: Invoice paid — bottom right */}
+          <div style={{ position: 'absolute', bottom: 18, right: '6%', width: 160, animation: 'mFloatD 4.7s ease-in-out infinite' }}>
+            <div className={CARD_GLASS + ' p-3'}>
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(99,102,241,0.15)' }}>
+                  <CreditCard size={12} className="text-indigo-400" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold text-white leading-tight">Invoice paid</p>
+                  <p className="text-[10px] mt-0.5 leading-tight text-white/35">$2,400 · Stripe</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 5: Categories sorted — bottom left */}
+          <div style={{ position: 'absolute', bottom: 10, left: '4%', width: 152, animation: 'mFloatE 3.6s 0.9s ease-in-out infinite' }}>
+            <div className={CARD_GLASS + ' p-3'}>
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(245,158,11,0.15)' }}>
+                  <FolderOpen size={12} className="text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold text-white leading-tight">80 photos sorted</p>
+                  <p className="text-[10px] mt-0.5 leading-tight text-white/35">6 categories</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Feature list */}
+        <div className="flex flex-col gap-2.5 w-full max-w-[260px]" style={{ animation: 'mFadeUp 0.6s 0.45s ease both' }}>
+          {LIST_ITEMS.map((item, i) => (
+            <div key={item} className="flex items-center gap-3" style={{ animation: `mFadeUp 0.5s ${0.5 + i * 0.07}s ease both` }}>
+              <div className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: 'linear-gradient(135deg, #A855F7, #3B82F6)' }} />
+              <span className="text-base font-semibold text-white/85" style={geist}>{item}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Waitlist CTA */}
+        <div className="w-full" style={{ animation: 'mFadeUp 0.7s 0.85s ease both' }}>
+          <div className="rounded-[20px] border border-white/[0.12] p-5" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03))', backdropFilter: 'blur(32px)', boxShadow: '0 8px 32px rgba(0,0,0,0.35)' }}>
+            <p className="text-xl font-bold text-white text-center mb-1" style={geist}>Join the waitlist</p>
+            <p className="text-sm text-white/35 text-center mb-4">Early access + founding member pricing.</p>
+            <MobileWaitlistForm geist={geist} />
+          </div>
+        </div>
+
+      </div>
+    </>
   )
 }
 

@@ -27,16 +27,58 @@ const ALL_WORDS = [...WORDS_LINE1, WORD_LINE2]
 
 function MobileHowItWorks() {
   const geist = { fontFamily: "'Geist', system-ui, sans-serif" } as const
+  const [revealed, setRevealed] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setRevealed(true) },
+      { threshold: 0.25 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <div className="relative z-10 px-5 py-16" id="how-it-works">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <span className="text-xs font-semibold uppercase tracking-[0.15em] text-violet-400">How It Works</span>
-        <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
-          {WORDS_LINE1.map(w => (
-            <span key={w} className="text-4xl font-extrabold text-white leading-none tracking-tight" style={geist}>{w}</span>
-          ))}
-        </div>
-        <span className="text-4xl font-extrabold text-white leading-none tracking-tight" style={geist}>{WORD_LINE2} ✅</span>
+    <div ref={ref} className="relative z-10 px-5 py-20 text-center" id="how-it-works">
+      <style>{`
+        @keyframes howReveal {
+          from { opacity: 0; transform: translateY(28px) scale(0.93); filter: blur(4px); }
+          to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+      `}</style>
+
+      <span className="text-xs font-semibold uppercase tracking-[0.15em] text-violet-400">How It Works</span>
+
+      <div className="mt-8 flex flex-col items-center gap-1">
+        {ALL_WORDS.map((word, i) => {
+          const isLast = i === ALL_WORDS.length - 1
+          return (
+            <span
+              key={word}
+              className="block leading-none tracking-tight"
+              style={{
+                ...geist,
+                fontSize: 52,
+                fontWeight: 800,
+                ...(isLast
+                  ? {
+                      background: RAINBOW,
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    }
+                  : { color: 'white' }),
+                opacity: revealed ? 1 : 0,
+                animation: revealed ? `howReveal 0.65s ${i * 0.22}s ease both` : 'none',
+              }}
+            >
+              {word}
+            </span>
+          )
+        })}
       </div>
     </div>
   )
