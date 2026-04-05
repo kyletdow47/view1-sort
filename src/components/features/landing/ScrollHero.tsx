@@ -13,6 +13,15 @@ const LIST_ITEMS = ['Sorting', 'Culling', 'Gallery delivery', 'Invoicing', 'Clie
 const TAGLINE_1 = 'It all lives in one place now.'
 const TAGLINE_2 = 'We built the tool we wished existed after years of doing it the hard way.'
 
+/* Mobile word collage config — scattered positions, overlapping visibility windows */
+const MOBILE_WORD_CONFIGS = [
+  { word: 'Sorting',           top: '18%', left: '8%',  fs: 36, fw: 800, dx: 80,  dy: -40, w: [0.20, 0.43] },
+  { word: 'Culling',           top: '58%', left: '44%', fs: 42, fw: 900, dx: -75, dy: 38,  w: [0.29, 0.52] },
+  { word: 'Gallery delivery',  top: '40%', left: '5%',  fs: 24, fw: 700, dx: 60,  dy: 22,  w: [0.38, 0.59] },
+  { word: 'Invoicing',         top: '14%', left: '52%', fs: 32, fw: 800, dx: -55, dy: -48, w: [0.47, 0.66] },
+  { word: 'Client management', top: '70%', left: '4%',  fs: 20, fw: 700, dx: 45,  dy: 50,  w: [0.55, 0.73] },
+] as const
+
 /*
  * Timeline (275vh runway):
  *
@@ -89,6 +98,7 @@ function MobileScrollHero() {
   const tag1Ref = useRef<HTMLParagraphElement>(null)
   const tag2Ref = useRef<HTMLParagraphElement>(null)
   const mockupRef = useRef<HTMLDivElement>(null)
+  const mockupInnerRef = useRef<HTMLDivElement>(null)
   const chatRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -112,31 +122,19 @@ function MobileScrollHero() {
         hlContainerRef.current.style.transform = `translateY(${out * -50}px)`
       }
 
-      /* ══ Scene 2: Word carousel (0.20–0.63) ══ */
-      const WINDOWS = [
-        [0.20, 0.29], [0.29, 0.38], [0.38, 0.47], [0.47, 0.56], [0.54, 0.63],
-      ] as const
-      const DIRS = [-1, 1, -1, 1, -1]
-      wordRefs.current.forEach((wEl, i) => {
+      /* ══ Scene 2: Word collage (0.20–0.73) ══ */
+      MOBILE_WORD_CONFIGS.forEach((cfg, i) => {
+        const wEl = wordRefs.current[i]
         if (!wEl) return
-        const [wS, wE] = WINDOWS[i]
+        const [wS, wE] = cfg.w
         const wD = wE - wS
-        const inEnd = wS + wD * 0.35
-        const holdEnd = wS + wD * 0.58
-        if (p < wS || p > wE) { wEl.style.opacity = '0'; return }
-        const dir = DIRS[i]
-        if (p <= inEnd) {
-          const t = easeOut(sp(p, wS, inEnd))
-          wEl.style.opacity = `${t}`
-          wEl.style.transform = `translateX(${dir * (1 - t) * -130}px) scale(${0.65 + t * 0.60})`
-        } else if (p <= holdEnd) {
-          wEl.style.opacity = '1'
-          wEl.style.transform = 'translateX(0) scale(1.25)'
-        } else {
-          const t = easeOut(sp(p, holdEnd, wE))
-          wEl.style.opacity = `${1 - t}`
-          wEl.style.transform = `translateX(0) scale(${1.25 - t * 0.65})`
-        }
+        const inEnd = wS + wD * 0.38
+        const holdEnd = wS + wD * 0.62
+        if (p < wS || p > wE) { wEl.style.opacity = '0'; wEl.style.transform = 'none'; return }
+        const tIn = easeOut(sp(p, wS, inEnd))
+        const tOut = easeOut(sp(p, holdEnd, wE))
+        wEl.style.opacity = `${tIn * (1 - tOut)}`
+        wEl.style.transform = `translate(${cfg.dx * (1 - tIn)}px, ${cfg.dy * (1 - tIn)}px)`
       })
 
       /* ══ Scene 3: Taglines (0.63–0.76) ══ */
@@ -151,28 +149,36 @@ function MobileScrollHero() {
         tag2Ref.current.style.transform = `translateY(${(1 - t2In) * 28}px)`
       }
 
-      /* ══ Scene 4: Mockup slides in, zooms out (0.74–0.93) ══ */
+      /* ══ Scene 4: Mockup slides in → zooms into Welcome Kyle header (0.74–0.95) ══ */
       if (mockupRef.current) {
         if (p < 0.74) {
           mockupRef.current.style.opacity = '0'
-          mockupRef.current.style.transform = 'translateY(80px) scale(0.9)'
-        } else if (p <= 0.86) {
-          const t = easeOut(sp(p, 0.74, 0.82))
+          mockupRef.current.style.transform = 'translateY(80px) scale(0.88)'
+        } else if (p <= 0.87) {
+          const t = easeOut(sp(p, 0.74, 0.83))
           mockupRef.current.style.opacity = `${t}`
-          mockupRef.current.style.transform = `translateY(${(1 - t) * 80}px) scale(${0.9 + t * 0.12})`
+          mockupRef.current.style.transform = `translateY(${(1 - t) * 80}px) scale(${0.88 + t * 0.12})`
         } else {
-          const t = easeOut(sp(p, 0.86, 0.93))
+          const t = easeOut(sp(p, 0.87, 0.95))
           mockupRef.current.style.opacity = `${1 - t}`
-          mockupRef.current.style.transform = `scale(${1.02 + t * 0.13})`
+          mockupRef.current.style.transform = 'scale(1)'
+        }
+      }
+      if (mockupInnerRef.current) {
+        if (p <= 0.82) {
+          mockupInnerRef.current.style.transform = 'scale(1) translateY(0)'
+        } else {
+          const zT = easeOut(sp(p, 0.82, 0.94))
+          mockupInnerRef.current.style.transform = `scale(${1 + zT * 2.3}) translateY(${-zT * 14}%)`
         }
       }
 
-      /* ══ Scene 5: AI chat bubble floats up (0.90–1.00) ══ */
+      /* ══ Scene 5: Welcome Kyle card floats up (0.90–1.00) ══ */
       if (chatRef.current) {
         const cIn = easeOut(sp(p, 0.90, 0.95))
         const cOut = easeOut(sp(p, 0.96, 1.00))
         chatRef.current.style.opacity = `${cIn * (1 - cOut)}`
-        chatRef.current.style.transform = `translateY(${(1 - cIn) * 50 - cOut * 80}px)`
+        chatRef.current.style.transform = `translateY(${(1 - cIn) * 40 - cOut * 100}px)`
       }
 
       raf.current = requestAnimationFrame(animate)
@@ -192,9 +198,10 @@ function MobileScrollHero() {
         >
           <h1
             ref={hlH1Ref}
-            className="text-[42px] sm:text-[52px] font-bold text-center leading-[1.05] tracking-tight will-change-[background-position]"
+            className="font-bold text-center leading-[1.1] tracking-tight will-change-[background-position]"
             style={{
               ...geist,
+              fontSize: 'clamp(24px, 6.8vw, 42px)',
               backgroundImage: 'linear-gradient(90deg, white 0%, white 30%, #F59E0B 42%, #A855F7 56%, #3B82F6 68%, white 78%, white 100%)',
               backgroundSize: '300% 100%',
               backgroundPositionX: '0%',
@@ -207,19 +214,19 @@ function MobileScrollHero() {
           </h1>
         </div>
 
-        {/* Scene 2: Word carousel */}
-        {LIST_ITEMS.map((word, i) => (
+        {/* Scene 2: Word collage — scattered absolute positions, overlapping */}
+        {MOBILE_WORD_CONFIGS.map((cfg, i) => (
           <div
-            key={word}
+            key={cfg.word}
             ref={el => { wordRefs.current[i] = el }}
-            className="absolute inset-0 flex items-center justify-center px-6 will-change-[transform,opacity]"
-            style={{ opacity: 0 }}
+            className="absolute will-change-[transform,opacity]"
+            style={{ top: cfg.top, left: cfg.left, opacity: 0 }}
           >
             <span
-              className="font-extrabold text-white text-center leading-none tracking-tight"
-              style={{ ...geist, fontSize: 'clamp(40px, 12vw, 64px)' }}
+              className="text-white leading-tight tracking-tight block"
+              style={{ ...geist, fontSize: cfg.fs, fontWeight: cfg.fw }}
             >
-              {word}
+              {cfg.word}
             </span>
           </div>
         ))}
@@ -249,7 +256,7 @@ function MobileScrollHero() {
           style={{ opacity: 0 }}
         >
           <div className="w-full max-w-[360px]">
-            <div className="rounded-[18px] overflow-hidden border border-white/[0.14] shadow-[0_24px_72px_rgba(0,0,0,0.65)]" style={{ background: '#0c0c10' }}>
+            <div ref={mockupInnerRef} className="rounded-[18px] overflow-hidden border border-white/[0.14] shadow-[0_24px_72px_rgba(0,0,0,0.65)] will-change-[transform]" style={{ background: '#0c0c10', transformOrigin: 'top center' }}>
               <div className="flex items-center gap-1.5 px-3.5 py-2.5 border-b border-white/[0.08]" style={{ background: 'rgba(255,255,255,0.04)' }}>
                 <div className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
                 <div className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
@@ -268,35 +275,37 @@ function MobileScrollHero() {
           </div>
         </div>
 
-        {/* Scene 5: Floating AI chat bubble */}
-        <div className="absolute inset-0 flex items-center justify-center px-6 pointer-events-none">
+        {/* Scene 5: Welcome Kyle floating card (zoomed-in dashboard header) */}
+        <div className="absolute inset-0 flex items-center justify-center px-5 pointer-events-none">
           <div
             ref={chatRef}
-            className="will-change-[transform,opacity] w-full max-w-[320px]"
+            className="will-change-[transform,opacity] w-full max-w-[300px]"
             style={{ opacity: 0 }}
           >
             <div
-              className="rounded-2xl border border-white/[0.12] p-5"
+              className="rounded-2xl border border-white/[0.15] p-5"
               style={{
-                background: 'linear-gradient(135deg, rgba(99,102,241,0.20), rgba(168,85,247,0.10))',
-                backdropFilter: 'blur(32px)',
-                boxShadow: '0 16px 48px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.06)',
+                background: 'linear-gradient(135deg, rgba(10,10,22,0.93), rgba(28,18,58,0.90))',
+                backdropFilter: 'blur(40px)',
+                boxShadow: '0 24px 64px rgba(0,0,0,0.72), 0 1px 0 rgba(255,255,255,0.07)',
               }}
             >
-              <div className="flex items-center gap-2.5 mb-3">
-                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center shrink-0">
-                  <Brain size={13} className="text-white" />
-                </div>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-violet-300">View1 AI</span>
-                <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              </div>
-              <p className="text-[13px] text-white/55 mb-3 leading-relaxed">
-                Ask View1, &ldquo;<span className="text-white font-medium">which clients haven&apos;t completed payment?</span>&rdquo;
+              <p className="text-[26px] font-bold text-white leading-none mb-4" style={geist}>
+                Welcome Kyle,
               </p>
-              <div className="rounded-xl border border-white/[0.08] px-3.5 py-3" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                <p className="text-[12px] text-white/65 leading-relaxed">
-                  3 outstanding — Johnson Wedding ($2,400), Oak Street Realty ($850), Martin Events ($1,200)
+              <div
+                className="rounded-xl border border-indigo-500/25 px-3.5 py-3 flex items-center gap-2.5"
+                style={{ background: 'rgba(99,102,241,0.13)' }}
+              >
+                <div className="h-5 w-5 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shrink-0">
+                  <Brain size={10} className="text-white" />
+                </div>
+                <p className="text-[12px] text-white/40 flex-1 leading-relaxed">
+                  Ask View1, &ldquo;<span className="text-white/70">which clients haven&apos;t paid?</span>&rdquo;
                 </p>
+                <div className="h-5 w-5 rounded-full bg-indigo-500 flex items-center justify-center shrink-0">
+                  <span className="text-white text-[9px] font-bold leading-none">↑</span>
+                </div>
               </div>
             </div>
           </div>
