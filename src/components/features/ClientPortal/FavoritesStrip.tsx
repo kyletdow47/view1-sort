@@ -37,11 +37,19 @@ export function FavoritesStrip({ favorites, totalCount }: FavoritesStripProps) {
             key={photo.id}
             className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 border-white/10 transition-all hover:border-white/30"
           >
-            <img
-              src={photo.thumbnailUrl}
-              alt={photo.alt}
-              className="h-full w-full object-cover"
-            />
+            {photo.thumbnailUrl ? (
+              <img
+                src={photo.thumbnailUrl}
+                alt={photo.alt}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div
+                className="h-full w-full bg-white/5"
+                role="img"
+                aria-label={photo.alt}
+              />
+            )}
           </div>
         ))}
       </div>

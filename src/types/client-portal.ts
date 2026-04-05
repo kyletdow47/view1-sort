@@ -47,7 +47,7 @@ export interface PhotographerBrand {
 /** A favorited photo thumbnail in the favorites strip */
 export interface FavoritePhoto {
   id: string
-  thumbnailUrl: string
+  thumbnailUrl: string | null
   alt: string
   orientation: MediaOrientation | null
 }

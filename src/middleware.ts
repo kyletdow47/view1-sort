@@ -47,22 +47,40 @@ export async function middleware(request: NextRequest) {
   const isDashboard = pathname.startsWith('/dashboard')
   const isOnboarding = pathname.startsWith('/onboarding')
   const isAuth = pathname.startsWith('/auth')
+  // Client portal routes (photographer-facing auth uses /dashboard, clients use /client)
+  const isClientPortal = pathname.startsWith('/client')
+  // Client-specific auth pages — should NOT redirect authenticated photographers to /dashboard
+  const isClientAuthPage =
+    pathname === '/auth/client-login' ||
+    pathname.startsWith('/auth/client-callback')
 
-  // Redirect unauthenticated users away from protected routes
+  // ── Protect client portal (/client) ──────────────────────────────────────
+  // Requires any valid Supabase session (photographer or client).
+  // Redirects to /auth/client-login with ?next= for return after auth.
+  if (isClientPortal && !user) {
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/auth/client-login'
+    loginUrl.searchParams.set('next', pathname + (request.nextUrl.search ?? ''))
+    return NextResponse.redirect(loginUrl)
+  }
+
+  // ── Protect photographer dashboard ───────────────────────────────────────
   if ((isDashboard || isOnboarding) && !user) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/auth/login'
     return NextResponse.redirect(loginUrl)
   }
 
-  // Redirect authenticated users away from auth pages
-  if (isAuth && user) {
+  // ── Redirect authenticated photographers away from photographer auth pages ─
+  // Skip this redirect for client-specific auth pages (/auth/client-login,
+  // /auth/client-callback) so clients can still use them after auth.
+  if (isAuth && !isClientAuthPage && user) {
     const dashboardUrl = request.nextUrl.clone()
     dashboardUrl.pathname = '/dashboard'
     return NextResponse.redirect(dashboardUrl)
   }
 
-  // Check onboarding status for authenticated dashboard users
+  // ── Check onboarding for authenticated dashboard users ───────────────────
   if (isDashboard && user) {
     const { data: profile } = await supabase
       .from('profiles')

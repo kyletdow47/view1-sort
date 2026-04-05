@@ -14,7 +14,7 @@ import {
   Crown,
   CheckCircle2,
   Clock,
-  ExternalLink,
+
   Bell,
   BarChart3,
   Target,
@@ -30,9 +30,10 @@ import {
   TrendingUp,
   Camera,
   MapPin,
-  Hash,
 } from 'lucide-react'
 import Link from 'next/link'
+import { ClientDetailInvoicesTab } from '@/components/features/clients/ClientDetailInvoicesTab'
+import { ClientDetailProjectsTab } from '@/components/features/clients/ClientDetailProjectsTab'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -40,7 +41,6 @@ import Link from 'next/link'
 
 type TabId = 'overview' | 'projects' | 'invoices' | 'statistics' | 'tasks' | 'portal'
 type ProjectStatus = 'completed' | 'in_progress' | 'delivered'
-type InvoiceStatus = 'paid' | 'pending' | 'overdue'
 type TaskPriority = 'high' | 'medium' | 'low'
 type TaskFilter = 'all' | 'pending' | 'completed'
 
@@ -54,14 +54,7 @@ interface Project {
   type: string
 }
 
-interface Invoice {
-  id: string
-  number: string
-  date: string
-  project: string
-  amount: number
-  status: InvoiceStatus
-}
+// Invoice interface removed — invoices now handled by ClientDetailInvoicesTab component
 
 interface Task {
   id: string
@@ -121,18 +114,7 @@ const projects: Project[] = [
   { id: 'p-009', name: 'Corporate Headshots — Mitchell & Co', status: 'completed', date: '2025-11-02', photos: 48, amount: 350, type: 'Corporate' },
 ]
 
-const invoices: Invoice[] = [
-  { id: 'inv-001', number: 'INV-2025-0042', date: '2025-04-14', project: 'Engagement Shoot — Central Park', amount: 650, status: 'paid' },
-  { id: 'inv-002', number: 'INV-2025-0067', date: '2025-06-30', project: 'Wedding Day — The Plaza Hotel', amount: 2400, status: 'paid' },
-  { id: 'inv-003', number: 'INV-2025-0089', date: '2025-07-12', project: 'Maternity Shoot — Botanical Garden', amount: 600, status: 'paid' },
-  { id: 'inv-004', number: 'INV-2025-0101', date: '2025-08-21', project: 'Newborn Session — Home Studio', amount: 800, status: 'paid' },
-  { id: 'inv-005', number: 'INV-2025-0115', date: '2025-09-07', project: 'Family Portraits — Riverside', amount: 450, status: 'paid' },
-  { id: 'inv-006', number: 'INV-2025-0134', date: '2025-11-04', project: 'Corporate Headshots — Mitchell & Co', amount: 350, status: 'paid' },
-  { id: 'inv-007', number: 'INV-2025-0156', date: '2025-12-16', project: 'Holiday Mini Session', amount: 250, status: 'paid' },
-  { id: 'inv-008', number: 'INV-2026-0012', date: '2026-02-10', project: 'Anniversary Portraits — Brooklyn Bridge', amount: 550, status: 'paid' },
-  { id: 'inv-009', number: 'INV-2026-0031', date: '2026-03-24', project: 'Spring Family Session', amount: 500, status: 'pending' },
-  { id: 'inv-010', number: 'INV-2026-0035', date: '2026-03-01', project: 'Retouching Add-on — Wedding', amount: 200, status: 'overdue' },
-]
+// invoices array removed — now managed by ClientDetailInvoicesTab component
 
 const tasks: Task[] = [
   { id: 't-001', description: 'Deliver final Spring Family Session gallery', dueDate: '2026-04-01', priority: 'high', completed: false },
@@ -183,17 +165,8 @@ const projectTypeBreakdown = [
 /*  Style helpers                                                      */
 /* ------------------------------------------------------------------ */
 
-const projectStatusColors: Record<ProjectStatus, string> = {
-  completed: 'bg-emerald-500/15 text-emerald-400',
-  in_progress: 'bg-amber-500/15 text-amber-400',
-  delivered: 'bg-teal-500/15 text-teal-400',
-}
-
-const invoiceStatusColors: Record<InvoiceStatus, string> = {
-  paid: 'bg-emerald-500/15 text-emerald-400',
-  pending: 'bg-amber-500/15 text-amber-400',
-  overdue: 'bg-red-500/15 text-red-400',
-}
+// projectStatusColors removed — now handled in ClientDetailProjectsTab
+// invoiceStatusColors removed — now handled in ClientDetailInvoicesTab
 
 const priorityColors: Record<TaskPriority, string> = {
   high: 'bg-red-500/15 text-red-400',
@@ -402,122 +375,12 @@ function OverviewTab({ note, setNote }: { note: string; setNote: (v: string) => 
   )
 }
 
-function ProjectsTab() {
-  return (
-    <div>
-      <SectionTitle icon={FolderOpen}>Projects</SectionTitle>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {projects.map((project) => (
-          <div
-            key={project.id}
-            className="rounded-2xl border border-outline-variant/30 bg-surface-container overflow-hidden hover:border-outline-variant/60 transition-all group"
-          >
-            {/* Thumbnail placeholder */}
-            <div className="h-36 bg-gradient-to-br from-surface-highest/20 to-background flex items-center justify-center relative">
-              <Camera size={32} className="text-on-surface/10" />
-              <div className="absolute top-3 right-3">
-                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider ${projectStatusColors[project.status]}`}>
-                  {project.status.replace('_', ' ')}
-                </span>
-              </div>
-              <div className="absolute bottom-3 left-3 flex items-center gap-1 text-[10px] text-on-surface/40">
-                <Hash size={10} />
-                {project.id}
-              </div>
-            </div>
-            {/* Card body */}
-            <div className="p-4">
-              <h3 className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors truncate">
-                {project.name}
-              </h3>
-              <div className="flex items-center gap-3 mt-2 text-xs text-on-surface/40">
-                <span className="flex items-center gap-1">
-                  <Calendar size={11} />
-                  {new Date(project.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Camera size={11} />
-                  {project.photos}
-                </span>
-              </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-outline-variant/20">
-                <span className="text-xs text-on-surface/40">{project.type}</span>
-                <span className="text-sm font-bold text-on-surface">${project.amount.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
+// ProjectsTab replaced by ClientDetailProjectsTab component (imported above)
+// Full feature set: status/sort filters, quick actions (view gallery, open workspace, create invoice),
+// summary bar (total projects, active, total photos, total billed), New Project button
 
-function InvoicesTab() {
-  const totalPaid = invoices.filter((i) => i.status === 'paid').reduce((s, i) => s + i.amount, 0)
-  const totalPending = invoices.filter((i) => i.status === 'pending').reduce((s, i) => s + i.amount, 0)
-  const totalOverdue = invoices.filter((i) => i.status === 'overdue').reduce((s, i) => s + i.amount, 0)
-
-  return (
-    <Card>
-      <SectionTitle icon={FileText}>Invoices</SectionTitle>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-outline-variant/30">
-              {['Invoice #', 'Date', 'Project', 'Amount', 'Status', ''].map((h) => (
-                <th key={h} className={`pb-3 pr-4 text-[10px] uppercase tracking-widest text-on-surface/40 font-medium ${h === 'Amount' ? 'text-right' : 'text-left'}`}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.map((inv) => (
-              <tr key={inv.id} className="border-b border-outline-variant/15 last:border-0 hover:bg-on-surface/[0.02] transition-colors">
-                <td className="py-3.5 pr-4 text-sm font-mono text-on-surface/70">{inv.number}</td>
-                <td className="py-3.5 pr-4 text-sm text-on-surface/50">
-                  {new Date(inv.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </td>
-                <td className="py-3.5 pr-4 text-sm text-on-surface max-w-[240px] truncate">{inv.project}</td>
-                <td className="py-3.5 pr-4 text-sm font-bold text-on-surface text-right">${inv.amount.toLocaleString()}</td>
-                <td className="py-3.5 pr-4">
-                  <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-wider ${invoiceStatusColors[inv.status]}`}>
-                    {inv.status}
-                  </span>
-                </td>
-                <td className="py-3.5">
-                  <button className="rounded-lg p-1.5 text-on-surface/20 hover:text-on-surface/60 transition-colors">
-                    <ExternalLink size={14} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Summary */}
-      <div className="mt-6 pt-4 border-t border-outline-variant/30 flex flex-wrap gap-6">
-        <div>
-          <p className="text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">Total Paid</p>
-          <p className="text-lg font-bold text-emerald-400">${totalPaid.toLocaleString()}</p>
-        </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">Pending</p>
-          <p className="text-lg font-bold text-amber-400">${totalPending.toLocaleString()}</p>
-        </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">Overdue</p>
-          <p className="text-lg font-bold text-red-400">${totalOverdue.toLocaleString()}</p>
-        </div>
-        <div className="ml-auto">
-          <p className="text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">Grand Total</p>
-          <p className="text-lg font-bold text-on-surface">${(totalPaid + totalPending + totalOverdue).toLocaleString()}</p>
-        </div>
-      </div>
-    </Card>
-  )
-}
+// InvoicesTab replaced by ClientDetailInvoicesTab component (imported above)
+// Full feature set: status filter, date range filter, InvoiceCreator modal, quick actions, running totals
 
 function StatisticsTab() {
   const maxRevenue = Math.max(...revenueByMonth.map((r) => r.amount))
@@ -895,8 +758,20 @@ export default function ClientProfilePage() {
       {/* ============ TAB CONTENT ============ */}
       <div>
         {activeTab === 'overview' && <OverviewTab note={note} setNote={setNote} />}
-        {activeTab === 'projects' && <ProjectsTab />}
-        {activeTab === 'invoices' && <InvoicesTab />}
+        {activeTab === 'projects' && (
+          <ClientDetailProjectsTab
+            clientName={client.name}
+            clientEmail={client.email}
+            totalRevenue={client.totalSpent}
+            projects={projects}
+          />
+        )}
+        {activeTab === 'invoices' && (
+          <ClientDetailInvoicesTab
+            clientName={client.name}
+            clientEmail={client.email}
+          />
+        )}
         {activeTab === 'statistics' && <StatisticsTab />}
         {activeTab === 'tasks' && <TasksTab />}
         {activeTab === 'portal' && <PortalTab />}

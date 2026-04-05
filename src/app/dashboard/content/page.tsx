@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import {
   Camera,
-  ChevronLeft,
-  ChevronRight,
   ExternalLink,
   Heart,
   // Instagram icon not exported from lucide-react; using Camera as fallback
@@ -15,6 +13,9 @@ import {
 } from 'lucide-react'
 import { V2Shell } from '@/components/features/dashboard-v2/V2Shell'
 import { GlassCard } from '@/components/features/dashboard-v2/GlassCard'
+import { PostCreator } from '@/components/features/content/PostCreator'
+import { ContentCalendar } from '@/components/features/content/ContentCalendar'
+import type { ContentPost } from '@/types/content'
 
 /* ─── Mock Data ───────────────────────────────────────────────────────────── */
 
@@ -35,23 +36,29 @@ const topPosts = [
   { title: 'Studio Setup Tour', likes: 167, comments: 42, platform: 'TikTok', color: 'from-cyan-400/50 to-blue-600/50' },
 ]
 
-const calendarDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const scheduledPosts: Record<number, string[]> = {
-  3: ['instagram'], 7: ['facebook'], 10: ['instagram', 'tiktok'],
-  14: ['instagram'], 18: ['facebook'], 21: ['instagram'],
-  24: ['tiktok'], 28: ['instagram', 'facebook'],
-}
-const platformColors: Record<string, string> = {
-  instagram: 'bg-pink-500', facebook: 'bg-blue-500', tiktok: 'bg-white', pinterest: 'bg-red-500',
-}
+// TODO(analytics-api): fetch real scheduled posts from database
+const MOCK_POSTS: ContentPost[] = [
+  { id: 'cp-1', photoIds: [], caption: 'Golden hour portraits from last weekend', hashtags: ['#portraits', '#goldenhour'], platforms: ['instagram'], status: 'scheduled', scheduledAt: '2026-04-03T09:00:00.000Z', createdAt: '2026-04-01T10:00:00.000Z' },
+  { id: 'cp-2', photoIds: [], caption: 'Behind the scenes at the studio', hashtags: ['#bts', '#studio'], platforms: ['facebook'], status: 'scheduled', scheduledAt: '2026-04-07T14:00:00.000Z', createdAt: '2026-04-02T10:00:00.000Z' },
+  { id: 'cp-3', photoIds: [], caption: 'New project reveal — wedding season is here', hashtags: ['#weddings', '#bridal'], platforms: ['instagram'], status: 'scheduled', scheduledAt: '2026-04-10T10:00:00.000Z', createdAt: '2026-04-03T10:00:00.000Z' },
+  { id: 'cp-4', photoIds: [], caption: 'Studio setup tour', hashtags: ['#studio', '#bts'], platforms: ['tiktok'], status: 'scheduled', scheduledAt: '2026-04-10T16:00:00.000Z', createdAt: '2026-04-03T11:00:00.000Z' },
+  { id: 'cp-5', photoIds: [], caption: 'Family portraits — spring edition', hashtags: ['#family', '#spring'], platforms: ['instagram'], status: 'scheduled', scheduledAt: '2026-04-14T09:30:00.000Z', createdAt: '2026-04-05T10:00:00.000Z' },
+  { id: 'cp-6', photoIds: [], caption: 'Meridian Hotel brand shoot wrap-up', hashtags: ['#commercial', '#branding'], platforms: ['facebook'], status: 'scheduled', scheduledAt: '2026-04-18T11:00:00.000Z', createdAt: '2026-04-06T10:00:00.000Z' },
+  { id: 'cp-7', photoIds: [], caption: 'Engagement session highlights', hashtags: ['#engagement', '#love'], platforms: ['instagram'], status: 'scheduled', scheduledAt: '2026-04-21T08:00:00.000Z', createdAt: '2026-04-08T10:00:00.000Z' },
+  { id: 'cp-8', photoIds: [], caption: 'Editing workflow deep dive', hashtags: ['#photography', '#editing'], platforms: ['tiktok'], status: 'scheduled', scheduledAt: '2026-04-24T15:00:00.000Z', createdAt: '2026-04-10T10:00:00.000Z' },
+  { id: 'cp-9', photoIds: [], caption: 'Spring mini sessions — spots still available!', hashtags: ['#minisessions', '#portraits'], platforms: ['instagram'], status: 'scheduled', scheduledAt: '2026-04-28T09:00:00.000Z', createdAt: '2026-04-12T10:00:00.000Z' },
+  { id: 'cp-10', photoIds: [], caption: 'Client feature: Chen family newborns', hashtags: ['#newborn', '#family'], platforms: ['facebook'], status: 'scheduled', scheduledAt: '2026-04-28T14:00:00.000Z', createdAt: '2026-04-12T11:00:00.000Z' },
+]
 
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 
 export default function ContentHubPage() {
   const [activePlatform, setActivePlatform] = useState('All')
+  const [showPostCreator, setShowPostCreator] = useState(false)
 
   return (
     <V2Shell>
+      {showPostCreator && <PostCreator onClose={() => setShowPostCreator(false)} />}
       <div className="mx-auto max-w-[1280px] space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">
@@ -60,7 +67,10 @@ export default function ContentHubPage() {
             <p className="mt-1 text-sm text-white/60">Showcase and promote your best work.</p>
           </div>
           <div className="flex gap-2">
-            <button className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600">
+            <button
+              onClick={() => setShowPostCreator(true)}
+              className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600"
+            >
               <Plus className="h-4 w-4" /> New Post
             </button>
             <button className="flex items-center gap-2 rounded-xl border border-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/10">
@@ -121,52 +131,19 @@ export default function ContentHubPage() {
 
         {/* Calendar + Create Post */}
         <div className="grid grid-cols-3 gap-4">
-          {/* Social Calendar */}
-          <GlassCard className="col-span-2">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h3 className="text-sm font-semibold text-white">April 2026</h3>
-                <div className="flex gap-1">
-                  <button className="rounded p-1 text-white/40 hover:text-white"><ChevronLeft className="h-3.5 w-3.5" /></button>
-                  <button className="rounded p-1 text-white/40 hover:text-white"><ChevronRight className="h-3.5 w-3.5" /></button>
-                </div>
-              </div>
-              <div className="flex gap-1">
-                <button className="rounded-lg bg-white/10 px-2.5 py-1 text-[10px] text-white">Month</button>
-                <button className="rounded-lg px-2.5 py-1 text-[10px] text-white/40">Week</button>
-              </div>
-            </div>
-            <div className="grid grid-cols-7 gap-1">
-              {calendarDays.map((d) => (
-                <div key={d} className="text-center text-[9px] font-medium uppercase text-white/30 py-1">{d}</div>
-              ))}
-              {Array.from({ length: 35 }, (_, i) => {
-                const day = i - 2 // April 2026 starts on Wednesday (offset 3)
-                const validDay = day > 0 && day <= 30 ? day : null
-                const posts = validDay ? scheduledPosts[validDay] : undefined
-                return (
-                  <div key={i} className={`relative flex h-10 items-center justify-center rounded-lg text-xs ${validDay ? 'text-white/60 hover:bg-white/5 cursor-pointer' : ''}`}>
-                    {validDay}
-                    {posts && (
-                      <div className="absolute bottom-1 flex gap-0.5">
-                        {posts.map((p, pi) => (
-                          <div key={pi} className={`h-1 w-1 rounded-full ${platformColors[p]}`} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-            <div className="mt-3 flex gap-4">
-              {Object.entries(platformColors).filter(([k]) => k !== 'tiktok').map(([name, color]) => (
-                <div key={name} className="flex items-center gap-1.5">
-                  <div className={`h-2 w-2 rounded-full ${color}`} />
-                  <span className="text-[9px] capitalize text-white/30">{name}</span>
-                </div>
-              ))}
-            </div>
-          </GlassCard>
+          {/* Content Calendar — full interactive month/week with dnd-kit drag */}
+          <div className="col-span-2 h-[500px]">
+            <ContentCalendar
+              posts={MOCK_POSTS}
+              onDayClick={() => setShowPostCreator(true)}
+              onPostClick={() => setShowPostCreator(true)}
+              onReschedule={(postId, newIso) => {
+                // TODO(analytics-api): persist reschedule to database
+                void postId
+                void newIso
+              }}
+            />
+          </div>
 
           {/* Create Post */}
           <GlassCard className="space-y-3">

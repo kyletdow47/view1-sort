@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useRef, useState } from 'react'
-import { Aperture, Bell, Search, Settings } from 'lucide-react'
+import { Aperture, Search, Settings } from 'lucide-react'
 import { TodoTrigger, TodoDropdown } from './TodoPanel'
 import { useCommandBar } from '@/hooks/useCommandBar'
+import { NotificationBell } from '@/components/features/notifications/NotificationBell'
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard' },
@@ -79,17 +80,10 @@ export function TopNav({ userInitials = 'KD', unreadCount = 0, onBellClick }: To
           <span className="text-xs">Search</span>
           <kbd className="rounded border border-white/10 bg-white/5 px-1 py-px text-[9px]">⌘K</kbd>
         </button>
-        <button
-          onClick={onBellClick}
-          className="relative text-white/[0.67] transition-colors hover:text-white"
-        >
-          <Bell className="h-[18px] w-[18px]" />
-          {unreadCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-500 px-0.5 text-[9px] font-bold text-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
-        </button>
+        <NotificationBell
+          unreadCount={unreadCount ?? 0}
+          onClick={onBellClick ?? (() => {})}
+        />
         <TodoTrigger
           open={todoOpen}
           onToggle={() => setTodoOpen((v) => !v)}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Plus, Download, Send, CheckCircle } from 'lucide-react'
-import { InvoiceBuilder } from './InvoiceBuilder'
+import { InvoiceCreator } from './InvoiceCreator'
 
 interface Invoice {
   id: string
@@ -59,33 +59,19 @@ const getStatusColor = (status: string) => {
     pending: 'bg-amber-500/20 text-amber-300',
     overdue: 'bg-red-500/20 text-red-300',
   }
-  return colors[status] || colors.pending
+  return colors[status] ?? 'bg-amber-500/20 text-amber-300'
 }
 
 export function InvoicesTab() {
-  const [showBuilder, setShowBuilder] = useState(false)
-
-  if (showBuilder) {
-    return (
-      <div>
-        <button
-          onClick={() => setShowBuilder(false)}
-          className="mb-6 text-sm text-white/60 hover:text-white"
-        >
-          ← Back to Invoices
-        </button>
-        <InvoiceBuilder onClose={() => setShowBuilder(false)} />
-      </div>
-    )
-  }
+  const [showCreator, setShowCreator] = useState(false)
 
   return (
     <div className="space-y-6">
       {/* Create Invoice Button */}
       <div className="flex justify-end">
         <button
-          onClick={() => setShowBuilder(true)}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          onClick={() => setShowCreator(true)}
+          className="flex items-center gap-2 rounded-xl bg-[#5749F4] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#4638D8]"
         >
           <Plus className="h-4 w-4" />
           Create Invoice
@@ -125,20 +111,20 @@ export function InvoicesTab() {
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-2">
                       <button
-                        className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors"
+                        className="rounded p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
                         title="Send Invoice"
                       >
                         <Send className="h-4 w-4" />
                       </button>
                       <button
-                        className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors"
+                        className="rounded p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
                         title="Download Invoice"
                       >
                         <Download className="h-4 w-4" />
                       </button>
                       {invoice.status !== 'paid' && (
                         <button
-                          className="p-2 text-white/60 hover:text-green-400 hover:bg-white/10 rounded transition-colors"
+                          className="rounded p-2 text-white/60 transition-colors hover:bg-white/10 hover:text-green-400"
                           title="Mark as Paid"
                         >
                           <CheckCircle className="h-4 w-4" />
@@ -152,6 +138,13 @@ export function InvoicesTab() {
           </table>
         </div>
       </div>
+
+      {/* Invoice Creator Modal */}
+      {showCreator && (
+        <InvoiceCreator
+          onClose={() => setShowCreator(false)}
+        />
+      )}
     </div>
   )
 }

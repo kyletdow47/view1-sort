@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { InvoiceCreator } from '@/components/features/finances/InvoiceCreator'
 import {
   AreaChart,
   Area,
@@ -70,6 +71,7 @@ function ChartTooltipContent({ active, payload, label }: { active?: boolean; pay
 
 export default function FinancesPage() {
   const [activeTab, setActiveTab] = useState<string>('Finance')
+  const [showInvoiceCreator, setShowInvoiceCreator] = useState(false)
 
   return (
     <V2Shell>
@@ -77,7 +79,10 @@ export default function FinancesPage() {
         {/* Header */}
         <div className="flex items-start justify-between">
           <h1 className="font-headline text-4xl font-bold text-white">Analytics</h1>
-          <button className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600">
+          <button
+            onClick={() => setShowInvoiceCreator(true)}
+            className="flex items-center gap-2 rounded-xl bg-[#5749F4] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#4638D8]"
+          >
             <Plus className="h-4 w-4" /> Create Invoice
           </button>
         </div>
@@ -187,6 +192,11 @@ export default function FinancesPage() {
           </div>
         </div>
       </div>
+
+      {/* Invoice Creator Modal */}
+      {showInvoiceCreator && (
+        <InvoiceCreator onClose={() => setShowInvoiceCreator(false)} />
+      )}
     </V2Shell>
   )
 }
