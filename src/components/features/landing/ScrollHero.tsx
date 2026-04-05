@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import NextImage from 'next/image'
-import { WaitlistForm } from './WaitlistForm'
 
 /* ── Helpers ── */
 function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)) }
@@ -14,13 +13,11 @@ const TAGLINE_1 = 'It all lives in one place now.'
 const TAGLINE_2 = 'We built the tool we wished existed after years of doing it the hard way.'
 
 /*
- * Timeline (225vh runway):
+ * Timeline (275vh runway):
  *
  * Scene 1  0.00–0.14  Headline zoom+disperse
- * Scene 2  0.14–0.44  List accumulates → slides left → taglines on right → fade out
- * Scene 3  0.44–0.70  Mockup zooms in from tiny to FULLSCREEN, then zooms back out
- * Scene 4  0.70–0.90  Waitlist form fades in, holds, fades out
- * 0.90–1.0  Buffer to next section
+ * Scene 2  0.14–0.63  List accumulates → slides left → taglines on right → fade out
+ * Scene 3  0.60–1.00  Mockup zooms in to fullscreen, holds, zooms back out
  */
 
 /* ── Tag2 word layout — each word is a separate animated element ── */
@@ -118,12 +115,6 @@ function MobileHero() {
         />
       </div>
 
-      {/* Waitlist */}
-      <div className="w-full rounded-[20px] border border-white/[0.10] bg-gradient-to-b from-white/[0.10] to-white/[0.02] backdrop-blur-[32px] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
-        <p className="text-xl font-bold text-white text-center mb-2" style={geist}>Join the waitlist</p>
-        <p className="text-sm text-white/35 text-center mb-4">Early access · Founding member pricing locked in forever.</p>
-        <WaitlistForm size="large" />
-      </div>
     </div>
   )
 }
@@ -141,7 +132,6 @@ export function ScrollHero() {
   const s2Tag2Words = useRef<(HTMLSpanElement | null)[]>([])
   const sMockup = useRef<HTMLDivElement>(null)
   const sMockupImg = useRef<HTMLDivElement>(null)
-  const sForm = useRef<HTMLDivElement>(null)
   const raf = useRef(0)
 
   useEffect(() => {
@@ -243,57 +233,32 @@ export function ScrollHero() {
         el.style.filter = `blur(${(1 - wp) * 4}px)`
       })
 
-      /* ════════ Scene 3: Mockup fullscreen (0.60–0.82) ════════ */
+      /* ════════ Scene 3: Mockup fullscreen (0.60–1.0) ════════ */
       if (sMockup.current) {
         const fadeIn = sp(p, 0.60, 0.65)
-        const zoomOut = sp(p, 0.75, 0.82)
-
+        const fadeOut = sp(p, 0.88, 0.97)
         if (p < 0.60) {
           sMockup.current.style.opacity = '0'
-        } else if (p <= 0.75) {
+        } else if (p <= 0.88) {
           sMockup.current.style.opacity = `${clamp(fadeIn * 3, 0, 1)}`
         } else {
-          sMockup.current.style.opacity = `${1 - easeOut(zoomOut)}`
+          sMockup.current.style.opacity = `${1 - easeOut(fadeOut)}`
         }
       }
       if (sMockupImg.current) {
-        const zoomIn = sp(p, 0.60, 0.70)
-        const zoomOut = sp(p, 0.75, 0.82)
-
-        if (p <= 0.75 && p >= 0.60) {
+        const zoomIn = sp(p, 0.60, 0.72)
+        const zoomOut = sp(p, 0.88, 0.97)
+        if (p <= 0.88 && p >= 0.60) {
           const ez = easeOut(zoomIn)
           const scale = 0.3 + ez * 0.85
           const blur = (1 - ez) * 10
           sMockupImg.current.style.transform = `scale(${scale})`
           sMockupImg.current.style.filter = `blur(${blur}px)`
-        } else {
+        } else if (p > 0.88) {
           const ez = easeOut(zoomOut)
           const scale = 1.15 - ez * 0.5
           sMockupImg.current.style.transform = `scale(${scale})`
           sMockupImg.current.style.filter = `blur(${ez * 6}px)`
-        }
-      }
-
-      /* ════════ Scene 4: Waitlist form (0.82–1.0) ════════ */
-      if (sForm.current) {
-        const fadeIn = sp(p, 0.82, 0.87)
-        const fadeOut = sp(p, 0.97, 1.0)
-
-        if (p < 0.82) {
-          sForm.current.style.opacity = '0'
-          sForm.current.style.pointerEvents = 'none'
-        } else if (p <= 0.95) {
-          const e = easeOut(fadeIn)
-          sForm.current.style.transform = `scale(${0.85 + e * 0.15})`
-          sForm.current.style.opacity = `${e}`
-          sForm.current.style.filter = `blur(${(1 - e) * 5}px)`
-          sForm.current.style.pointerEvents = fadeIn > 0.8 ? 'auto' : 'none'
-        } else {
-          const e = easeOut(fadeOut)
-          sForm.current.style.transform = `scale(${1 - e * 0.1})`
-          sForm.current.style.opacity = `${1 - e}`
-          sForm.current.style.filter = `blur(${e * 4}px)`
-          sForm.current.style.pointerEvents = 'none'
         }
       }
 
@@ -309,7 +274,7 @@ export function ScrollHero() {
   if (isMobile) return <MobileHero />
 
   return (
-    <div ref={outerRef} style={{ height: '350svh' }} className="relative z-10">
+    <div ref={outerRef} style={{ height: '275svh' }} className="relative z-10">
       <div className="sticky top-0 w-full flex items-center justify-center" style={{ height: '100svh', overflow: 'clip' }}>
 
         {/* Scene 1: Headline */}
@@ -358,17 +323,6 @@ export function ScrollHero() {
               className="object-contain"
               priority
             />
-          </div>
-        </div>
-
-        {/* Scene 4: Waitlist form */}
-        <div ref={sForm} className="absolute inset-0 flex items-center justify-center will-change-[transform,opacity,filter]" style={{ opacity: 0 }}>
-          <div className="w-full max-w-xl px-4 sm:px-6">
-            <div className="rounded-[20px] border border-white/[0.10] bg-gradient-to-b from-white/[0.10] to-white/[0.02] backdrop-blur-[32px] p-5 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
-              <p className="text-2xl font-bold text-white text-center mb-2" style={geist}>Join the waitlist</p>
-              <p className="text-sm text-white/35 text-center mb-6">Early access · Founding member pricing locked in forever.</p>
-              <WaitlistForm size="large" />
-            </div>
           </div>
         </div>
 

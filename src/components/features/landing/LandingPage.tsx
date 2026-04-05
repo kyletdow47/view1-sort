@@ -450,6 +450,54 @@ function WaitlistSection() {
   )
 }
 
+/* ── Waitlist mid (after Platform) ── */
+function WaitlistMid() {
+  return (
+    <section className="py-16 px-6 relative z-10">
+      <div className="mx-auto max-w-2xl">
+        <AnimatedSection>
+          <div className="p-[1.5px] rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.5) 0%, rgba(59,130,246,0.4) 50%, rgba(236,72,153,0.5) 100%)' }}>
+            <div className="relative rounded-[15px] bg-gradient-to-b from-white/[0.09] to-white/[0.02] backdrop-blur-[32px] px-8 py-10 text-center shadow-[0_12px_48px_rgba(0,0,0,0.4)]">
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-400/10 px-3 py-1 mb-5">
+                <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
+                <span className="text-[11px] font-semibold tracking-wider text-violet-300 uppercase">Limited Early Access</span>
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>
+                Ready to stop doing it the hard way?
+              </h3>
+              <p className="text-[15px] text-white/45 mb-8 max-w-md mx-auto leading-relaxed">
+                Founding member pricing is locked in at signup — it never goes up. Join before we open to the public.
+              </p>
+              <WaitlistForm size="large" />
+            </div>
+          </div>
+        </AnimatedSection>
+      </div>
+    </section>
+  )
+}
+
+/* ── Waitlist end (before FAQ) ── */
+function WaitlistEnd() {
+  return (
+    <section className="py-16 px-6 relative z-10">
+      <div className="mx-auto max-w-xl text-center">
+        <AnimatedSection>
+          <SectionLabel>One more thing</SectionLabel>
+          <h3 className="mt-4 text-3xl sm:text-4xl font-bold text-white mb-4" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>
+            Your founding member price<br />is waiting.
+          </h3>
+          <p className="text-[15px] text-white/40 mb-8 leading-relaxed">
+            The moment we launch publicly, this price goes away. Waitlist members keep it forever — no matter what.
+          </p>
+          <WaitlistForm size="large" />
+        </AnimatedSection>
+      </div>
+    </section>
+  )
+}
+
 /* ── Use case tabs ── */
 const USE_CASES: Record<string, { headline: string; wins: string[] }> = {
   'Wedding': { headline: '1,200 photos. 6 hours. One deadline.', wins: ['AI sorts entire wedding by narrative arc: ceremony → portraits → reception', 'Preselection gallery live within hours of the shoot', 'Client selects favorites — you only edit what matters', 'Magic link delivery — no file transfer apps or Dropbox'] },
@@ -560,6 +608,9 @@ export function LandingPage() {
       {/* ── WAITLIST (prominent, right after hero) ── */}
       <WaitlistSection />
 
+      {/* ── HOW IT WORKS (scroll-jacked) ── */}
+      <ScrollHowItWorks />
+
       {/* ── PRODUCT PREVIEW ── */}
       <ProductPreview />
 
@@ -598,6 +649,7 @@ export function LandingPage() {
           </AnimatedSection>
           <AnimatedSection>
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+
               <div className={`p-8 ${glass} ${glassHighlight}`}>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-red-400/80 mb-5">Everyone Else</p>
                 <p className="text-sm text-white/40 leading-relaxed">Flag blurry and duplicate images. Score photos by technical quality. Sort by sharpness and exposure. Treat every shoot the same way. Miss the photos that actually matter.</p>
@@ -613,9 +665,6 @@ export function LandingPage() {
           </AnimatedSection>
         </div>
       </section>
-
-      {/* ── HOW IT WORKS (scroll-jacked) ── */}
-      <ScrollHowItWorks />
 
       {/* ── AI MOMENT ── */}
       <section className="pt-12 pb-24 px-6 relative z-10">
@@ -690,6 +739,9 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ── WAITLIST MID ── */}
+      <WaitlistMid />
+
       {/* ── USE CASES ── */}
       <section className="py-24 px-6 relative z-10">
         <div className="mx-auto max-w-5xl">
@@ -700,6 +752,9 @@ export function LandingPage() {
           <UseCaseTabs />
         </div>
       </section>
+
+      {/* ── WAITLIST END ── */}
+      <WaitlistEnd />
 
       {/* ── FAQ ── */}
       <section className="py-24 px-6 relative z-10">
