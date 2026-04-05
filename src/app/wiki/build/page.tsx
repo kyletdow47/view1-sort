@@ -1,6 +1,7 @@
 'use client'
 
 import { WikiTabs } from '@/components/features/wiki/WikiTabs'
+import { StressTest } from '@/components/features/wiki/StressTest'
 import { ClipboardCheck, CheckCircle2, XCircle, AlertCircle, Circle } from 'lucide-react'
 
 export default function BuildPage() {
@@ -466,25 +467,11 @@ function QATab() {
 }
 
 /* ─────────────────────────────────────────────
-   Tab 6 — Stress Test (iframe embed)
+   Tab 6 — Stress Test
 ───────────────────────────────────────────── */
 
 function StressTestTab() {
-  return (
-    <div>
-      <div className="rounded-xl bg-blue-500/[0.07] border border-blue-500/20 p-3 mb-4 text-[12px] text-white/60 flex items-center gap-2">
-        <span className="text-blue-400 font-semibold">Interactive stress test</span> — role-play as photographer then client. Mark every item Pass / Fail / Needs Work, add notes, export a fix-list prompt file. Your progress saves automatically.
-      </div>
-      <div className="rounded-xl overflow-hidden border border-white/[0.08]">
-        <iframe
-          src="/build-validation.html#stress-intro"
-          className="w-full"
-          style={{ height: '80vh', border: 'none', background: '#0d0e14' }}
-          title="Stress Test"
-        />
-      </div>
-    </div>
-  )
+  return <StressTest />
 }
 
 /* ─────────────────────────────────────────────
