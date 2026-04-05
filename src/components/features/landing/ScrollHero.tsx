@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import NextImage from 'next/image'
-import { Brain } from 'lucide-react'
 
 /* ── Helpers ── */
 function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)) }
@@ -99,7 +98,6 @@ function MobileScrollHero() {
   const tag2Ref = useRef<HTMLParagraphElement>(null)
   const mockupRef = useRef<HTMLDivElement>(null)
   const mockupInnerRef = useRef<HTMLDivElement>(null)
-  const chatRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function animate() {
@@ -171,14 +169,6 @@ function MobileScrollHero() {
           const zT = easeOut(sp(p, 0.82, 0.94))
           mockupInnerRef.current.style.transform = `scale(${1 + zT * 2.3}) translateY(${-zT * 14}%)`
         }
-      }
-
-      /* ══ Scene 5: Welcome Kyle card floats up (0.90–1.00) ══ */
-      if (chatRef.current) {
-        const cIn = easeOut(sp(p, 0.90, 0.95))
-        const cOut = easeOut(sp(p, 0.96, 1.00))
-        chatRef.current.style.opacity = `${cIn * (1 - cOut)}`
-        chatRef.current.style.transform = `translateY(${(1 - cIn) * 40 - cOut * 100}px)`
       }
 
       raf.current = requestAnimationFrame(animate)
@@ -275,43 +265,8 @@ function MobileScrollHero() {
           </div>
         </div>
 
-        {/* Scene 5: Welcome Kyle floating card (zoomed-in dashboard header) */}
-        <div className="absolute inset-0 flex items-center justify-center px-5 pointer-events-none">
-          <div
-            ref={chatRef}
-            className="will-change-[transform,opacity] w-full max-w-[300px]"
-            style={{ opacity: 0 }}
-          >
-            <div
-              className="rounded-2xl border border-white/[0.15] p-5"
-              style={{
-                background: 'linear-gradient(135deg, rgba(10,10,22,0.93), rgba(28,18,58,0.90))',
-                backdropFilter: 'blur(40px)',
-                boxShadow: '0 24px 64px rgba(0,0,0,0.72), 0 1px 0 rgba(255,255,255,0.07)',
-              }}
-            >
-              <p className="text-[26px] font-bold text-white leading-none mb-4" style={geist}>
-                Welcome Kyle,
-              </p>
-              <div
-                className="rounded-xl border border-indigo-500/25 px-3.5 py-3 flex items-center gap-2.5"
-                style={{ background: 'rgba(99,102,241,0.13)' }}
-              >
-                <div className="h-5 w-5 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shrink-0">
-                  <Brain size={10} className="text-white" />
-                </div>
-                <p className="text-[12px] text-white/40 flex-1 leading-relaxed">
-                  Ask View1, &ldquo;<span className="text-white/70">which clients haven&apos;t paid?</span>&rdquo;
-                </p>
-                <div className="h-5 w-5 rounded-full bg-indigo-500 flex items-center justify-center shrink-0">
-                  <span className="text-white text-[9px] font-bold leading-none">↑</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-      </div>
+</div>
     </div>
   )
 }
