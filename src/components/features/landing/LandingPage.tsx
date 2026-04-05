@@ -648,11 +648,11 @@ export function LandingPage() {
             <p className="mt-4 text-base text-white/40 max-w-xl mx-auto leading-relaxed">A soft, emotional first-look photo matters more than a perfectly lit detail shot. We built the AI to understand that.</p>
           </AnimatedSection>
           <AnimatedSection>
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16 max-w-4xl mx-auto">
 
-              <div className={`p-8 ${glass} ${glassHighlight}`}>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-red-400/80 mb-6">Everyone Else</p>
-                <ul className="space-y-4">
+              <div className="px-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-red-400/70 mb-7">Everyone Else</p>
+                <ul className="space-y-5">
                   {[
                     'Flags blurry + duplicate images',
                     'Scores by sharpness and exposure',
@@ -660,34 +660,32 @@ export function LandingPage() {
                     'Misses emotionally important shots',
                     'No context about your shoot',
                   ].map(item => (
-                    <li key={item} className="flex items-start gap-3">
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-400/50 shrink-0" />
-                      <span className="text-[15px] font-semibold text-white/35 leading-snug">{item}</span>
+                    <li key={item} className="flex items-center gap-4">
+                      <span className="text-[15px] font-bold text-red-400/60 shrink-0 leading-none">✕</span>
+                      <span className="text-[16px] font-semibold text-white/30 leading-snug">{item}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="p-[1px] rounded-[20px]" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.5) 0%, rgba(59,130,246,0.4) 25%, rgba(168,85,247,0.4) 50%, rgba(236,72,153,0.4) 75%, rgba(245,158,11,0.5) 100%)' }}>
-                <div className="relative rounded-[19px] overflow-hidden bg-gradient-to-b from-white/[0.12] to-white/[0.03] backdrop-blur-[32px] p-8 shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
-                  <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-400 mb-6">View1 Sort</p>
-                  <ul className="space-y-4">
-                    {[
-                      'Sorts by story and emotional weight',
-                      'You describe the shoot — AI uses that context',
-                      'Flags obvious misses, you make the final call',
-                      'Build presets just by talking to the AI',
-                      'Learns your style over time',
-                    ].map(item => (
-                      <li key={item} className="flex items-start gap-3">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0" />
-                        <span className="text-[15px] font-semibold text-white/80 leading-snug">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              <div className="px-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-emerald-400 mb-7">View1 Sort</p>
+                <ul className="space-y-5">
+                  {[
+                    'Sorts by story and emotional weight',
+                    'You describe the shoot — AI uses that context',
+                    'Flags obvious misses, you make the final call',
+                    'Build presets just by talking to the AI',
+                    'Learns your style over time',
+                  ].map(item => (
+                    <li key={item} className="flex items-center gap-4">
+                      <span className="text-[15px] font-bold text-emerald-400 shrink-0 leading-none">✓</span>
+                      <span className="text-[16px] font-semibold text-white/80 leading-snug">{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
+
             </div>
           </AnimatedSection>
         </div>

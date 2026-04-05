@@ -104,13 +104,19 @@ function MobileHero() {
       </div>
 
       {/* Mockup */}
-      <div className="w-full rounded-2xl overflow-hidden border border-white/10 shadow-[0_12px_48px_rgba(0,0,0,0.5)]">
+      <div className="w-full rounded-[18px] overflow-hidden border border-white/[0.14] shadow-[0_24px_72px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.05)]" style={{ background: '#0c0c10' }}>
+        {/* Title bar */}
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/[0.08]" style={{ background: 'rgba(255,255,255,0.04)' }}>
+          <div className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+          <div className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
+          <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
+        </div>
         <NextImage
           src="/images/dashboard-v2-preview.png"
           alt="View1 Sort Dashboard"
           width={2940}
           height={1842}
-          className="w-full h-auto"
+          className="w-full h-auto block"
           priority
         />
       </div>
@@ -313,14 +319,21 @@ export function ScrollHero() {
           </div>
         </div>
 
-        {/* Scene 3: Mockup — no container, raw image fills screen */}
-        <div ref={sMockup} className="absolute inset-0 flex items-center justify-center will-change-[opacity]" style={{ opacity: 0 }}>
-          <div ref={sMockupImg} className="will-change-[transform,filter] w-full h-full relative">
+        {/* Scene 3: Mockup — floating window frame */}
+        <div ref={sMockup} className="absolute inset-0 flex items-center justify-center will-change-[opacity] px-6 lg:px-16" style={{ opacity: 0 }}>
+          <div ref={sMockupImg} className="will-change-[transform,filter] w-full max-w-5xl rounded-[20px] overflow-hidden border border-white/[0.15] shadow-[0_48px_120px_rgba(0,0,0,0.75),0_0_0_1px_rgba(255,255,255,0.06)]" style={{ background: '#0c0c10' }}>
+            {/* Title bar */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.08]" style={{ background: 'rgba(255,255,255,0.04)' }}>
+              <div className="h-3 w-3 rounded-full bg-red-500/80" />
+              <div className="h-3 w-3 rounded-full bg-amber-400/80" />
+              <div className="h-3 w-3 rounded-full bg-emerald-500/80" />
+            </div>
             <NextImage
               src="/images/dashboard-v2-preview.png"
               alt="View1 Sort Dashboard"
-              fill
-              className="object-contain"
+              width={2940}
+              height={1842}
+              className="w-full h-auto block"
               priority
             />
           </div>
