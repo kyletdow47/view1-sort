@@ -103,7 +103,7 @@ function MobileHero() {
       {/* Tagline */}
       <div className="text-center space-y-3">
         <p className="text-2xl font-bold text-white leading-tight" style={geist}>It all lives in one place now.</p>
-        <p className="text-lg font-bold text-white/40 leading-tight" style={geist}>We built the tool we wished existed after years of doing it the hard way.</p>
+        <p className="text-lg font-bold text-white/40 leading-tight" style={geist}>Built by a photographer who spent years doing it the hard way.</p>
       </div>
 
       {/* Mockup */}
@@ -121,7 +121,7 @@ function MobileHero() {
       {/* Waitlist */}
       <div className="w-full rounded-[20px] border border-white/[0.10] bg-gradient-to-b from-white/[0.10] to-white/[0.02] backdrop-blur-[32px] p-5 shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
         <p className="text-xl font-bold text-white text-center mb-2" style={geist}>Join the waitlist</p>
-        <p className="text-sm text-white/35 text-center mb-4">Early access + lifetime discount for founding members.</p>
+        <p className="text-sm text-white/35 text-center mb-4">Early access · Founding member pricing locked in forever.</p>
         <WaitlistForm size="large" />
       </div>
     </div>
@@ -366,7 +366,7 @@ export function ScrollHero() {
           <div className="w-full max-w-xl px-4 sm:px-6">
             <div className="rounded-[20px] border border-white/[0.10] bg-gradient-to-b from-white/[0.10] to-white/[0.02] backdrop-blur-[32px] p-5 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
               <p className="text-2xl font-bold text-white text-center mb-2" style={geist}>Join the waitlist</p>
-              <p className="text-sm text-white/35 text-center mb-6">Early access + lifetime discount for founding members.</p>
+              <p className="text-sm text-white/35 text-center mb-6">Early access · Founding member pricing locked in forever.</p>
               <WaitlistForm size="large" />
             </div>
           </div>

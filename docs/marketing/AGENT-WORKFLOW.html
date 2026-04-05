@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>View1 Sort — AI Agent Workflow Map</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #030305;
+    color: #fff;
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 40px 24px;
+    min-height: 100vh;
+  }
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .subtitle { color: rgba(255,255,255,0.4); font-size: 14px; margin-bottom: 48px; }
+  .section-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+    color: #a78bfa; margin-bottom: 16px; margin-top: 48px;
+  }
+
+  /* ── Row layout ── */
+  .row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 0; }
+  .col { flex: 1; min-width: 260px; }
+
+  /* ── Cards ── */
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 20px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    inset-x: 0; top: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  }
+  .card.highlight {
+    border-color: rgba(168,85,247,0.4);
+    background: linear-gradient(180deg, rgba(168,85,247,0.12) 0%, rgba(168,85,247,0.02) 100%);
+  }
+  .card.green {
+    border-color: rgba(52,211,153,0.4);
+    background: linear-gradient(180deg, rgba(52,211,153,0.10) 0%, rgba(52,211,153,0.02) 100%);
+  }
+  .card.amber {
+    border-color: rgba(245,158,11,0.4);
+    background: linear-gradient(180deg, rgba(245,158,11,0.10) 0%, rgba(245,158,11,0.02) 100%);
+  }
+  .card.blue {
+    border-color: rgba(59,130,246,0.4);
+    background: linear-gradient(180deg, rgba(59,130,246,0.10) 0%, rgba(59,130,246,0.02) 100%);
+  }
+
+  .card-tag {
+    display: inline-block;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 6px; margin-bottom: 10px;
+  }
+  .tag-purple { background: rgba(168,85,247,0.15); color: #a78bfa; }
+  .tag-green { background: rgba(52,211,153,0.15); color: #34d399; }
+  .tag-amber { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .tag-blue { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .tag-red { background: rgba(239,68,68,0.15); color: #f87171; }
+  .tag-white { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+
+  .card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.2px; }
+  .card p { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+  .card ul { list-style: none; margin-top: 10px; }
+  .card ul li {
+    font-size: 12px; color: rgba(255,255,255,0.45); padding: 4px 0;
+    display: flex; align-items: flex-start; gap: 8px; line-height: 1.5;
+  }
+  .card ul li::before { content: '→'; color: rgba(255,255,255,0.2); flex-shrink: 0; margin-top: 1px; }
+  .card .trigger {
+    font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 10px;
+    padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.07);
+  }
+  .card .trigger strong { color: rgba(255,255,255,0.55); font-weight: 600; }
+
+  /* ── Flow arrows ── */
+  .flow {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; padding: 20px 0; flex-wrap: wrap;
+  }
+  .flow-step {
+    text-align: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 12px 18px;
+    min-width: 120px;
+  }
+  .flow-step .emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+  .flow-step span { font-size: 11px; color: rgba(255,255,255,0.5); display: block; }
+  .flow-step strong { font-size: 13px; color: #fff; display: block; margin-bottom: 2px; }
+  .flow-arrow { color: rgba(255,255,255,0.2); font-size: 20px; }
+
+  /* ── Timeline ── */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, rgba(168,85,247,0.6) 0%, rgba(59,130,246,0.4) 50%, rgba(52,211,153,0.4) 100%);
+  }
+  .tl-item { position: relative; margin-bottom: 24px; }
+  .tl-dot {
+    position: absolute; left: -30px; top: 4px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #a78bfa;
+    border: 2px solid rgba(168,85,247,0.3);
+    box-shadow: 0 0 8px rgba(168,85,247,0.5);
+  }
+  .tl-dot.green { background: #34d399; border-color: rgba(52,211,153,0.3); box-shadow: 0 0 8px rgba(52,211,153,0.5); }
+  .tl-dot.amber { background: #f59e0b; border-color: rgba(245,158,11,0.3); box-shadow: 0 0 8px rgba(245,158,11,0.5); }
+  .tl-date { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.3); letter-spacing: 0.05em; margin-bottom: 4px; }
+  .tl-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .tl-desc { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.6; }
+
+  /* ── Approval flow ── */
+  .approval-flow {
+    display: flex; flex-direction: column; gap: 0;
+    max-width: 500px; margin: 0 auto;
+  }
+  .af-step {
+    display: flex; gap: 16px; align-items: flex-start;
+    position: relative;
+  }
+  .af-step::before {
+    content: '';
+    position: absolute; left: 19px; top: 42px; bottom: -10px;
+    width: 2px; background: rgba(255,255,255,0.07);
+  }
+  .af-step:last-child::before { display: none; }
+  .af-num {
+    flex-shrink: 0;
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800;
+    background: rgba(168,85,247,0.15);
+    border: 1px solid rgba(168,85,247,0.3);
+    color: #a78bfa;
+    margin-bottom: 18px;
+  }
+  .af-content { padding-top: 8px; }
+  .af-content h4 { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .af-content p { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.6; }
+
+  /* ── Budget table ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+  th { text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.3); padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.6); }
+  td:first-child { color: #fff; font-weight: 600; }
+  td.cost { color: #34d399; font-weight: 700; }
+  tr:last-child td { border-bottom: none; }
+
+  @media (max-width: 600px) {
+    .row { flex-direction: column; }
+    .flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<h1>View1 Sort — AI Agent Workflow Map</h1>
+<p class="subtitle">April 5 – May 15, 2026 · Kyle's founder operating system · Approval via Slack reactions only</p>
+
+<!-- ───────────── CORE LOOP ───────────── -->
+<div class="section-title">The Founder's Operating Loop</div>
+<div class="flow">
+  <div class="flow-step">
+    <span class="emoji">🤖</span>
+    <strong>Agents Work</strong>
+    <span>Draft, monitor, build</span>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">
+    <span class="emoji">📲</span>
+    <strong>Slack Ping</strong>
+    <span>Preview + options</span>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">
+    <span class="emoji">👍</span>
+    <strong>Kyle Reacts</strong>
+    <span>Approve or reject</span>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">
+    <span class="emoji">🚀</span>
+    <strong>Auto-Execute</strong>
+    <span>Post / send / build</span>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step">
+    <span class="emoji">📊</span>
+    <strong>Morning Brief</strong>
+    <span>What happened</span>
+  </div>
+</div>
+
+<!-- ───────────── AGENT ROSTER ───────────── -->
+<div class="section-title">Agent Roster</div>
+<div class="row">
+
+  <div class="col">
+    <div class="card highlight">
+      <span class="card-tag tag-purple">Daily · 8am</span>
+      <h3>build-status</h3>
+      <p>Morning briefing: waitlist count delta, Asana tasks completed overnight, broken items, deploy status.</p>
+      <ul>
+        <li>Reads BUILD-STATE.md + Asana board</li>
+        <li>Pulls waitlist count from Supabase</li>
+        <li>Posts to #gtm-launch Slack channel</li>
+      </ul>
+      <div class="trigger"><strong>Approval:</strong> None needed — auto-posts every morning</div>
+    </div>
+
+    <div class="card">
+      <span class="card-tag tag-amber">Weekly · Monday 9am</span>
+      <h3>content-drafter</h3>
+      <p>Reads recent git commits + Asana completed tasks. Drafts 5 social posts matching Kyle's voice across Twitter, Instagram, LinkedIn, Reddit, TikTok.</p>
+      <ul>
+        <li>Reads MARKETING-STRATEGY.md for voice rules</li>
+        <li>Pulls from last 7 days of build activity</li>
+        <li>Formats per-channel (thread vs caption vs post)</li>
+        <li>Sends preview batch to Slack</li>
+      </ul>
+      <div class="trigger"><strong>Approval:</strong> 👍 each post to schedule · ✋ to rewrite</div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="card green">
+      <span class="card-tag tag-green">Daily · 8am</span>
+      <h3>reddit-monitor</h3>
+      <p>Searches Reddit for keyword triggers. Drafts authentic, zero-pitch replies as a photographer — not a marketer.</p>
+      <ul>
+        <li>Keywords: "culling software", "Pixieset alternative", "photo workflow", "sort photos faster"</li>
+        <li>Targets: r/photography, r/weddingphotography, r/commercialphotography, r/freelance</li>
+        <li>Drafts reply in Kyle's voice — peer-to-peer, helpful</li>
+        <li>Includes View1 Sort link only if genuinely relevant</li>
+      </ul>
+      <div class="trigger"><strong>Approval:</strong> 👍 to post reply · ✋ to skip</div>
+    </div>
+
+    <div class="card">
+      <span class="card-tag tag-white">After Deploy</span>
+      <h3>qa-visual</h3>
+      <p>Takes screenshots of live Vercel URL at desktop (1440px) and mobile (390px) after each deploy. Flags regressions.</p>
+      <ul>
+        <li>Compares against previous screenshot baseline</li>
+        <li>Checks: hero loads, CTA visible, nav works on mobile</li>
+        <li>Posts side-by-side diff to Slack</li>
+        <li>If critical issue detected → @kyle immediately</li>
+      </ul>
+      <div class="trigger"><strong>Approval:</strong> None — auto-runs · Critical issues page you</div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="card blue">
+      <span class="card-tag tag-blue">Weekly · Thursday</span>
+      <h3>outreach-researcher</h3>
+      <p>Pulls commercial photographer leads from Apollo matching ICP. Enriches with context. Drafts personalized DM.</p>
+      <ul>
+        <li>ICP filter: commercial photographer, US/EU, solo/small studio</li>
+        <li>Enriches with Instagram/portfolio links</li>
+        <li>Drafts DM referencing specific work or pain point</li>
+        <li>Creates Asana card in "Outreach / Draft" section</li>
+      </ul>
+      <div class="trigger"><strong>Approval:</strong> Move Asana card to "Send" column to trigger</div>
+    </div>
+
+    <div class="card amber">
+      <span class="card-tag tag-amber">Friday 5pm</span>
+      <h3>waitlist-emailer</h3>
+      <p>Sends weekly update email to all waitlist signups. Personal tone — like a Slack message from Kyle, not a newsletter.</p>
+      <ul>
+        <li>Reads recent build activity for content</li>
+        <li>Updates waitlist count + milestone progress</li>
+        <li>Includes one product screenshot or screen recording link</li>
+        <li>Teases what's coming next week</li>
+      </ul>
+      <div class="trigger"><strong>Approval:</strong> 👍 to send · Drafts sent to Slack Thursday EOD</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ───────────── APPROVAL FLOW ───────────── -->
+<div class="section-title">Approval Flow — Slack-First</div>
+<div class="row">
+  <div class="col" style="max-width: 500px;">
+    <div class="approval-flow">
+      <div class="af-step">
+        <div class="af-num">1</div>
+        <div class="af-content">
+          <h4>Agent drafts content or action</h4>
+          <p>Content, reply, email, or DM drafted automatically based on context.</p>
+        </div>
+      </div>
+      <div class="af-step">
+        <div class="af-num">2</div>
+        <div class="af-content">
+          <h4>Preview sent to #gtm-launch Slack</h4>
+          <p>Full preview with platform, content, and any media. Two options shown: 👍 Approve or ✋ Revise.</p>
+        </div>
+      </div>
+      <div class="af-step">
+        <div class="af-num">3</div>
+        <div class="af-content">
+          <h4>Kyle reacts from phone (anywhere in the world)</h4>
+          <p>👍 = execute immediately · ✋ = revise and re-send · No reaction in 4hrs = gentle reminder, then hold.</p>
+        </div>
+      </div>
+      <div class="af-step">
+        <div class="af-num">4</div>
+        <div class="af-content">
+          <h4>content-scheduler fires</h4>
+          <p>Posts to the target platform. Confirms in Slack with a receipt (link to live post).</p>
+        </div>
+      </div>
+      <div class="af-step">
+        <div class="af-num">5</div>
+        <div class="af-content">
+          <h4>Metrics logged next morning</h4>
+          <p>build-status agent pulls engagement on recently posted content and includes in morning brief.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="card" style="margin-bottom: 16px;">
+      <span class="card-tag tag-white">Travel Mode Rules (April 11–18)</span>
+      <h3>Portugal → Italy Protocol</h3>
+      <ul>
+        <li>All agents run on normal schedule</li>
+        <li>Morning brief adjusts to Kyle's current timezone</li>
+        <li>Content approval via phone Slack reactions only</li>
+        <li>No approval required: build status, monitoring alerts, QA screenshots</li>
+        <li>Approval required: posting content, sending emails, sending DMs</li>
+        <li>CRITICAL alerts (site down, form broken) → immediate @kyle</li>
+        <li>Non-critical issues → held for morning brief</li>
+        <li>7-day content queue pre-approved before April 11 departure</li>
+      </ul>
+    </div>
+
+    <div class="card green">
+      <span class="card-tag tag-green">Asana Board: GTM Execution</span>
+      <h3>Board Flow</h3>
+      <ul>
+        <li><strong style="color:#fff">To Draft</strong> → agent picks up and writes</li>
+        <li><strong style="color:#fff">Review</strong> → Kyle sees in Slack, reacts or moves</li>
+        <li><strong style="color:#fff">Scheduled</strong> → approved, queued for posting</li>
+        <li><strong style="color:#fff">Live</strong> → posted, link attached to card</li>
+        <li><strong style="color:#fff">Metrics</strong> → weekly engagement recap by agent</li>
+        <li><strong style="color:#fff">Pilot Users</strong> → separate section: Reached Out → Responded → Signed Up → Active</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────── SOCIAL POSTING ARCHITECTURE ───────────── -->
+<div class="section-title">Social Posting Architecture (Hybrid)</div>
+<div class="row">
+  <div class="col">
+    <div class="card">
+      <span class="card-tag tag-purple">Layer 1 · Orchestration</span>
+      <h3>Paperclip (Self-Hosted)</h3>
+      <p>The "company" management layer. Assigns tasks, manages budgets, runs heartbeats, enforces token caps.</p>
+      <ul>
+        <li>Org chart: Kyle (board) → coordinator → agents</li>
+        <li>Each agent has monthly token budget hard-cap</li>
+        <li>Task queue: Asana webhook → Paperclip task</li>
+        <li>Activity logs for review post-travel</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <span class="card-tag tag-blue">Layer 2 · Drafting</span>
+      <h3>Claude (via Cowork + Code)</h3>
+      <p>Content drafting, Reddit replies, email copy, DMs — all written by Claude using Kyle's voice profile.</p>
+      <ul>
+        <li>Voice profile in MARKETING-STRATEGY.md + CLAUDE.md</li>
+        <li>Reads prior posts for style calibration each run</li>
+        <li>Sonnet for content drafting</li>
+        <li>Haiku for monitoring + scheduling tasks</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <span class="card-tag tag-green">Layer 3 · Execution</span>
+      <h3>Browser Agent (Playwright)</h3>
+      <p>After approval, posts approved content to social platforms via browser automation using saved sessions.</p>
+      <ul>
+        <li>Script: agents/social-poster.js</li>
+        <li>Payload: { platform, content, mediaPath }</li>
+        <li>Login sessions stored locally (encrypted)</li>
+        <li>Supports: Twitter/X, Instagram, LinkedIn, Reddit</li>
+        <li>Returns post URL back to Slack as receipt</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────── AD CREATIVES ───────────── -->
+<div class="section-title">AI Ad Creative Generation</div>
+<div class="row">
+  <div class="col">
+    <div class="card amber">
+      <span class="card-tag tag-amber">Claude Image Gen</span>
+      <h3>Creative Formats</h3>
+      <ul>
+        <li>Before/After split: 5-app chaos → View1 Sort single screen</li>
+        <li>Mockup overlay: dashboard on iPhone in photographer's hands</li>
+        <li>Stat card: "847 photos sorted in 12 minutes" — dark glass card style</li>
+        <li>Quote card: ICP pain quote in brand typography</li>
+        <li>Timeline graphic: "Upload → Sort → Deliver → Get Paid" flow</li>
+      </ul>
+      <div class="trigger"><strong>Format:</strong> 1080×1080 for Instagram · 1920×1080 for Twitter/LinkedIn · 9:16 for Reels/TikTok</div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <span class="card-tag tag-white">Personal Assistant Mode</span>
+      <h3>Voice Calibration System</h3>
+      <p>Over time, agents learn to sound like Kyle by reading his prior content as context each run.</p>
+      <ul>
+        <li>KYLE-VOICE.md — Kyle's writing patterns, opinions, tone rules</li>
+        <li>Updated manually after each session where Kyle corrects an agent's voice</li>
+        <li>Agent reads this file before drafting any public-facing content</li>
+        <li>Includes: example tweets, Reddit posts, DMs that Kyle has approved</li>
+        <li>Gradually becomes a "Kyle-in-a-box" for content generation</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────── TIMELINE ───────────── -->
+<div class="section-title">Key Dates</div>
+<div class="timeline">
+  <div class="tl-item">
+    <div class="tl-dot"></div>
+    <div class="tl-date">APRIL 5–7</div>
+    <div class="tl-title">Foundation</div>
+    <div class="tl-desc">Landing page mobile fixes deployed · Asana GTM board set up · Agent prompts written · Content queue started</div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-dot"></div>
+    <div class="tl-date">APRIL 8–10</div>
+    <div class="tl-title">First Wave</div>
+    <div class="tl-desc">Origin story Twitter thread live · Reddit r/photography post · First Instagram Reel · 20 personal DMs sent</div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-dot amber"></div>
+    <div class="tl-date">APRIL 11</div>
+    <div class="tl-title">✈ Depart Portugal — Travel Mode Activated</div>
+    <div class="tl-desc">All agents green · 7-day content queue pre-approved · Systems running autonomously</div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-dot"></div>
+    <div class="tl-date">APRIL 11–18</div>
+    <div class="tl-title">Automated Posting Run</div>
+    <div class="tl-desc">Daily Twitter posts · Reddit monitoring + replies · Instagram/TikTok scheduled posts · Morning briefs via Slack</div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-dot green"></div>
+    <div class="tl-date">APRIL 20</div>
+    <div class="tl-title">20 Pilot Users ✓</div>
+    <div class="tl-desc">Hard deadline — 20 photographers actively testing MVP · Feedback collection starts</div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-dot"></div>
+    <div class="tl-date">APRIL 25–29</div>
+    <div class="tl-title">Launch Sprint</div>
+    <div class="tl-desc">"48 hours left" campaign · 3-email launch drip to waitlist · Final product polish</div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-dot amber"></div>
+    <div class="tl-date">APRIL 30</div>
+    <div class="tl-title">🚀 GO LIVE</div>
+    <div class="tl-desc">Waitlist converts to founding members · "We're live" post on all channels · First real users onboard</div>
+  </div>
+  <div class="tl-item">
+    <div class="tl-dot green"></div>
+    <div class="tl-date">MAY 15</div>
+    <div class="tl-title">Month 1 Target</div>
+    <div class="tl-desc">50 active users · 5+ paid subscriptions · 3 testimonials collected · "Month 1 recap" post live</div>
+  </div>
+</div>
+
+<!-- ───────────── BUDGET ───────────── -->
+<div class="section-title">Budget</div>
+<div class="card" style="max-width: 600px;">
+  <table>
+    <tr><th>Item</th><th>Cost</th><th>Notes</th></tr>
+    <tr><td>Vercel hosting</td><td class="cost">$0</td><td>Hobby tier for MVP traffic</td></tr>
+    <tr><td>Claude API (agents)</td><td class="cost">~$10/mo</td><td>Budget-capped in Paperclip</td></tr>
+    <tr><td>Apollo leads</td><td class="cost">$0</td><td>Free tier — 50 contacts/month</td></tr>
+    <tr><td>Image generation</td><td class="cost">$0</td><td>Claude image gen for ad creatives</td></tr>
+    <tr><td>Paid social boost</td><td class="cost">$0</td><td>Only if organic fails by Week 3</td></tr>
+    <tr><td>Paperclip</td><td class="cost">$0</td><td>Self-hosted, open source</td></tr>
+    <tr><td style="color:#fff;font-weight:800;">Total</td><td class="cost" style="font-size:15px;">~$10/mo</td><td>Nearly free until real traction</td></tr>
+  </table>
+</div>
+
+<div style="margin-top: 60px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.07); text-align: center;">
+  <p style="font-size: 12px; color: rgba(255,255,255,0.2);">View1 Sort · GTM Agent Workflow · Generated April 5, 2026</p>
+</div>
+
+</body>
+</html>

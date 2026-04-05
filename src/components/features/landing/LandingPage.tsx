@@ -8,10 +8,11 @@ import { TextColor } from '@/components/ui/text-color'
 import { ScrollHero } from './ScrollHero'
 import { ScrollHowItWorks } from './ScrollHowItWorks'
 import { WaitlistForm } from './WaitlistForm'
+import { ProductPreview } from './ProductPreview'
 import {
   Brain, Camera, FolderOpen, Zap, Check, ChevronDown,
   CreditCard, BarChart3, Globe, MessageSquare, Download,
-  Heart, FileText, Smartphone, Bell,
+  Heart, FileText, Smartphone, Bell, Menu, X,
 } from 'lucide-react'
 
 /* Normal glass card — subtle white/glass border like dashboard interior cards */
@@ -41,7 +42,7 @@ const FAQS = [
   { q: 'How is View1 Sort different from Lightroom AI or Imagen?', a: 'Lightroom and Imagen sort by technical quality — sharpness, exposure, blink detection. View1 Sort understands the narrative arc of your shoot.' },
   { q: 'Does it replace Lightroom?', a: 'No — it works alongside it. After AI sorting, you export to Lightroom for editing. When you reopen View1, the edited files auto-sync back.' },
   { q: 'Can my clients use it without creating an account?', a: 'Yes. Clients receive a magic link via email and can view the gallery immediately — no account needed.' },
-  { q: 'What does it cost?', a: 'We\'re in early access. Waitlist members get a lifetime discount and first access.' },
+  { q: 'What does it cost?', a: 'We\'re in early access. Waitlist members get founding member pricing locked in forever — and first access.' },
 ]
 
 function FAQ() {
@@ -152,6 +153,7 @@ function UseCaseTabs() {
 ───────────────────────────────────────────── */
 export function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20)
@@ -175,15 +177,43 @@ export function LandingPage() {
             <span className="text-base font-semibold tracking-tight text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>View1 Sort</span>
           </div>
           <div className="hidden items-center gap-8 md:flex">
-            {['Capabilities', 'Integrations', 'Pricing', 'Blog'].map(item => (
+            {['Features', 'Integrations', 'Pricing', 'Blog'].map(item => (
               <a key={item} href={`#${item.toLowerCase()}`} className="text-sm text-white/40 transition-colors hover:text-white">{item}</a>
             ))}
           </div>
           <div className="flex items-center gap-3">
             <Link href="/auth/login" className="hidden text-sm text-white/40 transition-colors hover:text-white md:block">Sign In</Link>
-            <a href="#waitlist" className="rounded-lg btn-rainbow px-5 py-2 text-sm transition-all">Get Early Access</a>
+            <a href="#waitlist" className="rounded-lg btn-rainbow px-5 py-2 text-sm transition-all hidden md:inline-flex">Get Early Access</a>
+            <button
+              className="md:hidden p-2 text-white/60 hover:text-white transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-b border-white/10 bg-black/80 backdrop-blur-xl px-6 py-5">
+            <div className="flex flex-col gap-5">
+              {['Features', 'Integrations', 'Pricing', 'Blog'].map(item => (
+                <a
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
+                  className="text-sm text-white/60 transition-colors hover:text-white"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item}
+                </a>
+              ))}
+              <div className="flex flex-col gap-3 pt-2 border-t border-white/10">
+                <Link href="/auth/login" className="text-sm text-white/40 transition-colors hover:text-white" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
+                <a href="#waitlist" className="rounded-lg btn-rainbow px-5 py-2.5 text-sm text-center transition-all" onClick={() => setMobileMenuOpen(false)}>Get Early Access</a>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* ── SCROLL-JACKED HERO ── */}
@@ -250,10 +280,10 @@ export function LandingPage() {
             <AnimatedSection>
               <div>
                 <SectionLabel>AI-Powered Presets</SectionLabel>
-                <h2 className="mt-4 text-[40px] font-bold tracking-tight leading-[1.15] text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Tell the AI how you see. It learns.</h2>
+                <h2 className="mt-4 text-3xl sm:text-[40px] font-bold tracking-tight leading-[1.15] text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Tell the AI how you see. It learns.</h2>
                 <p className="mt-4 text-[15px] text-white/40 leading-relaxed max-w-md">No menus. No sliders. Just describe what you shoot, what you look for, and what you always reject. The AI builds a reusable sorting preset from the conversation.</p>
                 <ul className="mt-8 space-y-3">
-                  {['Zero manual tagging required', 'Understands light, emotion, and context', 'Runs in the browser — your photos never leave your device', 'Learns your style over time'].map(item => (
+                  {['Zero manual tagging required', 'Understands light, emotion, and context', 'AI sorting runs entirely in your browser — no upload needed to cull', 'Learns your style over time'].map(item => (
                     <li key={item} className="flex items-center gap-3 text-sm text-white/40"><Check size={16} className="shrink-0 text-violet-400" />{item}</li>
                   ))}
                 </ul>
@@ -316,6 +346,9 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ── PRODUCT PREVIEW ── */}
+      <ProductPreview />
+
       {/* ── FINAL CTA ── */}
       <section id="waitlist" className="py-24 px-6 relative z-10">
         <div className="mx-auto max-w-5xl">
@@ -333,12 +366,12 @@ export function LandingPage() {
                     <h3 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>The View1 Workflow</h3>
                     <p className="text-sm text-white/35 leading-relaxed mb-6 max-w-md">Join the waitlist for early access and founding member pricing. You&apos;ll be first to try new features — and your feedback shapes what we build next.</p>
                     <ul className="space-y-2.5">
-                      {['AI sorts your entire shoot in under 12 minutes', 'Watermarked gallery delivered same day', 'Invoice sent and paid before you leave the venue'].map(item => (
+                      {['AI sorts a 500-photo shoot in under 12 minutes', 'Watermarked gallery delivered same day', 'Invoice sent and paid before you leave the venue'].map(item => (
                         <li key={item} className="flex items-center gap-2.5 text-sm text-white/50"><Check size={16} className="shrink-0 text-emerald-400" />{item}</li>
                       ))}
                     </ul>
                   </div>
-                  <div className="bg-white/[0.03] p-10 flex flex-col justify-center border-l border-white/10">
+                  <div className="bg-white/[0.03] p-10 flex flex-col justify-center border-t border-white/10 lg:border-t-0 lg:border-l">
                     <div className="mb-3">
                       <div className="inline-flex rounded-full bg-violet-400/10 border border-violet-400/20 px-3 py-1 mb-4"><span className="text-[11px] font-medium text-violet-400">Early Access — Limited Spots</span></div>
                       <p className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Free to start</p>

@@ -69,7 +69,7 @@ export function WaitlistForm({ size = 'default' }: { size?: 'default' | 'large' 
         </button>
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
-      <p className="text-center text-xs text-white/30">Free to join · Early access + lifetime discount for waitlist members</p>
+      <p className="text-center text-xs text-white/30">Free to join · Founding member pricing locked in forever</p>
     </form>
   )
 }
