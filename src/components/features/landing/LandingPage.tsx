@@ -694,7 +694,7 @@ export function LandingPage() {
       {/* ── AI MOMENT ── */}
       <section className="pt-12 pb-24 px-6 relative z-10">
         <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 gap-20 lg:grid-cols-2 items-center">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-20 items-center">
             <AnimatedSection>
               <div>
                 <SectionLabel>AI-Powered Presets</SectionLabel>
@@ -708,17 +708,14 @@ export function LandingPage() {
               </div>
             </AnimatedSection>
             <AnimatedSection variant="float-in" delay={200}>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-violet-400/70 mb-3">Prompt to sort</p>
               <div className={`p-6 ${glass} ${glassHighlight}`}>
-                <div className="flex items-center gap-2.5 pb-4 mb-4 border-b border-white/10">
-                  <div className="h-2 w-2 rounded-full bg-violet-400" />
-                  <span className="text-[13px] font-semibold text-white/70">AI Sort</span>
-                </div>
                 <div className="space-y-3">
                   <div className="flex justify-end"><div className="max-w-[300px] rounded-[14px] rounded-br-[4px] bg-gradient-to-r from-indigo-500 to-violet-500 px-3.5 py-2.5 text-[13px] text-white leading-relaxed">It&apos;s a golden hour beach wedding, very emotional ceremony, lots of candid family moments</div></div>
                   <div className="flex gap-2.5 items-end"><div className="h-7 w-7 shrink-0 rounded-full border border-violet-400/25 bg-violet-400/10" /><div className="rounded-[14px] rounded-bl-[4px] border border-white/10 bg-white/[0.06] px-3.5 py-2.5 text-[13px] text-white/70 leading-relaxed">Got it — running AI sort for golden hour beach wedding. Prioritizing: emotional candids → ceremony moments → family groups → detail shots. Hero shot candidates flagged ✨</div></div>
                   <div className="flex justify-end"><div className="max-w-[240px] rounded-[14px] rounded-br-[4px] bg-gradient-to-r from-indigo-500 to-violet-500 px-3.5 py-2.5 text-[13px] text-white leading-relaxed">Looks great! Deliver the top 80 to the client gallery</div></div>
                 </div>
-                <div className="mt-4 pt-3">
+                <div className="mt-4 pt-3 border-t border-white/[0.07]">
                   <p className="text-[11px] text-white/25 mb-1.5">Processing 847 photos · 92% complete</p>
                   <div className="h-1 rounded-full bg-white/10 overflow-hidden"><div className="h-full w-[92%] rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500" /></div>
                 </div>
