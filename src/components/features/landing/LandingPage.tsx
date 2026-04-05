@@ -362,6 +362,94 @@ function PlatformTabs() {
   )
 }
 
+/* ── Waitlist hero section ── */
+const WAITLIST_BENEFITS = [
+  {
+    title: 'Founding member pricing, locked forever',
+    desc: 'The price you join at is the price you pay — always. When we raise it for everyone else, yours stays the same.',
+  },
+  {
+    title: 'First access before public launch',
+    desc: "You'll be using View1 Sort while thousands of other photographers are still on the waitlist.",
+  },
+  {
+    title: 'Your feedback shapes the roadmap',
+    desc: 'Direct line to the team. Features that matter to you get built first — not features for some hypothetical user.',
+  },
+  {
+    title: 'Priority onboarding support',
+    desc: "We personally help you configure your AI presets and nail your first client delivery from day one.",
+  },
+]
+
+function WaitlistSection() {
+  return (
+    <section id="waitlist" className="py-20 px-6 relative z-10">
+      <div className="mx-auto max-w-3xl">
+        <AnimatedSection>
+          {/* Rainbow border */}
+          <div className="p-[1.5px] rounded-[28px]" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.7) 0%, rgba(59,130,246,0.6) 20%, rgba(168,85,247,0.6) 40%, rgba(236,72,153,0.6) 60%, rgba(59,130,246,0.6) 80%, rgba(245,158,11,0.7) 100%)' }}>
+            <div className="relative rounded-[27px] overflow-hidden bg-gradient-to-b from-white/[0.11] to-white/[0.03] backdrop-blur-[40px] px-8 py-12 sm:px-12 sm:py-16 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+              {/* Top highlight */}
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+
+              {/* Badge */}
+              <div className="flex justify-center mb-8">
+                <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-400/10 px-4 py-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
+                  <span className="text-[12px] font-semibold tracking-wider text-violet-300 uppercase">Founding Member Pricing · Limited Spots</span>
+                </div>
+              </div>
+
+              {/* Headline */}
+              <h2 className="text-center text-4xl sm:text-5xl lg:text-[56px] font-bold tracking-tight text-white leading-[1.08]" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>
+                Join the waitlist.<br />Lock in your price.<br className="sm:hidden" />{' '}
+                <span style={{ background: 'linear-gradient(90deg, #a78bfa, #60a5fa, #f472b6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Forever.</span>
+              </h2>
+
+              {/* Subtext */}
+              <p className="mt-6 text-center text-[16px] sm:text-[17px] text-white/50 leading-relaxed max-w-xl mx-auto">
+                We&apos;re building View1 Sort for photographers who are done doing the admin work that has nothing to do with photography. Founding members get the lowest price we&apos;ll ever offer — locked in permanently the moment they join.
+              </p>
+
+              {/* Divider */}
+              <div className="my-10 h-px bg-white/[0.08]" />
+
+              {/* Benefits */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
+                {WAITLIST_BENEFITS.map(b => (
+                  <div key={b.title} className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                      <Check size={11} className="text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-[14px] font-semibold text-white leading-snug">{b.title}</p>
+                      <p className="mt-0.5 text-[13px] text-white/40 leading-relaxed">{b.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Form */}
+              <WaitlistForm size="large" />
+
+              {/* Social proof */}
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <div className="flex -space-x-1.5">
+                  {['bg-violet-500', 'bg-blue-500', 'bg-pink-500', 'bg-amber-500', 'bg-emerald-500'].map((c, i) => (
+                    <div key={i} className={`h-6 w-6 rounded-full border-2 border-white/10 ${c} opacity-80`} />
+                  ))}
+                </div>
+                <p className="text-[13px] text-white/35">847 photographers already on the waitlist</p>
+              </div>
+            </div>
+          </div>
+        </AnimatedSection>
+      </div>
+    </section>
+  )
+}
+
 /* ── Use case tabs ── */
 const USE_CASES: Record<string, { headline: string; wins: string[] }> = {
   'Wedding': { headline: '1,200 photos. 6 hours. One deadline.', wins: ['AI sorts entire wedding by narrative arc: ceremony → portraits → reception', 'Preselection gallery live within hours of the shoot', 'Client selects favorites — you only edit what matters', 'Magic link delivery — no file transfer apps or Dropbox'] },
@@ -468,6 +556,12 @@ export function LandingPage() {
 
       {/* ── SCROLL-JACKED HERO ── */}
       <ScrollHero />
+
+      {/* ── WAITLIST (prominent, right after hero) ── */}
+      <WaitlistSection />
+
+      {/* ── PRODUCT PREVIEW ── */}
+      <ProductPreview />
 
       {/* ── PROBLEM ── */}
       <section className="pt-6 pb-24 px-6 relative z-10">
@@ -596,43 +690,14 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── PRODUCT PREVIEW ── */}
-      <ProductPreview />
-
-      {/* ── FINAL CTA ── */}
-      <section id="waitlist" className="py-24 px-6 relative z-10">
+      {/* ── USE CASES ── */}
+      <section className="py-24 px-6 relative z-10">
         <div className="mx-auto max-w-5xl">
           <AnimatedSection className="text-center mb-10">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight lg:text-[56px] text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>We&apos;re building this for you.<br />Come be part of it.</h2>
+            <SectionLabel>Built for every shoot</SectionLabel>
+            <h2 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tight lg:text-[48px] text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>We&apos;re building this for you.<br />Come be part of it.</h2>
           </AnimatedSection>
           <UseCaseTabs />
-          <div className="mt-16" />
-          <AnimatedSection variant="float-in">
-            <div className="mx-auto max-w-[960px] p-[2px] rounded-3xl" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.6) 0%, rgba(59,130,246,0.5) 20%, rgba(168,85,247,0.5) 40%, rgba(236,72,153,0.5) 60%, rgba(59,130,246,0.5) 80%, rgba(245,158,11,0.6) 100%)' }}>
-              <div className="relative rounded-[22px] overflow-hidden bg-gradient-to-b from-white/[0.12] to-white/[0.03] backdrop-blur-[32px] shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                <div className="grid grid-cols-1 lg:grid-cols-2">
-                  <div className="p-10">
-                    <h3 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>The View1 Workflow</h3>
-                    <p className="text-sm text-white/35 leading-relaxed mb-6 max-w-md">Join the waitlist for early access and founding member pricing. You&apos;ll be first to try new features — and your feedback shapes what we build next.</p>
-                    <ul className="space-y-2.5">
-                      {['AI sorts a 500-photo shoot in under 12 minutes', 'Watermarked gallery delivered same day', 'Invoice sent and paid before you leave the venue'].map(item => (
-                        <li key={item} className="flex items-center gap-2.5 text-sm text-white/50"><Check size={16} className="shrink-0 text-emerald-400" />{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="bg-white/[0.03] p-10 flex flex-col justify-center border-t border-white/10 lg:border-t-0 lg:border-l">
-                    <div className="mb-3">
-                      <div className="inline-flex rounded-full bg-violet-400/10 border border-violet-400/20 px-3 py-1 mb-4"><span className="text-[11px] font-medium text-violet-400">Early Access — Limited Spots</span></div>
-                      <p className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>Free to start</p>
-                      <p className="text-[13px] text-white/30 mb-5">No credit card required. Cancel anytime.</p>
-                    </div>
-                    <WaitlistForm />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </AnimatedSection>
         </div>
       </section>
 
