@@ -63,26 +63,28 @@ function FAQ() {
 }
 
 /* ── Platform feature tabs ── */
-const PLATFORM_TABS: Record<string, { icon: React.ElementType; title: string; desc: string }[]> = {
+type PlatformFeature = { icon: React.ElementType; title: string; desc: string; screenshot: string; cropX?: string; cropY?: string }
+
+const PLATFORM_TABS: Record<string, PlatformFeature[]> = {
   'AI Sorting': [
-    { icon: Brain, title: 'Custom AI Profiles', desc: 'Train the AI on your personal shooting style and aesthetic preferences.' },
-    { icon: FolderOpen, title: 'Category Folders', desc: 'Auto-organized by shot type, emotion, and scene — not random file names.' },
-    { icon: Zap, title: 'Batch Processing', desc: 'Sort thousands of photos in minutes, not hours of manual work.' },
+    { icon: Brain, title: 'Custom AI Profiles', desc: 'Train the AI on your personal shooting style and aesthetic preferences.', screenshot: '/images/ss-ai-sort.png', cropY: '15%' },
+    { icon: FolderOpen, title: 'Category Folders', desc: 'Auto-organized by shot type, emotion, and scene — not random file names.', screenshot: '/images/ss-ai-sort.png', cropY: '52%' },
+    { icon: Zap, title: 'Batch Processing', desc: 'Sort thousands of photos in minutes, not hours of manual work.', screenshot: '/images/ss-ai-sort.png', cropY: '85%' },
   ],
   'Client Delivery': [
-    { icon: Globe, title: 'Magic Link Gallery', desc: 'One link, instant access. Works on any device, no account required.' },
-    { icon: MessageSquare, title: 'Photo Comments', desc: 'Clients leave notes on specific shots. Threaded replies from you.' },
-    { icon: Download, title: 'Organized Downloads', desc: 'Curated ZIP with AI category folders — not a flat dump of files.' },
+    { icon: Globe, title: 'Magic Link Gallery', desc: 'One link, instant access. Works on any device, no account required.', screenshot: '/images/ss-client-portal.png', cropY: '30%' },
+    { icon: MessageSquare, title: 'Photo Comments', desc: 'Clients leave notes on specific shots. Threaded replies from you.', screenshot: '/images/ss-client-welcome.png', cropY: '45%' },
+    { icon: Download, title: 'Organized Downloads', desc: 'Curated ZIP with AI category folders — not a flat dump of files.', screenshot: '/images/ss-galleries.png', cropY: '50%' },
   ],
   'Billing': [
-    { icon: FileText, title: 'Contracts & E-Sign', desc: 'Template-based contracts with digital signatures before the shoot.' },
-    { icon: CreditCard, title: 'Stripe Invoicing', desc: 'Auto-generated invoices. Instant payouts. Payment tracking built in.' },
-    { icon: Bell, title: 'Auto Notifications', desc: 'Email + SMS at every milestone — invoice sent, gallery ready, finals delivered.' },
+    { icon: FileText, title: 'Contracts & E-Sign', desc: 'Template-based contracts with digital signatures before the shoot.', screenshot: '/images/ss-contract.png', cropY: '50%' },
+    { icon: CreditCard, title: 'Stripe Invoicing', desc: 'Auto-generated invoices. Instant payouts. Payment tracking built in.', screenshot: '/images/ss-invoice.png', cropY: '50%' },
+    { icon: Bell, title: 'Auto Notifications', desc: 'Email + SMS at every milestone — invoice sent, gallery ready, finals delivered.', screenshot: '/images/ss-notifications.png', cropY: '30%' },
   ],
   'Analytics': [
-    { icon: BarChart3, title: 'Revenue Tracking', desc: 'Track revenue by period, client, and package — tied to real Stripe data.' },
-    { icon: Heart, title: 'Client Insights', desc: 'Repeat client tracking, acquisition rate, and gallery engagement stats.' },
-    { icon: Smartphone, title: 'Gallery Metrics', desc: 'See which photos get downloaded most, time spent, and conversion rates.' },
+    { icon: BarChart3, title: 'Revenue Tracking', desc: 'Track revenue by period, client, and package — tied to real Stripe data.', screenshot: '/images/dashboard-v2-preview.png', cropY: '55%' },
+    { icon: Heart, title: 'Client Insights', desc: 'Repeat client tracking, acquisition rate, and gallery engagement stats.', screenshot: '/images/dashboard-v2-preview.png', cropY: '35%' },
+    { icon: Smartphone, title: 'Gallery Metrics', desc: 'See which photos get downloaded most, time spent, and conversion rates.', screenshot: '/images/dashboard-v2-preview.png', cropY: '70%' },
   ],
 }
 
@@ -105,6 +107,18 @@ function PlatformTabs() {
             <f.icon size={24} className="text-violet-400 mb-3" />
             <h3 className="font-semibold text-white mb-1.5" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>{f.title}</h3>
             <p className="text-[13px] text-white/35 leading-relaxed">{f.desc}</p>
+            {/* Screenshot preview */}
+            <div className="relative mt-5 rounded-xl overflow-hidden border border-white/[0.08] h-[108px]">
+              <img
+                src={f.screenshot}
+                alt=""
+                aria-hidden="true"
+                className="w-full h-full object-cover"
+                style={{ objectPosition: `center ${f.cropY ?? '50%'}` }}
+              />
+              {/* Bottom fade to blend into card */}
+              <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#0d0d14]/80 to-transparent pointer-events-none" />
+            </div>
           </div>
         ))}
       </div>
