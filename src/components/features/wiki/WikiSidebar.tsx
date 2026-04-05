@@ -9,6 +9,7 @@ import {
   BarChart3,
   Bot,
   BookOpen,
+  ClipboardCheck,
   LogOut,
 } from 'lucide-react'
 
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { href: '/wiki/kpis', label: 'KPIs & Milestones', icon: BarChart3 },
   { href: '/wiki/operations', label: 'Operations & Agents', icon: Bot },
   { href: '/wiki/sops', label: 'SOPs & Guides', icon: BookOpen },
+  { href: '/wiki/build', label: 'Build Validation', icon: ClipboardCheck },
 ]
 
 export function WikiSidebar() {
