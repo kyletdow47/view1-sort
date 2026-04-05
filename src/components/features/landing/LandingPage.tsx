@@ -703,6 +703,9 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ── WAITLIST MID ── */}
+      <WaitlistMid />
+
       {/* ── WORKFLOW ── */}
       <section className="py-24 px-6 relative z-10">
         <div className="mx-auto max-w-5xl">
@@ -738,9 +741,6 @@ export function LandingPage() {
           <PlatformTabs />
         </div>
       </section>
-
-      {/* ── WAITLIST MID ── */}
-      <WaitlistMid />
 
       {/* ── USE CASES ── */}
       <section className="py-24 px-6 relative z-10">
