@@ -12,6 +12,15 @@ const LIST_ITEMS = ['Sorting', 'Culling', 'Gallery delivery', 'Invoicing', 'Clie
 const TAGLINE_1 = 'It all lives in one place now.'
 const TAGLINE_2 = 'We built the tool we wished existed after years of doing it the hard way.'
 
+/* Mobile word collage config — scattered positions, overlapping visibility windows */
+const MOBILE_WORD_CONFIGS = [
+  { word: 'Sorting',           top: '28%', left: '8%',  fs: 36, fw: 800, dx: 80,  dy: -40, w: [0.20, 0.43] },
+  { word: 'Culling',           top: '56%', left: '44%', fs: 42, fw: 900, dx: -75, dy: 38,  w: [0.29, 0.52] },
+  { word: 'Gallery delivery',  top: '42%', left: '5%',  fs: 24, fw: 700, dx: 60,  dy: 22,  w: [0.38, 0.59] },
+  { word: 'Invoicing',         top: '30%', left: '52%', fs: 32, fw: 800, dx: -55, dy: -48, w: [0.47, 0.66] },
+  { word: 'Client management', top: '62%', left: '4%',  fs: 20, fw: 700, dx: 45,  dy: 50,  w: [0.55, 0.73] },
+] as const
+
 /*
  * Timeline (275vh runway):
  *
@@ -77,50 +86,208 @@ function Tag2Words({ refs, containerRef, geist }: {
   )
 }
 
-/* ── Static mobile hero (no scroll-jacking) ── */
-function MobileHero() {
+/* ── Mobile scroll-jacked hero ── */
+function MobileScrollHero() {
   const geist = { fontFamily: "'Geist', system-ui, sans-serif" } as const
-  return (
-    <div className="relative z-10 px-5 pt-28 pb-16 flex flex-col items-center gap-12">
-      {/* Headline */}
-      <h1 className="text-4xl font-bold text-white text-center leading-[1.05] tracking-tight" style={geist}>
-        You shoot the photos.<br />We&apos;ll handle the rest.
-      </h1>
+  const outerRef = useRef<HTMLDivElement>(null)
+  const raf = useRef(0)
+  const hlContainerRef = useRef<HTMLDivElement>(null)
+  const hlH1Ref = useRef<HTMLHeadingElement>(null)
+  const wordRefs = useRef<(HTMLDivElement | null)[]>([])
+  const tag1Ref = useRef<HTMLParagraphElement>(null)
+  const tag2Ref = useRef<HTMLParagraphElement>(null)
+  const mockupRef = useRef<HTMLDivElement>(null)
+  const mockupInnerRef = useRef<HTMLDivElement>(null)
+  const mockupOverlayRef = useRef<HTMLDivElement>(null)
 
-      {/* List */}
-      <div className="space-y-2">
-        {LIST_ITEMS.map(item => (
-          <div key={item} className="flex items-center gap-3">
-            <div className="h-2 w-2 rounded-full bg-violet-400 shrink-0" />
-            <span className="text-xl font-bold text-white/90" style={geist}>{item}</span>
+  useEffect(() => {
+    function animate() {
+      const el = outerRef.current
+      if (!el) { raf.current = requestAnimationFrame(animate); return }
+      const vh = window.visualViewport?.height ?? window.innerHeight
+      const rect = el.getBoundingClientRect()
+      const runway = el.offsetHeight - vh
+      if (runway <= 0) { raf.current = requestAnimationFrame(animate); return }
+      const p = clamp(-rect.top / runway, 0, 1)
+
+      /* ══ Scene 1: Headline + rainbow sweep (0.00–0.20) ══ */
+      if (hlH1Ref.current) {
+        // sweep background-position 0%→100% → rainbow rolls left-to-right through text
+        hlH1Ref.current.style.backgroundPositionX = `${easeOut(sp(p, 0, 0.13)) * 100}%`
+      }
+      if (hlContainerRef.current) {
+        const out = easeOut(sp(p, 0.14, 0.20))
+        hlContainerRef.current.style.opacity = `${1 - out}`
+        hlContainerRef.current.style.transform = `translateY(${out * -50}px)`
+      }
+
+      /* ══ Scene 2: Word collage (0.20–0.73) ══ */
+      MOBILE_WORD_CONFIGS.forEach((cfg, i) => {
+        const wEl = wordRefs.current[i]
+        if (!wEl) return
+        const [wS, wE] = cfg.w
+        const wD = wE - wS
+        const inEnd = wS + wD * 0.38
+        const holdEnd = wS + wD * 0.62
+        if (p < wS || p > wE) { wEl.style.opacity = '0'; wEl.style.transform = 'none'; return }
+        const tIn = easeOut(sp(p, wS, inEnd))
+        const tOut = easeOut(sp(p, holdEnd, wE))
+        wEl.style.opacity = `${tIn * (1 - tOut)}`
+        wEl.style.transform = `translate(${cfg.dx * (1 - tIn)}px, ${cfg.dy * (1 - tIn)}px)`
+      })
+
+      /* ══ Scene 3: Taglines (0.63–0.76) ══ */
+      const t1In = easeOut(sp(p, 0.63, 0.68)); const t1Out = easeOut(sp(p, 0.72, 0.76))
+      if (tag1Ref.current) {
+        tag1Ref.current.style.opacity = `${t1In * (1 - t1Out)}`
+        tag1Ref.current.style.transform = `translateY(${(1 - t1In) * 28}px)`
+      }
+      const t2In = easeOut(sp(p, 0.66, 0.70)); const t2Out = easeOut(sp(p, 0.72, 0.76))
+      if (tag2Ref.current) {
+        tag2Ref.current.style.opacity = `${t2In * (1 - t2Out)}`
+        tag2Ref.current.style.transform = `translateY(${(1 - t2In) * 28}px)`
+      }
+
+      /* ══ Scene 4: Mockup slides in → zooms into Welcome Kyle header (0.74–1.00) ══ */
+      if (mockupRef.current) {
+        if (p < 0.74) {
+          mockupRef.current.style.opacity = '0'
+          mockupRef.current.style.transform = 'translateY(80px) scale(0.88)'
+        } else if (p <= 0.92) {
+          const t = easeOut(sp(p, 0.74, 0.83))
+          mockupRef.current.style.opacity = `${t}`
+          mockupRef.current.style.transform = `translateY(${(1 - t) * 80}px) scale(${0.88 + t * 0.12})`
+        } else {
+          const t = easeOut(sp(p, 0.92, 1.0))
+          mockupRef.current.style.opacity = `${1 - t}`
+          mockupRef.current.style.transform = 'scale(1)'
+        }
+      }
+      if (mockupInnerRef.current) {
+        if (p <= 0.82) {
+          mockupInnerRef.current.style.transform = 'scale(1) translateY(0)'
+        } else {
+          const zT = easeOut(sp(p, 0.82, 0.94))
+          mockupInnerRef.current.style.transform = `scale(${1 + zT * 3.8}) translateY(${-zT * 18}%)`
+        }
+      }
+      /* Overlay: fades in as zoom builds, holds, then fades out with mockup */
+      if (mockupOverlayRef.current) {
+        if (p < 0.79) {
+          mockupOverlayRef.current.style.opacity = '0'
+        } else if (p <= 0.87) {
+          mockupOverlayRef.current.style.opacity = `${easeOut(sp(p, 0.79, 0.87))}`
+        } else if (p <= 0.92) {
+          mockupOverlayRef.current.style.opacity = '1'
+        } else if (p <= 1.0) {
+          mockupOverlayRef.current.style.opacity = `${1 - easeOut(sp(p, 0.92, 1.0))}`
+        } else {
+          mockupOverlayRef.current.style.opacity = '0'
+        }
+      }
+
+      raf.current = requestAnimationFrame(animate)
+    }
+    raf.current = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(raf.current)
+  }, [])
+
+  return (
+    <div ref={outerRef} style={{ height: '500svh' }} className="relative z-10">
+      <div className="sticky top-0 w-full" style={{ height: '100svh', overflow: 'clip' }}>
+
+        {/* Scene 1: Headline */}
+        <div
+          ref={hlContainerRef}
+          className="absolute inset-0 flex items-center justify-center px-6 will-change-[transform,opacity]"
+        >
+          <h1
+            ref={hlH1Ref}
+            className="font-bold text-center leading-[1.1] tracking-tight will-change-[background-position]"
+            style={{
+              ...geist,
+              fontSize: 'clamp(24px, 6.8vw, 42px)',
+              backgroundImage: 'linear-gradient(90deg, white 0%, white 30%, #F59E0B 42%, #A855F7 56%, #3B82F6 68%, white 78%, white 100%)',
+              backgroundSize: '300% 100%',
+              backgroundPositionX: '0%',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            You shoot the photos.<br />We&apos;ll handle the rest.
+          </h1>
+        </div>
+
+        {/* Scene 2: Word collage — scattered absolute positions, overlapping */}
+        {MOBILE_WORD_CONFIGS.map((cfg, i) => (
+          <div
+            key={cfg.word}
+            ref={el => { wordRefs.current[i] = el }}
+            className="absolute will-change-[transform,opacity]"
+            style={{ top: cfg.top, left: cfg.left, opacity: 0 }}
+          >
+            <span
+              className="text-white leading-tight tracking-tight block"
+              style={{ ...geist, fontSize: cfg.fs, fontWeight: cfg.fw }}
+            >
+              {cfg.word}
+            </span>
           </div>
         ))}
-      </div>
 
-      {/* Tagline */}
-      <div className="text-center space-y-3">
-        <p className="text-2xl font-bold text-white leading-tight" style={geist}>It all lives in one place now.</p>
-        <p className="text-lg font-bold text-white/40 leading-tight" style={geist}>Built by a photographer who spent years doing it the hard way.</p>
-      </div>
-
-      {/* Mockup */}
-      <div className="w-full rounded-[18px] overflow-hidden border border-white/[0.14] shadow-[0_24px_72px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.05)]" style={{ background: '#0c0c10' }}>
-        {/* Title bar */}
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/[0.08]" style={{ background: 'rgba(255,255,255,0.04)' }}>
-          <div className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
-          <div className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
-          <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
+        {/* Scene 3: Taglines */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-8 gap-4 text-center pointer-events-none">
+          <p
+            ref={tag1Ref}
+            className="text-[20px] sm:text-[30px] font-bold text-white leading-tight will-change-[transform,opacity]"
+            style={{ ...geist, opacity: 0 }}
+          >
+            {TAGLINE_1}
+          </p>
+          <p
+            ref={tag2Ref}
+            className="text-[14px] sm:text-[16px] font-medium text-white/40 leading-relaxed max-w-[270px] will-change-[transform,opacity]"
+            style={{ ...geist, opacity: 0 }}
+          >
+            {TAGLINE_2}
+          </p>
         </div>
-        <NextImage
-          src="/images/dashboard-v2-preview.png"
-          alt="View1 Sort Dashboard"
-          width={2940}
-          height={1842}
-          className="w-full h-auto block"
-          priority
-        />
-      </div>
 
+        {/* Scene 4: Mockup */}
+        <div
+          ref={mockupRef}
+          className="absolute inset-0 flex items-center justify-center px-4 will-change-[transform,opacity]"
+          style={{ opacity: 0 }}
+        >
+          <div className="w-full max-w-[360px]">
+            <div ref={mockupInnerRef} className="rounded-[18px] overflow-hidden border border-white/[0.14] shadow-[0_24px_72px_rgba(0,0,0,0.65)] will-change-[transform]" style={{ background: '#0c0c10', transformOrigin: 'top center' }}>
+              <div className="flex items-center gap-1.5 px-3.5 py-2.5 border-b border-white/[0.08]" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                <div className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+                <div className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
+                <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
+                <span className="ml-2 text-[10px] text-white/25">View1 Sort</span>
+              </div>
+              <NextImage
+                src="/images/dashboard-v2-preview.png"
+                alt="View1 Sort Dashboard"
+                width={2940}
+                height={1842}
+                className="w-full h-auto block"
+                style={{ maxHeight: '56vh', objectFit: 'cover', objectPosition: 'top' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Scene 4: Full-screen fade overlay — at scene level so it's NOT affected by mockup zoom scale */}
+        <div
+          ref={mockupOverlayRef}
+          className="absolute inset-0 pointer-events-none"
+          style={{ opacity: 0, background: 'linear-gradient(to bottom, transparent 0%, transparent 64%, #07070f 70%)' }}
+        />
+
+      </div>
     </div>
   )
 }
@@ -277,7 +444,7 @@ export function ScrollHero() {
 
   const geist = { fontFamily: "'Geist', system-ui, sans-serif" } as const
 
-  if (isMobile) return <MobileHero />
+  if (isMobile) return <MobileScrollHero />
 
   return (
     <div ref={outerRef} style={{ height: '275svh' }} className="relative z-10">

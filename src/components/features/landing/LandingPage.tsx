@@ -382,69 +382,106 @@ const WAITLIST_BENEFITS = [
 ]
 
 function WaitlistSection() {
+  const geist = { fontFamily: "'Geist', system-ui, sans-serif" }
   return (
-    <section id="waitlist" className="py-20 px-6 relative z-10">
-      <div className="mx-auto max-w-3xl">
-        <AnimatedSection>
-          {/* Rainbow border */}
-          <div className="p-[1.5px] rounded-[28px]" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.7) 0%, rgba(59,130,246,0.6) 20%, rgba(168,85,247,0.6) 40%, rgba(236,72,153,0.6) 60%, rgba(59,130,246,0.6) 80%, rgba(245,158,11,0.7) 100%)' }}>
-            <div className="relative rounded-[27px] overflow-hidden bg-gradient-to-b from-white/[0.11] to-white/[0.03] backdrop-blur-[40px] px-8 py-12 sm:px-12 sm:py-16 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
-              {/* Top highlight */}
-              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+    <section id="waitlist" className="relative z-10">
 
-              {/* Badge */}
-              <div className="flex justify-center mb-8">
-                <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-400/10 px-4 py-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
-                  <span className="text-[12px] font-semibold tracking-wider text-violet-300 uppercase">Founding Member Pricing · Limited Spots</span>
-                </div>
+      {/* ── Mobile: full-bleed immersive ── */}
+      <div className="sm:hidden flex flex-col justify-center min-h-[100svh] px-6 pt-20 pb-16"
+        style={{ background: 'radial-gradient(ellipse 120% 60% at 80% 20%, rgba(139,92,246,0.18) 0%, transparent 60%), radial-gradient(ellipse 80% 50% at 20% 80%, rgba(59,130,246,0.12) 0%, transparent 55%), #07070f' }}>
+
+        {/* Badge */}
+        <div className="inline-flex self-start items-center gap-1.5 rounded-full border border-violet-400/25 bg-violet-400/10 px-3 py-1 mb-7">
+          <span className="h-1 w-1 rounded-full bg-violet-400 animate-pulse" />
+          <span className="text-[10px] font-semibold tracking-wider text-violet-300 uppercase">Founding Member · Limited Spots</span>
+        </div>
+
+        {/* Headline */}
+        <h2 className="font-bold tracking-tight text-white leading-[1.0] mb-5" style={{ ...geist, fontSize: 'clamp(36px, 11vw, 52px)' }}>
+          Join the<br />waitlist.<br />Lock in your<br />price.{' '}
+          <span style={{ background: 'linear-gradient(90deg, #a78bfa, #60a5fa, #f472b6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Forever.</span>
+        </h2>
+
+        {/* Subtext */}
+        <p className="text-[13px] text-white/40 leading-relaxed mb-8 max-w-[300px]">
+          Founding members lock in the lowest price we&apos;ll ever offer — permanently.
+        </p>
+
+        {/* Benefits — compact, left-aligned, no descriptions */}
+        <div className="flex flex-col gap-3 mb-8">
+          {WAITLIST_BENEFITS.map(b => (
+            <div key={b.title} className="flex items-center gap-2.5">
+              <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-500/30">
+                <Check size={9} className="text-emerald-400" />
               </div>
+              <p className="text-[13px] font-medium text-white/70 leading-snug">{b.title}</p>
+            </div>
+          ))}
+        </div>
 
-              {/* Headline */}
-              <h2 className="text-center text-4xl sm:text-5xl lg:text-[56px] font-bold tracking-tight text-white leading-[1.08]" style={{ fontFamily: "'Geist', system-ui, sans-serif" }}>
-                Join the waitlist.<br />Lock in your price.<br className="sm:hidden" />{' '}
-                <span style={{ background: 'linear-gradient(90deg, #a78bfa, #60a5fa, #f472b6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Forever.</span>
-              </h2>
+        {/* Form */}
+        <WaitlistForm size="large" />
 
-              {/* Subtext */}
-              <p className="mt-6 text-center text-[16px] sm:text-[17px] text-white/50 leading-relaxed max-w-xl mx-auto">
-                We&apos;re building View1 Sort for photographers who are done doing the admin work that has nothing to do with photography. Founding members get the lowest price we&apos;ll ever offer — locked in permanently the moment they join.
-              </p>
+        {/* Social proof */}
+        <div className="mt-5 flex items-center gap-2.5">
+          <div className="flex -space-x-1">
+            {['bg-violet-500', 'bg-blue-500', 'bg-pink-500', 'bg-amber-500', 'bg-emerald-500'].map((c, i) => (
+              <div key={i} className={`h-5 w-5 rounded-full border border-white/10 ${c} opacity-70`} />
+            ))}
+          </div>
+          <p className="text-[11px] text-white/30">847 photographers on the waitlist</p>
+        </div>
+      </div>
 
-              {/* Divider */}
-              <div className="my-10 h-px bg-white/[0.08]" />
-
-              {/* Benefits */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
-                {WAITLIST_BENEFITS.map(b => (
-                  <div key={b.title} className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30">
-                      <Check size={11} className="text-emerald-400" />
-                    </div>
-                    <div>
-                      <p className="text-[14px] font-semibold text-white leading-snug">{b.title}</p>
-                      <p className="mt-0.5 text-[13px] text-white/40 leading-relaxed">{b.desc}</p>
-                    </div>
+      {/* ── Desktop: card design ── */}
+      <div className="hidden sm:block py-20 px-6">
+        <div className="mx-auto max-w-3xl">
+          <AnimatedSection>
+            <div className="p-[1.5px] rounded-[28px]" style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.7) 0%, rgba(59,130,246,0.6) 20%, rgba(168,85,247,0.6) 40%, rgba(236,72,153,0.6) 60%, rgba(59,130,246,0.6) 80%, rgba(245,158,11,0.7) 100%)' }}>
+              <div className="relative rounded-[27px] overflow-hidden bg-gradient-to-b from-white/[0.11] to-white/[0.03] backdrop-blur-[40px] px-12 py-16 shadow-[0_24px_80px_rgba(0,0,0,0.5)]">
+                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                <div className="flex justify-center mb-8">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-400/10 px-4 py-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
+                    <span className="text-[12px] font-semibold tracking-wider text-violet-300 uppercase">Founding Member Pricing · Limited Spots</span>
                   </div>
-                ))}
-              </div>
-
-              {/* Form */}
-              <WaitlistForm size="large" />
-
-              {/* Social proof */}
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <div className="flex -space-x-1.5">
-                  {['bg-violet-500', 'bg-blue-500', 'bg-pink-500', 'bg-amber-500', 'bg-emerald-500'].map((c, i) => (
-                    <div key={i} className={`h-6 w-6 rounded-full border-2 border-white/10 ${c} opacity-80`} />
+                </div>
+                <h2 className="text-center text-5xl lg:text-[56px] font-bold tracking-tight text-white leading-[1.08]" style={geist}>
+                  Join the waitlist. Lock in your price.{' '}
+                  <span style={{ background: 'linear-gradient(90deg, #a78bfa, #60a5fa, #f472b6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Forever.</span>
+                </h2>
+                <p className="mt-6 text-center text-[17px] text-white/50 leading-relaxed max-w-xl mx-auto">
+                  We&apos;re building View1 Sort for photographers who are done doing the admin work that has nothing to do with photography. Founding members get the lowest price we&apos;ll ever offer — locked in permanently the moment they join.
+                </p>
+                <div className="my-10 h-px bg-white/[0.08]" />
+                <div className="grid grid-cols-2 gap-5 mb-10">
+                  {WAITLIST_BENEFITS.map(b => (
+                    <div key={b.title} className="flex items-start gap-3">
+                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                        <Check size={11} className="text-emerald-400" />
+                      </div>
+                      <div>
+                        <p className="text-[14px] font-semibold text-white leading-snug">{b.title}</p>
+                        <p className="mt-0.5 text-[13px] text-white/40 leading-relaxed">{b.desc}</p>
+                      </div>
+                    </div>
                   ))}
                 </div>
-                <p className="text-[13px] text-white/35">847 photographers already on the waitlist</p>
+                <WaitlistForm size="large" />
+                <div className="mt-6 flex items-center justify-center gap-3">
+                  <div className="flex -space-x-1.5">
+                    {['bg-violet-500', 'bg-blue-500', 'bg-pink-500', 'bg-amber-500', 'bg-emerald-500'].map((c, i) => (
+                      <div key={i} className={`h-6 w-6 rounded-full border-2 border-white/10 ${c} opacity-80`} />
+                    ))}
+                  </div>
+                  <p className="text-[13px] text-white/35">847 photographers already on the waitlist</p>
+                </div>
               </div>
             </div>
-          </div>
-        </AnimatedSection>
+          </AnimatedSection>
+        </div>
       </div>
+
     </section>
   )
 }
