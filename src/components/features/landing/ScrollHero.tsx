@@ -14,11 +14,11 @@ const TAGLINE_2 = 'We built the tool we wished existed after years of doing it t
 
 /* Mobile word collage config — scattered positions, overlapping visibility windows */
 const MOBILE_WORD_CONFIGS = [
-  { word: 'Sorting',           top: '18%', left: '8%',  fs: 36, fw: 800, dx: 80,  dy: -40, w: [0.20, 0.43] },
-  { word: 'Culling',           top: '58%', left: '44%', fs: 42, fw: 900, dx: -75, dy: 38,  w: [0.29, 0.52] },
-  { word: 'Gallery delivery',  top: '40%', left: '5%',  fs: 24, fw: 700, dx: 60,  dy: 22,  w: [0.38, 0.59] },
-  { word: 'Invoicing',         top: '14%', left: '52%', fs: 32, fw: 800, dx: -55, dy: -48, w: [0.47, 0.66] },
-  { word: 'Client management', top: '70%', left: '4%',  fs: 20, fw: 700, dx: 45,  dy: 50,  w: [0.55, 0.73] },
+  { word: 'Sorting',           top: '28%', left: '8%',  fs: 36, fw: 800, dx: 80,  dy: -40, w: [0.20, 0.43] },
+  { word: 'Culling',           top: '56%', left: '44%', fs: 42, fw: 900, dx: -75, dy: 38,  w: [0.29, 0.52] },
+  { word: 'Gallery delivery',  top: '42%', left: '5%',  fs: 24, fw: 700, dx: 60,  dy: 22,  w: [0.38, 0.59] },
+  { word: 'Invoicing',         top: '30%', left: '52%', fs: 32, fw: 800, dx: -55, dy: -48, w: [0.47, 0.66] },
+  { word: 'Client management', top: '62%', left: '4%',  fs: 20, fw: 700, dx: 45,  dy: 50,  w: [0.55, 0.73] },
 ] as const
 
 /*
@@ -98,6 +98,7 @@ function MobileScrollHero() {
   const tag2Ref = useRef<HTMLParagraphElement>(null)
   const mockupRef = useRef<HTMLDivElement>(null)
   const mockupInnerRef = useRef<HTMLDivElement>(null)
+  const mockupOverlayRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function animate() {
@@ -147,17 +148,17 @@ function MobileScrollHero() {
         tag2Ref.current.style.transform = `translateY(${(1 - t2In) * 28}px)`
       }
 
-      /* ══ Scene 4: Mockup slides in → zooms into Welcome Kyle header (0.74–0.95) ══ */
+      /* ══ Scene 4: Mockup slides in → zooms into Welcome Kyle header (0.74–1.00) ══ */
       if (mockupRef.current) {
         if (p < 0.74) {
           mockupRef.current.style.opacity = '0'
           mockupRef.current.style.transform = 'translateY(80px) scale(0.88)'
-        } else if (p <= 0.87) {
+        } else if (p <= 0.92) {
           const t = easeOut(sp(p, 0.74, 0.83))
           mockupRef.current.style.opacity = `${t}`
           mockupRef.current.style.transform = `translateY(${(1 - t) * 80}px) scale(${0.88 + t * 0.12})`
         } else {
-          const t = easeOut(sp(p, 0.87, 0.95))
+          const t = easeOut(sp(p, 0.92, 1.0))
           mockupRef.current.style.opacity = `${1 - t}`
           mockupRef.current.style.transform = 'scale(1)'
         }
@@ -167,7 +168,21 @@ function MobileScrollHero() {
           mockupInnerRef.current.style.transform = 'scale(1) translateY(0)'
         } else {
           const zT = easeOut(sp(p, 0.82, 0.94))
-          mockupInnerRef.current.style.transform = `scale(${1 + zT * 2.3}) translateY(${-zT * 14}%)`
+          mockupInnerRef.current.style.transform = `scale(${1 + zT * 3.8}) translateY(${-zT * 18}%)`
+        }
+      }
+      /* Overlay: fades in as zoom builds, holds, then fades out with mockup */
+      if (mockupOverlayRef.current) {
+        if (p < 0.79) {
+          mockupOverlayRef.current.style.opacity = '0'
+        } else if (p <= 0.87) {
+          mockupOverlayRef.current.style.opacity = `${easeOut(sp(p, 0.79, 0.87))}`
+        } else if (p <= 0.92) {
+          mockupOverlayRef.current.style.opacity = '1'
+        } else if (p <= 1.0) {
+          mockupOverlayRef.current.style.opacity = `${1 - easeOut(sp(p, 0.92, 1.0))}`
+        } else {
+          mockupOverlayRef.current.style.opacity = '0'
         }
       }
 
@@ -225,7 +240,7 @@ function MobileScrollHero() {
         <div className="absolute inset-0 flex flex-col items-center justify-center px-8 gap-4 text-center pointer-events-none">
           <p
             ref={tag1Ref}
-            className="text-[26px] sm:text-[30px] font-bold text-white leading-tight will-change-[transform,opacity]"
+            className="text-[20px] sm:text-[30px] font-bold text-white leading-tight will-change-[transform,opacity]"
             style={{ ...geist, opacity: 0 }}
           >
             {TAGLINE_1}
@@ -265,8 +280,14 @@ function MobileScrollHero() {
           </div>
         </div>
 
+        {/* Scene 4: Full-screen fade overlay — at scene level so it's NOT affected by mockup zoom scale */}
+        <div
+          ref={mockupOverlayRef}
+          className="absolute inset-0 pointer-events-none"
+          style={{ opacity: 0, background: 'linear-gradient(to bottom, transparent 0%, transparent 64%, #07070f 70%)' }}
+        />
 
-</div>
+      </div>
     </div>
   )
 }

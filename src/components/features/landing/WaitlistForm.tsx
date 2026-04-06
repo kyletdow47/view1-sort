@@ -64,8 +64,8 @@ export function WaitlistForm({ size = 'default' }: { size?: 'default' | 'large' 
         <input type="email" placeholder="Enter your email" value={email} onChange={e => setEmail(e.target.value)} required
           className={`flex-1 px-4 text-sm text-white placeholder-white/30 outline-none bg-transparent ${size === 'large' ? 'py-4' : 'py-3'}`} />
         <button type="submit" disabled={loading}
-          className={`shrink-0 btn-rainbow px-6 transition-all disabled:opacity-60 ${size === 'large' ? 'py-4 text-base' : 'py-3 text-sm'}`}>
-          {loading ? 'Joining…' : 'Get Early Access'}
+          className={`shrink-0 btn-rainbow px-3 sm:px-5 transition-all disabled:opacity-60 ${size === 'large' ? 'py-4 text-sm' : 'py-3 text-sm'}`}>
+          {loading ? 'Joining…' : <><span className="sm:hidden">Join</span><span className="hidden sm:inline">Get Early Access</span></>}
         </button>
       </div>
       {error && <p className="text-xs text-red-400">{error}</p>}
