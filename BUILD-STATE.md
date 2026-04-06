@@ -3,8 +3,8 @@
 > This file is read and updated by the design-to-dev agent at every run.
 > It serves as build memory — what's done, what's next, what broke, what was learned.
 
-Last updated: 2026-04-05
-Last agent run: 2026-04-05T10:20Z
+Last updated: 2026-04-06
+Last agent run: 2026-04-06T00:00Z
 
 ## Priority Tiers (P0 = do first, P5 = do last)
 
@@ -59,15 +59,9 @@ Last agent run: 2026-04-05T10:20Z
 
 ## Currently Building
 
-Content Calendar View build completed 2026-04-05T13:58Z. Push needed (git index.lock on mounted filesystem — run from native terminal):
-  rm .git/index.lock
-  git checkout -b feat/design-to-dev/content-calendar-view
-  git add src/components/features/content/ContentCalendar.tsx src/app/dashboard/content/page.tsx BUILD-STATE.md
-  git commit -m "feat(content): build ContentCalendar with month/week view, dnd-kit drag-to-reschedule, and platform color chips"
-  npm run lint && npm run test && npx tsc --noEmit
-  git push -u origin feat/design-to-dev/content-calendar-view
-  gh pr create --title "[design-to-dev] Build Content Calendar View"
-QA task GID: 1213965047392130.
+Nothing. Dev Pickup queue is empty as of 2026-04-06. All 48 tasks completed.
+
+NOTE: Content Calendar View code was built 2026-04-05 but lost — the sandbox filesystem (/sessions/nifty-amazing-pascal/tmp/) is gone. No branch was pushed. Asana task 1213917839622781 is already marked complete. If Content Calendar View needs a PR, it must be rebuilt from the Pencil frame (SU7JB).
 
 <!-- Previous: Gallery Viewer + Client Portal Auth builds also pending push:
 
@@ -139,6 +133,7 @@ Previous pending push: Branding Panel (branch feat/design-to-dev/branding-panel,
 ## Failed / Blocked
 
 <!-- Format: - [page-name] — reason — date — what needs to happen -->
+- QA environment — BLOCKED 2026-04-06 — .env.local missing NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY. All 24 dashboard QA tasks blocked. Fix task: Asana GID 1213960953403247. Add Supabase credentials to .env.local to unblock the QA agent.
 - Client Gallery Viewer mobile nav — FIXED 2026-04-04 — PR #26 branch fix/design-to-dev/client-gallery-mobile-nav. Changed hidden sm:flex to flex overflow-x-auto on ClientNav line 56. QA passed 2026-04-04.
 - Client Gallery Viewer thumbnailUrl empty string — FIXED 2026-04-04 — branch fix/design-to-dev/client-gallery-thumbnail-null-guard, commit 1b7f0eb. FavoritePhoto.thumbnailUrl widened to string|null, mock data changed to null, FavoritesStrip renders placeholder div when null. Awaiting QA (push needed: git push -u origin fix/design-to-dev/client-gallery-thumbnail-null-guard).
 
@@ -234,6 +229,8 @@ Previous pending push: Branding Panel (branch feat/design-to-dev/branding-panel,
 - 2026-04-05: Client Portal Auth — Resend email in invitations route uses dynamic import (import('@/lib/email/send')) to avoid crashing at module load time when RESEND_API_KEY is absent. Falls back to console.log stub. This is intentional — dev environments work without email credentials.
 - 2026-04-05: Gallery Viewer — accessLevel defaults to 'delivered'. Real client-level access requires project_clients table (not yet migrated). TODO comment added at access level derivation in page.tsx.
 - 2026-04-05: Gallery Viewer — Category nav uses `categories.length > 1` guard — no pills shown if all photos are in one category (nothing to filter). "All Photos" always shows as the reset pill.
+- 2026-04-06: QA review (fourteenth run) — 0 pages reviewed, 0 passed, 0 failed. CRITICAL BLOCKER: Local dev environment missing NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local. createClient() in src/lib/supabase/client.ts uses ! non-null assertions on both vars → throws before DashboardClientLayout renders → error boundary shows "Something went wrong" on ALL /dashboard/* routes. 24 QA tasks in Code Review queue remain blocked. Fix tasks created: [P0] Fix: QA environment blocker — Add Supabase env vars to .env.local (Asana GID: 1213960953403247). All 24 tasks commented with blocker explanation. NOTE: dev server is running at localhost:3000 and landing page renders correctly. Only dashboard+gallery routes are broken.
+- 2026-04-06: QA review (fifteenth run) — 0 pages reviewed, 0 passed, 0 failed. Same two blockers persist: (1) Current branch is feat/mobile-landing-redesign — all 24 dashboard builds are on separate feature branches never merged to main. (2) NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY still missing from .env.local — all /dashboard/* routes crash with Supabase SSR error. Blocker comments added to all 24 tasks in the Asana Code Review queue. Status: QA cannot proceed until feature branches are merged to main AND Supabase env vars are configured. Fix task already exists: Asana GID 1213960953403247.
 - 2026-04-05: QA review (thirteenth run) — 1 page reviewed, 1 passed, 0 failed. Bookings Pipeline View (branch feat/design-to-dev/bookings-pipeline): PASS — 24/24 checklist items passed via source code audit. 5-tab orchestrator (Inbox/Packages/Calendar/Page Editor/Settings), 9 mock bookings in 6-column dnd-kit Kanban, drag-to-stage updates, AddBookingModal with per-column defaultStage, search filter (clientName/email/bookingType), 5 mock packages with CRUD + PackageFormModal, monthly calendar with prev/next nav + colored STAGE_COLORS dots + day-click detail panel + upcoming shoots sidebar, live preview Page Editor (fields → preview + section toggles + activePackages), Settings (slug/deposit/notifications), "View Page" → /book/[slug], loading.tsx + error.tsx present, TypeScript strict (0 any), dnd-kit PointerSensor+TouchSensor same pattern as ClientsKanbanView. MINORS (non-blocking): inline style={} attrs (glassmorphism/gradient — app-wide pattern), hardcoded hex STAGE_COLORS (app-wide pattern), fontFamily inline at line 545 (use font-sans), Math.random() in loading.tsx:47 (may cause hydration mismatch — use fixed counts), Calendar tab is tabbed not combined-pane as in vrsJs frame (Pencil was unavailable during build). WORKFLOW: branch not yet pushed to git (sandbox disk full). Manual push required before merge. Deployed tracking task created in Asana (GID: 1213959149037689).
 
 ## Shared Components Built
