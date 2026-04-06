@@ -22,6 +22,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'imagedelivery.net',
       },
+      {
+        // Demo gallery placeholder images
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
     ],
     formats: ['image/avif', 'image/webp'],
   },

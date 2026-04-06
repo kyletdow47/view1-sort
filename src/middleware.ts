@@ -14,8 +14,9 @@ export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request })
 
   // Demo bypass — allows browsing all pages without auth/onboarding.
-  // Activate with ?demo=view1-preview-2026
-  if (searchParams.get('demo') === DEMO_BYPASS_KEY) {
+  // Activate with ?demo=view1-preview-2026 (keyed) or ?demo=true (QA shortcut)
+  const demoParam = searchParams.get('demo')
+  if (demoParam === DEMO_BYPASS_KEY || demoParam === 'true') {
     response.cookies.set('demo_mode', 'true', { path: '/', maxAge: 60 * 60 * 24 })
     return response
   }
