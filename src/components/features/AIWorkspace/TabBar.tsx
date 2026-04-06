@@ -7,6 +7,7 @@ import {
   Image,
   User,
   FileText,
+  Edit3,
 } from 'lucide-react'
 import type { WorkspaceTab } from '@/types/ai-workspace'
 import { WORKSPACE_TABS } from '@/types/ai-workspace'
@@ -18,6 +19,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   image: Image,
   user: User,
   'file-text': FileText,
+  'edit-3': Edit3,
 }
 
 interface TabBarProps {

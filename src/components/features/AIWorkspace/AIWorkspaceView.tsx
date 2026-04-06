@@ -18,6 +18,7 @@ import { AISortPreferences } from './AISortPreferences'
 import { VibePresetsTab } from './VibePresetsTab'
 import { CullSliderBar } from './CullSliderBar'
 import { WorkspaceSelectionToolbar } from './WorkspaceSelectionToolbar'
+import { EditRequestsPanel } from '@/components/features/workspace/EditRequestsPanel'
 
 import type { Media, Project } from '@/types/supabase'
 import type { MediaItem } from '@/types/media'
@@ -264,6 +265,10 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
           <div className="flex items-center justify-center flex-1 text-white/30 text-lg">
             Project Details tab — coming soon
           </div>
+        )}
+
+        {activeTab === 'edit-requests' && (
+          <EditRequestsPanel projectId={project.id} />
         )}
       </div>
 

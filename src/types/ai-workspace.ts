@@ -1,6 +1,6 @@
 /** Types for the AI Workspace — Project Detail page */
 
-export type WorkspaceTab = 'ai-sort' | 'review' | 'shot-list' | 'gallery' | 'client' | 'details'
+export type WorkspaceTab = 'ai-sort' | 'review' | 'shot-list' | 'gallery' | 'client' | 'details' | 'edit-requests'
 
 export type AISortSubTab = 'upload' | 'workspace' | 'preferences' | 'vibe-presets'
 
@@ -50,6 +50,7 @@ export const WORKSPACE_TABS: WorkspaceTabConfig[] = [
   { id: 'gallery', label: 'Gallery', icon: 'image' },
   { id: 'client', label: 'Client', icon: 'user' },
   { id: 'details', label: 'Details', icon: 'file-text' },
+  { id: 'edit-requests', label: 'Edit Requests', icon: 'edit-3' },
 ] as const
 
 export const AI_SORT_SUB_TABS: AISortSubTabConfig[] = [
