@@ -14,6 +14,9 @@ import { PaymentFailedEmail } from './templates/payment-failed'
 import { ContractSentEmail } from './templates/contract-sent'
 import { BookingConfirmationEmail } from './templates/booking-confirmation'
 import { EditRequestUpdateEmail } from './templates/edit-request-update'
+import { WaitlistConfirmationEmail } from './templates/waitlist-confirmation'
+import { WaitlistDay3Email } from './templates/waitlist-day3'
+import { WaitlistPrelaunchEmail } from './templates/waitlist-prelaunch'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://view1.studio'
 
@@ -143,6 +146,36 @@ export async function sendBookingConfirmationEmail(
       location,
       packageDetails,
     }),
+  })
+}
+
+export async function sendWaitlistConfirmationEmail(to: string, name?: string) {
+  const firstName = name?.split(' ')[0] ?? 'there'
+  return sendEmail({
+    to,
+    subject: "You're on the list — View1 Sort",
+    template: 'waitlist_confirmation',
+    react: React.createElement(WaitlistConfirmationEmail, { firstName }),
+  })
+}
+
+export async function sendWaitlistDay3Email(to: string, name?: string) {
+  const firstName = name?.split(' ')[0] ?? 'there'
+  return sendEmail({
+    to,
+    subject: '184 commits. 11 days. Here\'s everything I built.',
+    template: 'waitlist_day3',
+    react: React.createElement(WaitlistDay3Email, { firstName }),
+  })
+}
+
+export async function sendWaitlistPrelaunchEmail(to: string, name?: string) {
+  const firstName = name?.split(' ')[0] ?? 'there'
+  return sendEmail({
+    to,
+    subject: 'Launching in 3 days. You\'re first.',
+    template: 'waitlist_prelaunch',
+    react: React.createElement(WaitlistPrelaunchEmail, { firstName }),
   })
 }
 
