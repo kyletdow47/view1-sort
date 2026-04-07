@@ -15,10 +15,10 @@ import { ContractSentEmail } from './templates/contract-sent'
 import { BookingConfirmationEmail } from './templates/booking-confirmation'
 import { EditRequestUpdateEmail } from './templates/edit-request-update'
 import { WaitlistConfirmationEmail } from './templates/waitlist-confirmation'
-import { WaitlistDay3Email } from './templates/waitlist-day3'
-import { WaitlistPrelaunchEmail } from './templates/waitlist-prelaunch'
+import { WaitlistCommunityEmail } from './templates/waitlist-community'
+import { WaitlistLaunchEmail } from './templates/waitlist-launch'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://view1.studio'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://view1sort.com'
 
 export async function sendWelcomeEmail(to: string, displayName: string, userId?: string) {
   return sendEmail({
@@ -149,36 +149,6 @@ export async function sendBookingConfirmationEmail(
   })
 }
 
-export async function sendWaitlistConfirmationEmail(to: string, name?: string) {
-  const firstName = name?.split(' ')[0] ?? 'there'
-  return sendEmail({
-    to,
-    subject: "You're on the list — View1 Sort",
-    template: 'waitlist_confirmation',
-    react: React.createElement(WaitlistConfirmationEmail, { firstName }),
-  })
-}
-
-export async function sendWaitlistDay3Email(to: string, name?: string) {
-  const firstName = name?.split(' ')[0] ?? 'there'
-  return sendEmail({
-    to,
-    subject: '184 commits. 11 days. Here\'s everything I built.',
-    template: 'waitlist_day3',
-    react: React.createElement(WaitlistDay3Email, { firstName }),
-  })
-}
-
-export async function sendWaitlistPrelaunchEmail(to: string, name?: string) {
-  const firstName = name?.split(' ')[0] ?? 'there'
-  return sendEmail({
-    to,
-    subject: 'Launching in 3 days. You\'re first.',
-    template: 'waitlist_prelaunch',
-    react: React.createElement(WaitlistPrelaunchEmail, { firstName }),
-  })
-}
-
 export async function sendEditRequestUpdateEmail(
   to: string,
   clientName: string,
@@ -204,6 +174,39 @@ export async function sendEditRequestUpdateEmail(
       price,
       approvalUrl,
       deliveryUrl,
+    }),
+  })
+}
+
+/* ─── Waitlist sequence (branded React Email templates) ──────────────── */
+
+export async function sendWaitlistConfirmationEmail(to: string, name?: string) {
+  const firstName = name?.split(' ')[0]
+  return sendEmail({
+    to,
+    subject: "You're on the list — View1 Sort demo goes live April 20",
+    template: 'waitlist_confirmation',
+    react: React.createElement(WaitlistConfirmationEmail, { name: firstName }),
+  })
+}
+
+export async function sendWaitlistCommunityEmail(to: string, name?: string) {
+  return sendEmail({
+    to,
+    subject: '184 commits. 11 days. The community is open.',
+    template: 'waitlist_community',
+    react: React.createElement(WaitlistCommunityEmail, { name }),
+  })
+}
+
+export async function sendWaitlistLaunchEmail(to: string, name?: string) {
+  return sendEmail({
+    to,
+    subject: "It's live. Your access link is inside.",
+    template: 'waitlist_launch',
+    react: React.createElement(WaitlistLaunchEmail, {
+      name,
+      accessUrl: `${APP_URL}/auth/signup`,
     }),
   })
 }

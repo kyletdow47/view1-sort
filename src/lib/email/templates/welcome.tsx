@@ -53,15 +53,15 @@ export function WelcomeEmail({ displayName, appUrl }: WelcomeEmailProps) {
   )
 }
 
-const main = { backgroundColor: '#151312', fontFamily: 'Arial, sans-serif' }
+const main = { backgroundColor: '#0d0e14', fontFamily: "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif" }
 const container = { margin: '0 auto', padding: '40px 20px', maxWidth: '560px' }
-const heading = { color: '#ffb780', fontSize: '28px', fontWeight: '700' as const, margin: '0 0 24px' }
-const text = { color: '#e7e1df', fontSize: '15px', lineHeight: '1.6', margin: '0 0 16px' }
+const heading = { color: '#818cf8', fontSize: '28px', fontWeight: '700' as const, margin: '0 0 24px' }
+const text = { color: '#E0E7FF', fontSize: '15px', lineHeight: '1.7', margin: '0 0 16px' }
 const buttonSection = { textAlign: 'center' as const, margin: '32px 0' }
 const button = {
-  backgroundColor: '#ffb780', color: '#4e2600', padding: '12px 32px',
-  borderRadius: '8px', fontSize: '14px', fontWeight: '700' as const,
+  background: 'linear-gradient(135deg, #4f46e5, #6366f1)', color: '#ffffff', padding: '16px 40px',
+  borderRadius: '12px', fontSize: '14px', fontWeight: '700' as const,
   textDecoration: 'none',
 }
-const hr = { borderColor: '#534439', margin: '32px 0' }
-const footer = { color: '#a18d80', fontSize: '12px' }
+const hr = { borderColor: 'rgba(255,255,255,0.06)', margin: '32px 0' }
+const footer = { color: 'rgba(224,231,255,0.2)', fontSize: '12px' }

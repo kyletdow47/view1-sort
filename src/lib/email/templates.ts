@@ -1,30 +1,40 @@
-const BRAND_COLOR = '#ffb780'
-const BG_COLOR = '#151312'
-const SURFACE_COLOR = '#1d1b1a'
-const TEXT_COLOR = '#e7e1df'
-const MUTED_COLOR = '#a18d80'
+/* ── Brand tokens — Zinc palette, Indigo accent ── */
+const PRIMARY = '#4f46e5'
+const PRIMARY_LIGHT = '#818cf8'
+const BG_COLOR = '#0d0e14'
+const SURFACE_COLOR = '#13141c'
+const TEXT_COLOR = '#E0E7FF'
+const MUTED_COLOR = 'rgba(224,231,255,0.45)'
+const SUBTLE_COLOR = 'rgba(224,231,255,0.2)'
+const BORDER_COLOR = 'rgba(255,255,255,0.06)'
 
 function layout(content: string): string {
   return `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:${BG_COLOR};font-family:Inter,Helvetica,Arial,sans-serif;color:${TEXT_COLOR};">
+<body style="margin:0;padding:0;background:${BG_COLOR};font-family:'Inter','Helvetica Neue',Helvetica,Arial,sans-serif;color:${TEXT_COLOR};">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_COLOR};padding:40px 20px;">
     <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="background:${SURFACE_COLOR};border-radius:16px;overflow:hidden;">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:${BG_COLOR};">
         <!-- Header -->
-        <tr><td style="padding:32px 40px 24px;border-bottom:1px solid #534439;">
-          <span style="font-size:24px;font-weight:800;color:${BRAND_COLOR};letter-spacing:-0.5px;">View1 Sort</span>
-          <span style="font-size:10px;color:${MUTED_COLOR};text-transform:uppercase;letter-spacing:2px;margin-left:8px;">Editorial Studio</span>
+        <tr><td style="padding:28px 32px 24px;border-bottom:1px solid ${BORDER_COLOR};">
+          <table cellpadding="0" cellspacing="0"><tr>
+            <td style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,${PRIMARY},#6366f1);text-align:center;vertical-align:middle;">
+              <span style="color:#fff;font-size:11px;font-weight:800;line-height:32px;">V1</span>
+            </td>
+            <td style="padding-left:10px;">
+              <span style="font-size:16px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">View1 Sort</span>
+            </td>
+          </tr></table>
         </td></tr>
         <!-- Content -->
-        <tr><td style="padding:40px;">
+        <tr><td style="padding:40px 32px;">
           ${content}
         </td></tr>
         <!-- Footer -->
-        <tr><td style="padding:24px 40px;border-top:1px solid #534439;text-align:center;">
-          <span style="font-size:11px;color:${MUTED_COLOR};">View1 Sort — AI Photo Sorting for Professional Photographers</span>
+        <tr><td style="padding:24px 32px;border-top:1px solid ${BORDER_COLOR};text-align:center;">
+          <span style="font-size:11px;color:${SUBTLE_COLOR};">View1 Sort — AI Photo Sorting for Professional Photographers</span>
         </td></tr>
       </table>
     </td></tr>
@@ -34,19 +44,19 @@ function layout(content: string): string {
 }
 
 function button(text: string, url: string): string {
-  return `<a href="${url}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,${BRAND_COLOR},#d48441);color:#4e2600;font-weight:700;font-size:14px;text-decoration:none;border-radius:12px;margin:16px 0;">${text}</a>`
+  return `<a href="${url}" style="display:inline-block;padding:16px 40px;background:linear-gradient(135deg,${PRIMARY},#6366f1);color:#ffffff;font-weight:700;font-size:14px;text-decoration:none;border-radius:12px;margin:16px 0;">${text}</a>`
 }
 
 export function welcomeEmail(name: string, dashboardUrl: string): { subject: string; html: string } {
   return {
     subject: 'Welcome to View1 Sort',
     html: layout(`
-      <h1 style="font-size:28px;font-weight:800;color:${TEXT_COLOR};margin:0 0 16px;">Welcome, ${name}!</h1>
-      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 24px;">
+      <h1 style="font-size:28px;font-weight:800;color:#ffffff;margin:0 0 16px;">Welcome, ${name}!</h1>
+      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.7;margin:0 0 24px;">
         Your editorial studio is ready. Upload your first shoot, let AI sort it, and deliver a stunning gallery to your clients.
       </p>
       ${button('Open Your Dashboard', dashboardUrl)}
-      <p style="color:${MUTED_COLOR};font-size:13px;margin-top:24px;">
+      <p style="color:${SUBTLE_COLOR};font-size:13px;margin-top:24px;">
         Need help? Reply to this email or check our getting started guide.
       </p>
     `),
@@ -63,7 +73,7 @@ export function galleryInvitationEmail(
     subject: `${photographerName} shared "${projectName}" with you`,
     html: layout(`
       <h1 style="font-size:28px;font-weight:800;color:${TEXT_COLOR};margin:0 0 16px;">${projectName}</h1>
-      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 8px;">
+      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.7;margin:0 0 8px;">
         <strong style="color:${TEXT_COLOR};">${photographerName}</strong> has shared a gallery with you.
       </p>
       <p style="color:${MUTED_COLOR};font-size:14px;margin:0 0 24px;">
@@ -87,18 +97,18 @@ export function paymentConfirmationEmail(
     subject: `Payment confirmed — ${projectName}`,
     html: layout(`
       <h1 style="font-size:28px;font-weight:800;color:${TEXT_COLOR};margin:0 0 16px;">Payment Confirmed</h1>
-      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 24px;">
-        Your payment of <strong style="color:${BRAND_COLOR};">${amount} ${currency.toUpperCase()}</strong> for <strong style="color:${TEXT_COLOR};">${projectName}</strong> has been received.
+      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.7;margin:0 0 24px;">
+        Your payment of <strong style="color:${PRIMARY_LIGHT};">${amount} ${currency.toUpperCase()}</strong> for <strong style="color:${TEXT_COLOR};">${projectName}</strong> has been received.
       </p>
       ${button('Download Your Photos', downloadUrl)}
-      <table style="width:100%;margin-top:24px;border-top:1px solid #534439;padding-top:16px;">
+      <table style="width:100%;margin-top:24px;border-top:1px solid ${BORDER_COLOR};padding-top:16px;">
         <tr>
           <td style="color:${MUTED_COLOR};font-size:13px;padding:4px 0;">Project</td>
           <td style="color:${TEXT_COLOR};font-size:13px;text-align:right;">${projectName}</td>
         </tr>
         <tr>
           <td style="color:${MUTED_COLOR};font-size:13px;padding:4px 0;">Amount</td>
-          <td style="color:${BRAND_COLOR};font-size:13px;font-weight:700;text-align:right;">${amount} ${currency.toUpperCase()}</td>
+          <td style="color:${PRIMARY_LIGHT};font-size:13px;font-weight:700;text-align:right;">${amount} ${currency.toUpperCase()}</td>
         </tr>
       </table>
     `),
@@ -116,8 +126,8 @@ export function paymentReceivedEmail(
     subject: `Payment received — ${amount} for ${projectName}`,
     html: layout(`
       <h1 style="font-size:28px;font-weight:800;color:${TEXT_COLOR};margin:0 0 16px;">You got paid!</h1>
-      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 24px;">
-        <strong style="color:${BRAND_COLOR};">${amount}</strong> received from <strong style="color:${TEXT_COLOR};">${clientEmail}</strong> for "${projectName}".
+      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.7;margin:0 0 24px;">
+        <strong style="color:${PRIMARY_LIGHT};">${amount}</strong> received from <strong style="color:${TEXT_COLOR};">${clientEmail}</strong> for "${projectName}".
       </p>
       ${button('View in Billing', billingUrl)}
     `),
@@ -133,8 +143,8 @@ export function paymentFailedEmail(
     subject: `Payment failed — ${projectName}`,
     html: layout(`
       <h1 style="font-size:28px;font-weight:800;color:${TEXT_COLOR};margin:0 0 16px;">Payment Failed</h1>
-      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 24px;">
-        Your payment of <strong style="color:#e7765f;">${amount}</strong> for "${projectName}" could not be processed.
+      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.7;margin:0 0 24px;">
+        Your payment of <strong style="color:#f87171;">${amount}</strong> for "${projectName}" could not be processed.
       </p>
       ${button('Retry Payment', retryUrl)}
       <p style="color:${MUTED_COLOR};font-size:12px;margin-top:16px;">
@@ -154,7 +164,7 @@ export function projectPublishedEmail(
     subject: `"${projectName}" is now published`,
     html: layout(`
       <h1 style="font-size:28px;font-weight:800;color:${TEXT_COLOR};margin:0 0 16px;">Gallery Published</h1>
-      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 24px;">
+      <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.7;margin:0 0 24px;">
         "${projectName}" with ${photoCount} photos is live and ready to share with clients.
       </p>
       ${button('View Gallery', galleryUrl)}
