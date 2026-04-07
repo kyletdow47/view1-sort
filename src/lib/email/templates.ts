@@ -187,7 +187,7 @@ export function contractSentEmail(
       </p>
       <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 24px;">
         <strong style="color:${TEXT_COLOR};">${photographerName}</strong> has sent you a contract to review and sign:
-        <strong style="color:${BRAND_COLOR};">${contractTitle}</strong>
+        <strong style="color:${PRIMARY_LIGHT};">${contractTitle}</strong>
       </p>
       ${button('Review & Sign Contract', signingUrl)}
       <p style="color:${MUTED_COLOR};font-size:12px;margin-top:24px;">
@@ -213,17 +213,17 @@ export function bookingConfirmationEmail(
       <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 24px;">
         Hi ${clientName}, your booking with <strong style="color:${TEXT_COLOR};">${photographerName}</strong> is confirmed.
       </p>
-      <table style="width:100%;margin-bottom:24px;border:1px solid #534439;border-radius:12px;overflow:hidden;">
-        <tr style="background:#251e1a;">
+      <table style="width:100%;margin-bottom:24px;border:1px solid ${BORDER_COLOR};border-radius:12px;overflow:hidden;">
+        <tr style="background:${SURFACE_COLOR};">
           <td style="color:${MUTED_COLOR};font-size:13px;padding:12px 16px;">Shoot Type</td>
           <td style="color:${TEXT_COLOR};font-size:13px;font-weight:600;padding:12px 16px;text-align:right;">${shootType}</td>
         </tr>
         <tr>
-          <td style="color:${MUTED_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid #534439;">Date</td>
-          <td style="color:${BRAND_COLOR};font-size:13px;font-weight:700;padding:12px 16px;border-top:1px solid #534439;text-align:right;">${shootDate}</td>
+          <td style="color:${MUTED_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid ${BORDER_COLOR};">Date</td>
+          <td style="color:${PRIMARY_LIGHT};font-size:13px;font-weight:700;padding:12px 16px;border-top:1px solid ${BORDER_COLOR};text-align:right;">${shootDate}</td>
         </tr>
-        ${location ? `<tr style="background:#251e1a;"><td style="color:${MUTED_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid #534439;">Location</td><td style="color:${TEXT_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid #534439;text-align:right;">${location}</td></tr>` : ''}
-        ${packageDetails ? `<tr><td style="color:${MUTED_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid #534439;">Package</td><td style="color:${TEXT_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid #534439;text-align:right;">${packageDetails}</td></tr>` : ''}
+        ${location ? `<tr style="background:${SURFACE_COLOR};"><td style="color:${MUTED_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid ${BORDER_COLOR};">Location</td><td style="color:${TEXT_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid ${BORDER_COLOR};text-align:right;">${location}</td></tr>` : ''}
+        ${packageDetails ? `<tr><td style="color:${MUTED_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid ${BORDER_COLOR};">Package</td><td style="color:${TEXT_COLOR};font-size:13px;padding:12px 16px;border-top:1px solid ${BORDER_COLOR};text-align:right;">${packageDetails}</td></tr>` : ''}
       </table>
       <p style="color:${MUTED_COLOR};font-size:13px;line-height:1.6;margin:0 0 24px;">
         You will receive your gallery link via email after the shoot is processed. Questions? Reply to this email.
@@ -254,7 +254,7 @@ export function editRequestUpdateEmail(
   const color = statusColors[newStatus]
 
   const ctaHtml = newStatus === 'priced' && approvalUrl && price !== null
-    ? `<p style="color:${MUTED_COLOR};font-size:14px;margin:0 0 16px;">Price: <strong style="color:${BRAND_COLOR};">$${price}</strong></p>${button('Approve Edit Request', approvalUrl)}`
+    ? `<p style="color:${MUTED_COLOR};font-size:14px;margin:0 0 16px;">Price: <strong style="color:${PRIMARY_LIGHT};">$${price}</strong></p>${button('Approve Edit Request', approvalUrl)}`
     : newStatus === 'delivered' && deliveryUrl
     ? button('View Delivered Edit', deliveryUrl)
     : ''
@@ -266,7 +266,7 @@ export function editRequestUpdateEmail(
       <p style="color:${MUTED_COLOR};font-size:15px;line-height:1.6;margin:0 0 16px;">
         Hi ${clientName}, your edit request for <strong style="color:${TEXT_COLOR};">${photoTitle}</strong> has been updated.
       </p>
-      <div style="display:inline-block;background:rgba(255,255,255,0.06);border:1px solid #534439;border-radius:10px;padding:10px 18px;margin-bottom:24px;">
+      <div style="display:inline-block;background:rgba(255,255,255,0.06);border:1px solid ${BORDER_COLOR};border-radius:10px;padding:10px 18px;margin-bottom:24px;">
         <span style="color:${color};font-size:13px;font-weight:700;">${label}</span>
       </div>
       ${ctaHtml}
