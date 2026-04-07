@@ -99,6 +99,7 @@ function MobileScrollHero() {
   const mockupRef = useRef<HTMLDivElement>(null)
   const mockupInnerRef = useRef<HTMLDivElement>(null)
   const mockupOverlayRef = useRef<HTMLDivElement>(null)
+  const scrollArrowRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function animate() {
@@ -109,6 +110,11 @@ function MobileScrollHero() {
       const runway = el.offsetHeight - vh
       if (runway <= 0) { raf.current = requestAnimationFrame(animate); return }
       const p = clamp(-rect.top / runway, 0, 1)
+
+      /* ══ Scroll arrow: visible at rest, fades out as scroll begins ══ */
+      if (scrollArrowRef.current) {
+        scrollArrowRef.current.style.opacity = `${1 - easeOut(sp(p, 0, 0.08))}`
+      }
 
       /* ══ Scene 1: Headline + rainbow sweep (0.00–0.20) ══ */
       if (hlH1Ref.current) {
@@ -217,6 +223,27 @@ function MobileScrollHero() {
           >
             You shoot the photos.<br />We&apos;ll handle the rest.
           </h1>
+        </div>
+
+        {/* Scroll indicator */}
+        <div
+          ref={scrollArrowRef}
+          className="absolute bottom-24 inset-x-0 flex flex-col items-center gap-2.5 pointer-events-none"
+          style={{ opacity: 1 }}
+        >
+          <span className="text-[11px] font-semibold tracking-[0.18em] uppercase" style={{ color: 'rgba(168,85,247,0.6)' }}>Scroll down</span>
+          <svg width="2" height="36" viewBox="0 0 2 36" fill="none">
+            <defs>
+              <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(168,85,247,0)" />
+                <stop offset="100%" stopColor="rgba(168,85,247,0.7)" />
+              </linearGradient>
+            </defs>
+            <line x1="1" y1="0" x2="1" y2="36" stroke="url(#lineGrad)" strokeWidth="1.5" />
+          </svg>
+          <svg width="22" height="13" viewBox="0 0 22 13" fill="none" className="animate-bounce" style={{ animationDuration: '2s', filter: 'drop-shadow(0 0 8px rgba(168,85,247,0.7))' }}>
+            <path d="M1 1l10 10 10-10" stroke="rgba(168,85,247,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
 
         {/* Scene 2: Word collage — scattered absolute positions, overlapping */}
