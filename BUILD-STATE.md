@@ -3,8 +3,9 @@
 > This file is read and updated by the design-to-dev agent at every run.
 > It serves as build memory — what's done, what's next, what broke, what was learned.
 
-Last updated: 2026-04-05
-Last agent run: 2026-04-05T10:20Z
+Last updated: 2026-04-09
+Last agent run: 2026-04-09T22:00Z (dev-agent build run)
+Mode: ACTIVE — AI Sort integration sprint
 
 ## Priority Tiers (P0 = do first, P5 = do last)
 
@@ -57,17 +58,48 @@ Last agent run: 2026-04-05T10:20Z
 - Post Creator & AI Captions — branch feat/design-to-dev/post-creator-ai-captions — completed 2026-04-05 — 4 files (src/types/content.ts 36 lines, src/components/features/content/PlatformPreview.tsx 238 lines, src/components/features/content/PostCreator.tsx 591 lines, src/app/dashboard/content/page.tsx modified). PostCreator: full-screen modal opened by "New Post" button. Photo selector (4-col grid, select/deselect with checkmark overlay). AI Caption: tone picker (Professional/Casual/Storytelling) → 3 caption options (1.6s simulated). Hashtag: manual input + AI Suggest (1.2s simulated, 12 toggleable chips). Platform selector (Instagram/Facebook/TikTok/Pinterest). Schedule: Post Now toggle + date/time pickers. Preview panel with platform-specific mockups (Instagram square, Facebook landscape, TikTok portrait 9:16, Pinterest 2:3). Post Now copies to clipboard. Save Draft + Schedule with spinner/confirmation states. Push needed (git index.lock on mounted filesystem). QA task GID: 1213962086979910. Also bulk-completed pre-built tasks: [P4] Build Analytics Page, [P4] Build Team Members Panel, [P4] Build Integrations Panel.
 - Content Calendar View — branch feat/design-to-dev/content-calendar-view — completed 2026-04-05 — 2 files (src/components/features/content/ContentCalendar.tsx NEW ~360 lines, src/app/dashboard/content/page.tsx MODIFIED). Pencil frame SU7JB. ContentCalendar: month view (42-cell grid, today highlight ring, platform-colored chips per post), week view (18 hourly rows 6am–11pm, DroppableSlot + DraggableChip per post, DragOverlay), dnd-kit drag-to-reschedule (DndContext inside WeekView component), Month/Week toggle, prev/next nav, PlatformLegend (4 platforms). Platform constants: PLATFORM_DOT (Tailwind bg), PLATFORM_PILL (border+text), PLATFORM_LABEL. Droppable slot ID pattern: "YYYY-M-D-H" (M = getMonth() 0-indexed). page.tsx: replaced inline static calendar stub with <ContentCalendar> in col-span-2 h-[500px] div; added 10 MOCK_POSTS across April 2026. Push needed (git index.lock on mounted filesystem). QA task GID: 1213965047392130. Asana task 1213917839622781 marked complete.
 
+## Currently Broken
+
+- Landing page scroll sections render black — PR #7 scroll-linked video bg covers content sections below hero with z-index/opacity issue
+- AI Sort "Run AI Sort" button (AIWorkspaceView.tsx:119) is a setTimeout stub — CLIP classifier never actually runs
+- Manual re-categorization drag-drop not wired to DB — TODO comment only, changes are local state
+- Star/flag/keep/reject handlers in workspace are all TODO stubs — no DB writes
+- All AI Workspace pages are UI-only (mock data) — not functional end-to-end
+
+## AI Sort Integration — IN PROGRESS (priority queue as of 2026-04-09)
+
+Deep review completed 2026-04-09. Core finding: all src/lib/ai/ code is built but NONE of it is wired to the UI.
+17 Asana tasks created in "View1 Sort — Page Build Pipeline" project, Dev Pickup section.
+
+### AI Sort — Build Order
+P0 (do first):
+- [ ] [OPS] Update BUILD-STATE.md — GID 1213991992294013
+- [ ] [BUG] Fix landing page scroll sections rendering black — GID 1213991992303028
+- [ ] [BUG] Fix 3 pre-existing test failures — GID 1213991942226801
+- [ ] [DB] Migration: culling columns — GID 1213991920904577
+- [ ] [DB] Migration: media flag columns — GID 1213991992330406
+
+P1 (core AI loop — in order):
+- [ ] [AI-CORE] Create useAIClassifier hook — GID 1213991992359991
+- [ ] [AI-CORE] Batch write AI results to Supabase — GID 1213991992366039
+- [ ] [AI-CORE] Wire Run AI Sort button to CLIP classifier — GID 1213991942293079
+- [ ] [AI-CORE] Auto-trigger AI sort after upload — GID 1213991921002632
+- [ ] [AI-CORE] Wire confidence threshold slider — GID 1213991942345717
+- [ ] [AI-CORE] Integrate culling analysis — GID 1213991772595158
+- [ ] [AI-CORE] Wire manual re-categorization to DB — GID 1213991987294981
+- [ ] [AI-CORE] Wire star/flag/keep/reject + style profile — GID 1213991921072634
+- [ ] [DB] Migration: ai_sort_runs table — GID 1213991772487176
+
+P2 (Claude server-side AI — after core loop works):
+- [ ] [AI-SERVER] Captions API → Claude Sonnet edge function — GID 1213991921093138
+- [ ] [AI-SERVER] Vibe parsing → Claude Haiku edge function — GID 1213991942391899
+- [ ] [AI-SERVER] Insights API → Claude Haiku edge function — GID 1213991921113606
+
 ## Currently Building
 
-Content Calendar View build completed 2026-04-05T13:58Z. Push needed (git index.lock on mounted filesystem — run from native terminal):
-  rm .git/index.lock
-  git checkout -b feat/design-to-dev/content-calendar-view
-  git add src/components/features/content/ContentCalendar.tsx src/app/dashboard/content/page.tsx BUILD-STATE.md
-  git commit -m "feat(content): build ContentCalendar with month/week view, dnd-kit drag-to-reschedule, and platform color chips"
-  npm run lint && npm run test && npx tsc --noEmit
-  git push -u origin feat/design-to-dev/content-calendar-view
-  gh pr create --title "[design-to-dev] Build Content Calendar View"
-QA task GID: 1213965047392130.
+AI Sort integration sprint — started 2026-04-09.
+17 Asana tasks created covering DB migrations, AI core loop wiring, and Claude server-side AI.
+Working through P0 tasks first (BUILD-STATE update, landing page bug, test failures, DB migrations).
 
 <!-- Previous: Gallery Viewer + Client Portal Auth builds also pending push:
 
