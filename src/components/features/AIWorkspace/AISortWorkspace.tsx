@@ -95,6 +95,10 @@ export function AISortWorkspace({
   // Real culling counts from DB flags
   const blurryCount = allMedia.filter((m) => m.is_blurry).length
   const duplicateCount = allMedia.filter((m) => m.is_duplicate).length
+  const overexposedCount = allMedia.filter((m) => m.is_overexposed).length
+  const underexposedCount = allMedia.filter((m) => m.is_underexposed).length
+  const keepCount = allMedia.filter((m) => m.review_flag === 'keep').length
+  const rejectCount = allMedia.filter((m) => m.review_flag === 'reject').length
 
   // Batch reclassify handler — calls the real AI sort pipeline from parent
   const handleBatchReclassify = useCallback(() => {
@@ -158,6 +162,10 @@ export function AISortWorkspace({
         qualityDistribution={qualityDistribution}
         duplicateCount={duplicateCount}
         blurryCount={blurryCount}
+        overexposedCount={overexposedCount}
+        underexposedCount={underexposedCount}
+        keepCount={keepCount}
+        rejectCount={rejectCount}
         onReviewFlags={onReviewFlags}
       />
     </div>
