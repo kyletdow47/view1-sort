@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import Link from 'next/link'
 import {
   Camera,
   CheckCircle2,
@@ -65,13 +64,91 @@ function readAsDataURL(file: File): Promise<string> {
 function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
+      type="button"
+      role="switch"
+      aria-checked={on}
       onClick={() => onChange(!on)}
-      className={`relative h-5 w-9 rounded-full transition-colors ${on ? 'bg-violet-500' : 'bg-white/20'}`}
+      className={`relative h-6 w-11 shrink-0 rounded-full border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${
+        on ? 'border-indigo-400/50 bg-indigo-500' : 'border-white/20 bg-white/10'
+      }`}
     >
       <span
-        className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-4' : 'translate-x-0.5'}`}
+        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-200 ${
+          on ? 'translate-x-5' : 'translate-x-0.5'
+        }`}
       />
     </button>
+  )
+}
+
+/* ─── Vibe Tag Input ────────────────────────────────────────────────────── */
+
+function VibeTagInput({
+  keywords,
+  onChange,
+  compact = false,
+}: {
+  keywords: string[]
+  onChange: (v: string[]) => void
+  compact?: boolean
+}) {
+  const [input, setInput] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const addKeyword = (raw: string) => {
+    const trimmed = raw.replace(/,/g, '').trim()
+    if (!trimmed || keywords.includes(trimmed)) return
+    onChange([...keywords, trimmed])
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault()
+      addKeyword(input)
+      setInput('')
+    } else if (e.key === 'Backspace' && input === '' && keywords.length > 0) {
+      onChange(keywords.slice(0, -1))
+    }
+  }
+
+  const handleBlur = () => {
+    if (input.trim()) {
+      addKeyword(input)
+      setInput('')
+    }
+  }
+
+  return (
+    <div
+      className={`flex cursor-text flex-wrap gap-1.5 rounded-xl border border-white/10 bg-white/[0.08] px-3 py-2 ${compact ? 'min-h-[38px]' : 'min-h-[80px] items-start'}`}
+      onClick={() => inputRef.current?.focus()}
+    >
+      {keywords.map((kw) => (
+        <span
+          key={kw}
+          className="flex items-center gap-1 rounded-full border border-indigo-400/30 bg-indigo-500/20 px-2.5 py-0.5 text-[11px] font-medium text-indigo-200"
+        >
+          {kw}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onChange(keywords.filter((k) => k !== kw)) }}
+            className="leading-none text-indigo-300/60 transition-colors hover:text-indigo-200"
+          >
+            ✕
+          </button>
+        </span>
+      ))}
+      <input
+        ref={inputRef}
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+        placeholder={keywords.length === 0 ? (compact ? 'Add keyword, press Enter…' : 'e.g. golden hour, moody, outdoor…') : ''}
+        className="min-w-[140px] flex-1 bg-transparent text-[12px] text-white outline-none placeholder:text-white/30"
+      />
+    </div>
   )
 }
 
@@ -95,8 +172,8 @@ function SortSettingsPanel({
   setConfidence: (v: number) => void
   categories: SortCategories
   setCategories: (c: SortCategories) => void
-  vibeKeywords: string
-  setVibeKeywords: (v: string) => void
+  vibeKeywords: string[]
+  setVibeKeywords: (v: string[]) => void
   onStartSorting: () => void
   disabled: boolean
 }) {
@@ -198,13 +275,7 @@ function SortSettingsPanel({
       {/* Vibe Keywords */}
       <div className="flex flex-col gap-2">
         <span className="text-[13px] font-medium text-white/80">Vibe Keywords</span>
-        <input
-          type="text"
-          value={vibeKeywords}
-          onChange={(e) => setVibeKeywords(e.target.value)}
-          placeholder="e.g. golden hour, moody, outdoor..."
-          className="w-full rounded-xl bg-white/[0.08] px-3 py-2 text-[13px] text-white placeholder:text-white/30 outline-none focus:ring-1 focus:ring-indigo-400/50 border border-white/10"
-        />
+        <VibeTagInput keywords={vibeKeywords} onChange={setVibeKeywords} compact />
       </div>
 
       {/* Spacer */}
@@ -229,25 +300,107 @@ function SortSettingsPanel({
 
 /* ─── Upload Zone ───────────────────────────────────────────────────────── */
 
+// Matches standard image types AND all common RAW formats
+const RAW_EXT = /\.(jpe?g|png|webp|gif|tiff?|raw|cr[23]|nef|nrw|arw|srf|sr2|dng|raf|orf|rw2|pef|ptx|srw|iiq|3fr|fff|mef|mrw|heic|heif)$/i
+const FILE_ACCEPT = 'image/*,.raw,.cr2,.cr3,.nef,.nrw,.arw,.srf,.sr2,.dng,.raf,.orf,.rw2,.pef,.ptx,.srw,.iiq,.3fr,.fff,.mef,.mrw,.heic,.heif'
+
 function UploadZone({
-  onFiles,
-  fileCount,
+  files,
+  onAddFiles,
+  onRemoveFile,
 }: {
-  onFiles: (files: File[]) => void
-  fileCount: number
+  files: SortableFile[]
+  onAddFiles: (files: File[]) => void
+  onRemoveFile: (id: string) => void
 }) {
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleFiles = (files: FileList | null) => {
-    if (!files) return
-    onFiles(Array.from(files).filter((f) => /\.(jpe?g|png|webp|tiff?|raw|cr2|nef|arw|dng|heic|heif)$/i.test(f.name)))
+  const handleFileList = (fileList: FileList | null) => {
+    if (!fileList) return
+    const filtered = Array.from(fileList).filter(
+      (f) => f.type.startsWith('image/') || RAW_EXT.test(f.name)
+    )
+    if (filtered.length > 0) onAddFiles(filtered)
   }
 
+  const openPicker = () => {
+    if (inputRef.current) {
+      inputRef.current.value = '' // reset so same files can be re-selected
+      inputRef.current.click()
+    }
+  }
+
+  const hiddenInput = (
+    <input
+      ref={inputRef}
+      type="file"
+      multiple
+      accept={FILE_ACCEPT}
+      className="hidden"
+      onChange={(e) => handleFileList(e.target.files)}
+    />
+  )
+
+  /* ── Files selected: show thumbnail grid ── */
+  if (files.length > 0) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 overflow-hidden">
+        {/* Mini add-more bar */}
+        <div
+          onClick={openPicker}
+          onDrop={(e) => { e.preventDefault(); setDragging(false); handleFileList(e.dataTransfer.files) }}
+          onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+          onDragLeave={() => setDragging(false)}
+          className={`flex h-14 cursor-pointer items-center justify-center gap-3 rounded-2xl border-2 border-dashed transition-all ${
+            dragging
+              ? 'border-indigo-400/60 bg-indigo-400/10'
+              : 'border-white/15 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.05]'
+          }`}
+        >
+          <Upload className="h-4 w-4 text-white/40" />
+          <span className="text-[13px] text-white/50">
+            {files.length} photo{files.length !== 1 ? 's' : ''} selected — drop or click to add more
+          </span>
+        </div>
+
+        {/* Thumbnail grid */}
+        <div className="flex-1 overflow-auto">
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8">
+            {files.map((item) => (
+              <div
+                key={item.id}
+                className="group relative aspect-square overflow-hidden rounded-xl bg-white/[0.06]"
+              >
+                <PhotoThumbnail
+                  file={item.file}
+                  alt={item.file.name}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                  <p className="truncate text-[8px] text-white/70">{item.file.name}</p>
+                </div>
+                <button
+                  onClick={() => onRemoveFile(item.id)}
+                  className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-[9px] text-white/60 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/80 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {hiddenInput}
+      </div>
+    )
+  }
+
+  /* ── Empty state: full drop zone ── */
   return (
     <div
-      onClick={() => inputRef.current?.click()}
-      onDrop={(e) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files) }}
+      onClick={openPicker}
+      onDrop={(e) => { e.preventDefault(); setDragging(false); handleFileList(e.dataTransfer.files) }}
       onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
       onDragLeave={() => setDragging(false)}
       className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-5 rounded-2xl transition-all"
@@ -256,22 +409,19 @@ function UploadZone({
         border: `2px ${dragging ? 'solid rgba(99,102,241,0.6)' : 'dashed rgba(255,255,255,0.2)'}`,
       }}
     >
-      {/* Camera icon wrap */}
       <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.08]">
         <Camera className={`h-9 w-9 transition-colors ${dragging ? 'text-indigo-300' : 'text-white/40'}`} />
       </div>
 
       <div className="flex flex-col items-center gap-1 text-center">
-        <p className="text-[17px] font-semibold text-white/90">
-          {fileCount > 0 ? `${fileCount} photo${fileCount > 1 ? 's' : ''} selected` : 'Drop photos or folders here'}
-        </p>
+        <p className="text-[17px] font-semibold text-white/90">Drop photos or folders here</p>
         <p className="text-[12px] text-white/40">
-          Supports JPEG, PNG, HEIC, RAW, TIFF — up to 500 photos per batch
+          JPEG, PNG, HEIC, TIFF, RAW (CR2, CR3, NEF, ARW, DNG, RAF…) — up to 500 photos
         </p>
       </div>
 
       <button
-        onClick={(e) => { e.stopPropagation(); inputRef.current?.click() }}
+        onClick={(e) => { e.stopPropagation(); openPicker() }}
         className="flex items-center gap-2 rounded-xl px-7 py-3 text-[13px] font-semibold text-white"
         style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
       >
@@ -281,14 +431,7 @@ function UploadZone({
 
       <p className="text-[12px] text-white/30">or drag and drop from Finder</p>
 
-      <input
-        ref={inputRef}
-        type="file"
-        multiple
-        accept=".jpg,.jpeg,.png,.webp,.tif,.tiff,.raw,.cr2,.nef,.arw,.dng,.heic,.heif"
-        className="hidden"
-        onChange={(e) => handleFiles(e.target.files)}
-      />
+      {hiddenInput}
     </div>
   )
 }
@@ -675,9 +818,41 @@ function SortPhase({
   )
 }
 
-/* ─── Results Phase (restyled) ──────────────────────────────────────────── */
+/* ─── Photo Thumbnail (object-URL based, cleans up on unmount) ───────────── */
 
-function ResultsPhase({ files }: { files: SortableFile[] }) {
+function PhotoThumbnail({
+  file,
+  alt,
+  className,
+  onClick,
+}: {
+  file: File
+  alt: string
+  className?: string
+  onClick?: () => void
+}) {
+  const [src, setSrc] = useState<string | null>(null)
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file)
+    setSrc(url)
+    return () => URL.revokeObjectURL(url)
+  }, [file])
+
+  if (!src) return <div className={`flex items-center justify-center bg-white/[0.04] ${className ?? ''}`}><ImageIcon className="h-6 w-6 text-white/20" /></div>
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} className={className} onClick={onClick} />
+  )
+}
+
+/* ─── Results Phase ─────────────────────────────────────────────────────── */
+
+function ResultsPhase({ files, onReSort }: { files: SortableFile[]; onReSort: () => void }) {
+  const [expandedCat, setExpandedCat] = useState<string | null>(null)
+  const [lightbox, setLightbox] = useState<SortableFile | null>(null)
+
   const sorted = files.filter((f) => f.keep && f.category)
   const byCategory = sorted.reduce<Record<string, SortableFile[]>>((acc, f) => {
     const cat = f.category ?? 'Uncategorized'
@@ -687,8 +862,21 @@ function ResultsPhase({ files }: { files: SortableFile[] }) {
   const categories = Object.keys(byCategory).sort()
   const rejected = files.filter((f) => !f.keep)
 
+  const downloadCategory = (cat: string) => {
+    const catFiles = byCategory[cat]
+    catFiles.forEach((item) => {
+      const url = URL.createObjectURL(item.file)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = item.file.name
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    })
+  }
+
   return (
     <div className="flex-1 space-y-6 overflow-auto px-10 py-6">
+      {/* Header */}
       <div className="flex items-end justify-between">
         <div>
           <h2 className="flex items-center gap-3 text-2xl font-bold text-white">
@@ -700,41 +888,106 @@ function ResultsPhase({ files }: { files: SortableFile[] }) {
             {rejected.length > 0 && `, ${rejected.length} rejected`}
           </p>
         </div>
-        <Link
-          href="/dashboard/gallery"
-          className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white"
-          style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
+        <button
+          onClick={onReSort}
+          className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/80 hover:bg-white/15 transition-colors"
         >
-          View in Gallery
-          <ChevronRight className="h-4 w-4" />
-        </Link>
+          Re-sort
+        </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {/* Category grid */}
+      <div className="space-y-4">
         {categories.map((cat) => {
           const catFiles = byCategory[cat]
-          const preview = catFiles[0]?.cullResult?.preview
+          const isExpanded = expandedCat === cat
+
           return (
-            <div key={cat} className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] transition-all hover:border-white/20">
-              <div className="relative aspect-video overflow-hidden bg-white/[0.04]">
-                {preview ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={preview} alt={cat} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <FolderOpen className="h-10 w-10 text-white/20" />
+            <div
+              key={cat}
+              className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]"
+              style={{ transition: 'all 0.2s ease' }}
+            >
+              {/* Category header row */}
+              <div
+                className="flex cursor-pointer items-center justify-between px-4 py-3 hover:bg-white/[0.04] transition-colors"
+                onClick={() => setExpandedCat(isExpanded ? null : cat)}
+              >
+                <div className="flex items-center gap-3">
+                  {/* Preview strip — first 3 photos */}
+                  <div className="flex -space-x-2">
+                    {catFiles.slice(0, 3).map((item) => (
+                      <div key={item.id} className="h-9 w-9 overflow-hidden rounded-lg border-2 border-white/10">
+                        <PhotoThumbnail file={item.file} alt={item.file.name} className="h-full w-full object-cover" />
+                      </div>
+                    ))}
                   </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between">
-                  <p className="truncate text-sm font-semibold text-white">{cat}</p>
-                  <span className="rounded bg-black/40 px-1.5 py-0.5 text-[10px] text-white/70">{catFiles.length}</span>
+                  <div>
+                    <p className="text-[14px] font-semibold text-white">{cat}</p>
+                    <p className="text-[11px] text-white/40">{catFiles.length} photo{catFiles.length !== 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); downloadCategory(cat) }}
+                    className="rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[11px] font-semibold text-white/70 hover:bg-white/10 transition-colors"
+                  >
+                    Download
+                  </button>
+                  <ChevronRight
+                    className={`h-4 w-4 text-white/40 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                  />
                 </div>
               </div>
+
+              {/* Expanded photo grid */}
+              {isExpanded && (
+                <div className="grid grid-cols-4 gap-2 border-t border-white/[0.06] px-4 pb-4 pt-3 sm:grid-cols-6 lg:grid-cols-8">
+                  {catFiles.map((item) => (
+                    <div
+                      key={item.id}
+                      className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl bg-white/[0.06]"
+                      onClick={() => setLightbox(item)}
+                    >
+                      <PhotoThumbnail
+                        file={item.file}
+                        alt={item.file.name}
+                        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 to-transparent p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <p className="truncate text-[8px] text-white/70">{item.file.name}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )
         })}
       </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-6"
+          onClick={() => setLightbox(null)}
+        >
+          <div className="relative max-h-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <PhotoThumbnail
+              file={lightbox.file}
+              alt={lightbox.file.name}
+              className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl"
+            />
+            <div className="mt-2 text-center text-[12px] text-white/50">{lightbox.file.name} · {lightbox.category}</div>
+            <button
+              className="absolute -right-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-colors"
+              onClick={() => setLightbox(null)}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -791,8 +1044,8 @@ function PreferencesTab({
   setConfidence: (v: number) => void
   categories: SortCategories
   setCategories: (c: SortCategories) => void
-  vibeKeywords: string
-  setVibeKeywords: (v: string) => void
+  vibeKeywords: string[]
+  setVibeKeywords: (v: string[]) => void
 }) {
   const catItems: { key: keyof SortCategories; label: string; desc: string }[] = [
     { key: 'blurry', label: 'Blurry / Out of focus', desc: 'Flag photos that fail sharpness analysis' },
@@ -894,15 +1147,9 @@ function PreferencesTab({
         >
           <h3 className="mb-1 text-[15px] font-semibold text-white">Vibe Keywords</h3>
           <p className="mb-4 text-[12px] text-white/40">
-            Describe the mood or style of this session to refine AI categorization.
+            Type a keyword and press <kbd className="rounded bg-white/10 px-1 py-0.5 text-[10px]">Enter</kbd> to add it. These refine how the AI categorizes your photos.
           </p>
-          <textarea
-            value={vibeKeywords}
-            onChange={(e) => setVibeKeywords(e.target.value)}
-            placeholder="e.g. golden hour, moody, outdoor ceremony, candid moments, film-inspired…"
-            rows={3}
-            className="w-full rounded-xl bg-white/[0.08] px-4 py-3 text-[13px] text-white placeholder:text-white/30 outline-none focus:ring-1 focus:ring-indigo-400/50 border border-white/10 resize-none"
-          />
+          <VibeTagInput keywords={vibeKeywords} onChange={setVibeKeywords} />
         </div>
 
       </div>
@@ -994,11 +1241,15 @@ export default function AISortPage() {
   const [categories, setCategories] = useState<SortCategories>({
     blurry: true, shaky: false, duplicates: true, eyesClosed: true, lensFlare: false, group: false, others: true,
   })
-  const [vibeKeywords, setVibeKeywords] = useState('')
+  const [vibeKeywords, setVibeKeywords] = useState<string[]>([])
 
-  const handleFiles = useCallback((raw: File[]) => {
+  const handleAddFiles = useCallback((raw: File[]) => {
     const sortable: SortableFile[] = raw.map((f) => ({ file: f, id: uid(), keep: true }))
-    setFiles(sortable)
+    setFiles((prev) => [...prev, ...sortable])
+  }, [])
+
+  const handleRemoveFile = useCallback((id: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== id))
   }, [])
 
   const handleStartSorting = useCallback(() => {
@@ -1006,6 +1257,8 @@ export default function AISortPage() {
     setActiveTab('upload')
     setPhase('cull')
   }, [files.length])
+
+
 
   const handleCullDone = useCallback((updated: SortableFile[]) => {
     setFiles(updated)
@@ -1016,6 +1269,12 @@ export default function AISortPage() {
     setFiles(sorted)
     setPhase('results')
     setActiveTab('workspace') // Auto-switch to Workspace when sort is done
+  }, [])
+
+  const handleReSort = useCallback(() => {
+    // Keep files but go back to upload phase so user can re-run
+    setPhase('upload')
+    setActiveTab('upload')
   }, [])
 
   const stepperStage: StepperStage =
@@ -1061,7 +1320,7 @@ export default function AISortPage() {
       {/* ── Upload tab ─────────────────────────────────────────────────────── */}
       {activeTab === 'upload' && phase === 'upload' && (
         <div className="flex flex-col md:flex-row flex-1 gap-6 overflow-hidden px-10 py-6">
-          <UploadZone onFiles={handleFiles} fileCount={files.length} />
+          <UploadZone files={files} onAddFiles={handleAddFiles} onRemoveFile={handleRemoveFile} />
           <SortSettingsPanel
             presetId={presetId}
             setPresetId={setPresetId}
@@ -1104,7 +1363,7 @@ export default function AISortPage() {
       {/* ── Workspace tab ──────────────────────────────────────────────────── */}
       {activeTab === 'workspace' && (
         phase === 'results'
-          ? <ResultsPhase files={files} />
+          ? <ResultsPhase files={files} onReSort={handleReSort} />
           : <WorkspaceEmptyState onGoToUpload={() => setActiveTab('upload')} />
       )}
 
