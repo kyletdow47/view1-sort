@@ -4,7 +4,7 @@ Run /install-skills in Claude Code to install all of these.
 
 | # | Skill | Used by | Why |
 |---|---|---|---|
-| 1 | frontend-design | ui-builder | Aesthetic enforcement — no AI slop, Inter + Geist Mono, dark theme |
+| 1 | frontend-design | ui-builder | Aesthetic enforcement — no AI slop, DM Sans, dark theme |
 | 2 | skill-creator | all | Build custom skills as gaps appear |
 | 3 | react-best-practices | logic-builder | 100+ React/Next.js rules |
 | 4 | view-transitions | ui-builder | React View Transitions API |

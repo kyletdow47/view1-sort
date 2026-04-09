@@ -1,5 +1,5 @@
 # view1-sort STATE
-Last updated: SETUP by setup-agents.sh
+Last updated: 2026-04-01 by setup-agents.sh (agent system install)
 Mode: STANDBY
 
 ## Schedule
@@ -7,68 +7,71 @@ Build window: 10pm–8am
 Current mode: standby — run coordinator to begin
 
 ## Build Progress
-### Foundation
-- [x] Supabase schema — all 11 existing tables
-- [x] Project creation + preset selection
-- [ ] DB migration — 17 new tables (see ARCHITECTURE-DECISIONS.md §Decision 8)
-- [x] Auth flow (client portal) — /auth/client-login, /auth/client-callback, /api/invitations, middleware /client protection (branch feat/design-to-dev/client-portal-auth)
-- [ ] Upload pipeline — tus + IndexedDB
-- [ ] AI classifier — SigLIP Web Worker (src/lib/ai/classifier.worker.ts)
-- [ ] Stripe billing + Connect
-- [ ] Email (Resend)
-- [ ] PWA
 
-### 12-Page App Architecture (see docs/strategy/APP-ARCHITECTURE.html)
-- [ ] Dashboard page — AI briefing, stat cards, quick actions, week calendar
-- [x] Projects page — filter bar, project cards, AI prompt creation (branch: feat/design-to-dev/projects-page)
-- [x] AI Workspace page — scene tabs, review modes, shot list (branch: feat/design-to-dev/ai-workspace-projects-route)
-- [x] AI Sort Vibe Presets Tab — NL style presets, AI extraction, before/after apply (branch: feat/design-to-dev/ai-sort-vibe-presets-tab)
-- [x] Gallery Builder page — split-panel builder with photo selector, themes, watermark, access controls (branch: feat/design-to-dev/gallery-builder, PR #24)
-- [x] Booking page — packages, inquiry inbox, availability calendar (branch: feat/design-to-dev/bookings-pipeline)
-- [x] Bookings Photo Page Builder — WYSIWYG editor tab with drag-to-reorder sections, hero upload, portfolio, testimonials, contact form, custom domain, SEO (branch: feat/design-to-dev/bookings-photo-page-builder, commit 94c8cf7)
-- [x] Calendar page — 4-view calendar with drag-reschedule, event creation, URL-view persistence (branch: feat/design-to-dev/calendar-page)
-- [ ] Clients & CRM page — Kanban pipeline, client profiles, workflow automation
-- [x] Contracts page — AI generator, questionnaires (branch: feat/design-to-dev/contracts-documents-page)
-- [ ] Finances page — revenue dashboard, invoicing, income reports
-- [ ] Analytics page — AI business intelligence, gallery metrics
-- [ ] Content Hub page — social media calendar, post creator, AI captions
-- [ ] Client Portal page — gallery viewer, selections, comments
-- [ ] Settings page — AI workspace setup wizard, branding, integrations
+### Phase 1 — Core (in progress)
+- [x] Supabase schema — all tables + migrations (7 migration files)
+- [x] Auth flow — Supabase Auth (login, signup, reset, magic-link, OAuth callback)
+- [x] Project creation + preset selection
+- [x] Upload pipeline — tus resumable + IndexedDB queue + progress tracking
+- [x] AI classifier — Web Worker (src/lib/ai/) + presets + labels
+- [x] Photographer workspace UI — dashboard, projects, ai-sort wizard
+- [x] Client gallery — src/app/gallery/ + delivery
+- [x] Stripe billing + Connect — plans, checkout, connect, identity
+- [x] Email (Resend) — src/lib/email/ + templates
+- [x] Notifications — src/lib/notifications.ts
+- [x] Landing page — pixel-perfect from Pencil design
+- [x] Onboarding wizard — src/app/onboarding/
+- [ ] PWA — manifest.ts exists, service worker incomplete
+- [ ] Analytics dashboard — src/app/dashboard/analytics/ scaffolded, not wired
+- [ ] Booking system — src/app/dashboard/booking-forms/ + book/ scaffolded
+- [ ] Contracts — src/app/dashboard/contracts/ scaffolded
+- [ ] On-set mode — src/app/on-set/ scaffolded
+
+### Open PRs
+- PR #7: [jarvis] Scroll-linked video background + 3D ScrollCard — resolved rebase of PR #4 on current main (open, awaiting Vercel CI)
 
 ## Currently Broken (fix before new features)
-- [x] DashboardV2 hardcoded hex colors — migrated ~130 instances across 18 files to CSS variable tokens (--chart-*, --brand-*) and Tailwind semantic classes. themes/page.tsx left as-is (swatch data). A few theme-preset bg values (#f5f3f0, #1a1a1a, #1d1916) left as unique light-mode swatches.
-- [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
-- [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
+- 3 pre-existing test failures: share.test.ts (toStartWith), waitlist/route.test.ts (mock mismatch), webhooks/stripe/route.test.ts (mock response) — Asana GID 1213991942226801
+- Landing page scroll sections render black after hero — PR #7 scroll-linked video bg covers downstream content — Asana GID 1213991992303028
+- AI Sort "Run AI Sort" button is a setTimeout stub (AIWorkspaceView.tsx:119) — CLIP classifier never actually runs — Asana GID 1213991942293079
+- Manual re-categorization drag-drop not wired to DB — CategoryColumn.tsx has TODO comment — Asana GID 1213991987294981
+- Star/flag/keep/reject handlers are all TODO stubs (AIWorkspaceView.tsx:147-160) — Asana GID 1213991921072634
+- Upload progress bar may not reflect real tus progress (verify against live)
+- Media card drag-and-drop on mobile — not confirmed working
 
 ## Session Budget
-Window:             Manual session (2026-04-02)
-Started:            now
+Window:             Not started
+Started:            —
 Resets:             —
 Auto-resume:        —
-Tasks done:         16
+Tasks done:         0
 Avg tokens/task:    — (update every 3 tasks)
 % window remaining: 100%
-Tasks fit:          3 fix tasks
+Tasks fit:          unknown
 Budget mode:        NORMAL
 Weekly cap:         OK
 
 ## Pending Design Questions (for morning send)
-None yet — run design-extractor on Pencil screens first
+None — run design-extractor on .pen files in project root first
 
 ## Pencil Changes Detected Tonight
-None yet
+None yet — coordinator will run git diff on .pen files at 10pm startup
 
 ## Asana Tasks Generated from Pencil
-None yet
+Run task-sync at session start to pull from asana-tasks.csv + SPEC.md
 
 ## Browser Test Results
-Not run yet
+Not run — run /test to launch browser-tester against https://photo-sorter-theta.vercel.app
 
 ## Security Notes
-None
+- RLS recursion fix committed (fix(rls): resolve infinite recursion in workspace/workspace_members)
+- No outstanding CRITICAL or HIGH findings on record
 
 ## Tonight's Instructions (from you)
-None
+None — add TONIGHT: [instruction] via Telegram to queue instructions before 10pm
 
 ## Operator Notes
-None
+- Vercel production URL: https://photo-sorter-theta.vercel.app
+- GitHub repo: https://github.com/kyletdow47/view1-sort
+- 74 commits on main as of 2026-04-01
+- asana-tasks.csv + asana-pilot-tasks.csv present in repo root — task-sync should seed Asana from these

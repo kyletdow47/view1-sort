@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V1 Quality Assurance Process</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: #000; font-family: -apple-system, 'Inter', sans-serif; overflow: hidden; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(168,85,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(168,85,247,0.03) 1px, transparent 1px);
+    background-size: 64px 64px; pointer-events: none; z-index: 0;
+  }
+
+  .deck { position: fixed; inset: 0; z-index: 1; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 72px 52px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .slide.active { opacity: 1; pointer-events: all; }
+
+  .slide-badge {
+    position: absolute; top: 36px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: #252525; white-space: nowrap;
+  }
+
+  .nav-bar {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(10,10,10,0.95); border: 1px solid #1e1e1e;
+    border-radius: 100px; padding: 10px 20px; z-index: 100;
+  }
+  .nav-btn { width: 32px; height: 32px; border-radius: 50%; background: #111; border: 1px solid #222; color: #666; font-size: 14px; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .nav-btn:hover { background: #1a1a1a; color: #ccc; border-color: #444; }
+  .dots { display: flex; gap: 6px; align-items: center; margin: 0 8px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #2a2a2a; cursor: pointer; transition: all 0.2s; }
+  .dot.active { background: #a855f7; transform: scale(1.4); }
+  .nav-counter { font-size: 11px; color: #333; letter-spacing: 1px; margin-left: 6px; }
+
+  .section-title { font-size: clamp(22px, 5vw, 34px); font-weight: 900; color: #fff; text-align: center; letter-spacing: -1px; line-height: 1.1; margin-bottom: 8px; }
+  .section-sub { font-size: clamp(11px, 2.5vw, 13px); color: #2e2e2e; letter-spacing: 2px; text-transform: uppercase; text-align: center; margin-bottom: 36px; }
+
+  /* ── SLIDE 1: QA Philosophy ── */
+  .qa-hero-quote {
+    font-size: clamp(22px, 5.5vw, 40px); font-weight: 900;
+    color: #fff; text-align: center; line-height: 1.15; letter-spacing: -1px;
+    margin-bottom: 32px; max-width: 560px;
+    opacity: 0; animation: none;
+  }
+  .qa-hero-quote.animated { animation: rise 0.5s ease forwards; }
+  .qa-hero-quote span { color: #22c55e; }
+
+  .qa-contrast { display: flex; gap: 16px; width: 100%; max-width: 520px; }
+  .qa-contrast-col {
+    flex: 1; padding: 18px 20px; border-radius: 12px; border: 1px solid var(--bc); background: var(--bg);
+    opacity: 0; transform: translateY(12px); animation: none;
+  }
+  .qa-contrast-col.animated { animation: rise 0.4s ease forwards; }
+  .qa-col-label { font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--ac); margin-bottom: 12px; }
+  .qa-col-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+  .qa-col-item:last-child { margin-bottom: 0; }
+  .qa-col-ico { font-size: 14px; flex-shrink: 0; }
+  .qa-col-text { color: var(--tc, #333); }
+
+  /* ── SLIDE 2: Build Loop ── */
+  .loop-diagram { width: 100%; max-width: 520px; }
+
+  .loop-nodes { display: flex; flex-direction: column; gap: 0; }
+  .loop-node {
+    display: flex; align-items: stretch; gap: 16px;
+    opacity: 0; transform: translateX(-14px); animation: none;
+  }
+  .loop-node.animated { animation: slideIn 0.35s ease forwards; }
+
+  .node-left { display: flex; flex-direction: column; align-items: center; width: 52px; flex-shrink: 0; }
+  .node-box {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; border: 1px solid var(--bc); background: var(--bg);
+  }
+  .node-connector {
+    width: 2px; flex: 1; min-height: 14px;
+    background: linear-gradient(to bottom, var(--bc), #111); margin: 5px 0;
+  }
+
+  .node-content { flex: 1; padding: 6px 0 20px; }
+  .node-label { font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--ac); margin-bottom: 3px; }
+  .node-name { font-size: clamp(16px, 3.5vw, 20px); font-weight: 800; color: #fff; margin-bottom: 4px; line-height: 1.1; }
+  .node-desc { font-size: 12px; color: #2e2e2e; line-height: 1.55; }
+
+  .node-fork {
+    display: flex; gap: 8px; margin-top: 6px;
+  }
+  .fork-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 6px;
+    border: 1px solid var(--fbc); background: var(--fbg);
+    font-size: 10px; color: var(--fac);
+  }
+  .fork-ico { font-size: 12px; }
+
+  /* ── SLIDE 3: Wiki Structure ── */
+  .wiki-sections { width: 100%; max-width: 540px; display: flex; flex-direction: column; gap: 9px; }
+  .wiki-section {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 16px; border-radius: 10px;
+    background: #060606; border: 1px solid #111;
+    opacity: 0; transform: translateX(-12px); animation: none;
+  }
+  .wiki-section.animated { animation: slideIn 0.35s ease forwards; }
+  .wiki-section-ico { font-size: 20px; flex-shrink: 0; }
+  .wiki-section-info { flex: 1; }
+  .wiki-section-name { font-size: 13px; font-weight: 700; color: #ccc; margin-bottom: 3px; }
+  .wiki-section-desc { font-size: 11px; color: #2a2a2a; line-height: 1.4; }
+  .wiki-section-tag { font-size: 9px; padding: 2px 8px; border-radius: 4px; border: 1px solid #1a1a1a; color: #333; font-family: 'SF Mono', monospace; white-space: nowrap; }
+
+  .wiki-intro {
+    width: 100%; max-width: 540px; margin-bottom: 16px;
+    padding: 12px 16px; background: #0a0a0a; border: 1px dashed #1a1a1a; border-radius: 10px;
+    opacity: 0; animation: none;
+  }
+  .wiki-intro.animated { animation: fade 0.4s ease forwards; }
+  .wiki-intro-text { font-size: 13px; color: #333; text-align: center; line-height: 1.5; }
+  .wiki-intro-text strong { color: #555; }
+
+  /* ── SLIDE 4: User Journeys ── */
+  .journey-wrap { width: 100%; max-width: 540px; display: flex; flex-direction: column; gap: 10px; }
+  .journey-card {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 12px 16px; border-radius: 10px;
+    border: 1px solid var(--bc); background: var(--bg);
+    opacity: 0; transform: translateY(8px); animation: none;
+  }
+  .journey-card.animated { animation: rise 0.35s ease forwards; }
+  .journey-card-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .journey-card-info { flex: 1; }
+  .journey-card-name { font-size: 13px; font-weight: 700; color: var(--ac); margin-bottom: 4px; }
+  .journey-card-steps { font-size: 11px; color: #2a2a2a; line-height: 1.6; }
+  .journey-card-steps span { color: #333; }
+  .journey-card-count { font-size: 11px; font-weight: 700; color: var(--ac); font-family: 'SF Mono', monospace; flex-shrink: 0; }
+
+  /* ── SLIDE 5: QA Checklist ── */
+  .checklist-cats { width: 100%; max-width: 540px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .checklist-cat {
+    background: #060606; border: 1px solid #111; border-radius: 12px;
+    padding: 14px 16px;
+    opacity: 0; transform: scale(0.95); animation: none;
+  }
+  .checklist-cat.animated { animation: pop 0.35s ease forwards; }
+  .checklist-cat-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .checklist-cat-icon { font-size: 18px; }
+  .checklist-cat-name { font-size: 12px; font-weight: 700; color: #ccc; }
+  .checklist-items { display: flex; flex-direction: column; gap: 5px; }
+  .checklist-item { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+  .check-box { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid #1a1a1a; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; }
+  .check-box.pass { background: #0d2e0d; border-color: #16a34a; color: #22c55e; }
+  .check-box.fail { background: #2e0d0d; border-color: #7f1d1d; color: #ef4444; }
+  .check-box.todo { border-color: #1a1a1a; }
+  .check-label { color: #333; flex: 1; }
+  .check-label.pass { color: #2a2a2a; }
+
+  .checklist-total {
+    width: 100%; max-width: 540px; margin-top: 12px;
+    display: flex; gap: 12px; justify-content: center;
+    opacity: 0; animation: none;
+  }
+  .checklist-total.animated { animation: fade 0.4s ease forwards; }
+  .total-chip { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+
+  /* ── SLIDE 6: Stress Test ── */
+  .stress-header { text-align: center; margin-bottom: 24px; }
+  .stress-big-num {
+    font-size: clamp(80px, 22vw, 160px); font-weight: 900;
+    line-height: 0.85; letter-spacing: -5px;
+    background: linear-gradient(135deg, #86efac, #22c55e, #16a34a);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    opacity: 0; animation: rise 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.1s forwards;
+  }
+  .stress-sub { font-size: clamp(12px, 2.5vw, 16px); color: #2a2a2a; letter-spacing: 3px; text-transform: uppercase; margin-top: 8px; opacity: 0; animation: fade 0.4s ease 0.4s forwards; }
+
+  .stress-categories { width: 100%; max-width: 520px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 20px; }
+  .stress-cat {
+    padding: 12px 14px; background: #060606; border: 1px solid #0f0f0f; border-radius: 10px;
+    text-align: center;
+    opacity: 0; transform: scale(0.93); animation: none;
+  }
+  .stress-cat.animated { animation: pop 0.3s ease forwards; }
+  .stress-cat-ico { font-size: 18px; margin-bottom: 5px; }
+  .stress-cat-n { font-size: 20px; font-weight: 900; letter-spacing: -1px; }
+  .stress-cat-l { font-size: 9px; color: #2a2a2a; letter-spacing: 1px; text-transform: uppercase; margin-top: 3px; }
+
+  .stress-rules {
+    width: 100%; max-width: 520px; margin-top: 14px; padding: 12px 16px;
+    background: #0a1f0a; border: 1px solid #1a3a1a; border-radius: 10px;
+    opacity: 0; animation: none;
+  }
+  .stress-rules.animated { animation: rise 0.4s ease forwards; }
+  .stress-rule { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 11px; }
+  .stress-rule:last-child { margin-bottom: 0; }
+  .stress-rule-ico { font-size: 12px; flex-shrink: 0; }
+  .stress-rule-text { color: #1a3a1a; }
+  .stress-rule-text strong { color: #3a6a3a; }
+
+  /* ── SLIDE 7: The Bible ── */
+  .bible-sections { width: 100%; max-width: 540px; display: flex; flex-direction: column; gap: 10px; }
+  .bible-section {
+    display: flex; align-items: center; gap: 14px;
+    padding: 13px 16px; border-radius: 10px;
+    background: #060606; border: 1px solid #111;
+    opacity: 0; transform: translateX(-12px); animation: none;
+  }
+  .bible-section.animated { animation: slideIn 0.35s ease forwards; }
+  .bible-section-ico { font-size: 18px; flex-shrink: 0; }
+  .bible-section-info { flex: 1; }
+  .bible-section-name { font-size: 13px; font-weight: 700; color: #ccc; margin-bottom: 2px; }
+  .bible-section-desc { font-size: 11px; color: #2a2a2a; }
+  .bible-live-tag { font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+  .bible-live-tag.live { background: #0d2e0d; color: #22c55e; border: 1px solid #16a34a; }
+  .bible-live-tag.static { background: #0a0a0a; color: #333; border: 1px solid #1a1a1a; }
+
+  .bible-metrics {
+    width: 100%; max-width: 540px; margin-top: 12px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    opacity: 0; animation: none;
+  }
+  .bible-metrics.animated { animation: rise 0.4s ease forwards; }
+  .bible-metric { text-align: center; padding: 12px; background: #060606; border: 1px solid #0f0f0f; border-radius: 8px; }
+  .bible-metric-n { font-size: 20px; font-weight: 900; letter-spacing: -1px; }
+  .bible-metric-l { font-size: 9px; color: #1a1a1a; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 3px; }
+
+  /* ── SLIDE 8: Launch Ready ── */
+  .launch-hero { text-align: center; margin-bottom: 28px; }
+  .launch-status-tag {
+    display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 2px;
+    text-transform: uppercase; padding: 6px 18px; border-radius: 20px;
+    background: #0d2e0d; color: #22c55e; border: 1px solid #166534;
+    margin-bottom: 20px;
+    opacity: 0; animation: fade 0.4s ease 0.1s forwards;
+  }
+  .launch-title {
+    font-size: clamp(28px, 7vw, 52px); font-weight: 900;
+    color: #fff; letter-spacing: -2px; line-height: 1.0;
+    opacity: 0; animation: rise 0.5s ease 0.2s forwards;
+  }
+  .launch-checklist { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 8px; }
+  .launch-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 16px; border-radius: 9px;
+    opacity: 0; transform: translateX(-12px); animation: none;
+  }
+  .launch-item.animated { animation: slideIn 0.35s ease forwards; }
+  .launch-item-check { font-size: 14px; flex-shrink: 0; }
+  .launch-item-text { font-size: 13px; font-weight: 600; }
+
+  @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+  @keyframes rise    { to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes pop     { to { opacity: 1; transform: scale(1); } }
+  @keyframes fade    { to { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<!-- ════ SLIDE 1 ════ QA Philosophy -->
+<section class="slide active" id="slide-0">
+  <div class="slide-badge">QA Process · Philosophy</div>
+
+  <div class="qa-hero-quote">"Most SaaS skip QA for v1.<br><span>I didn't.</span>"</div>
+
+  <div class="qa-contrast">
+    <div class="qa-contrast-col" style="--bc:#431407;--bg:#100400;--ac:#ef4444;animation-delay:0.5s">
+      <div class="qa-col-label" style="--ac:#ef4444">Most founders do</div>
+      <div class="qa-col-item"><div class="qa-col-ico">🚀</div><div class="qa-col-text" style="color:#2a2a2a">Ship fast, fix later</div></div>
+      <div class="qa-col-item"><div class="qa-col-ico">🤞</div><div class="qa-col-text" style="color:#2a2a2a">Hope it works in prod</div></div>
+      <div class="qa-col-item"><div class="qa-col-ico">🐛</div><div class="qa-col-text" style="color:#2a2a2a">Bugs as surprises</div></div>
+      <div class="qa-col-item"><div class="qa-col-ico">😅</div><div class="qa-col-text" style="color:#2a2a2a">Manual testing sometimes</div></div>
+    </div>
+    <div class="qa-contrast-col" style="--bc:#1c3a00;--bg:#060f00;--ac:#22c55e;animation-delay:0.65s">
+      <div class="qa-col-label" style="--ac:#22c55e">View1 Sort does</div>
+      <div class="qa-col-item"><div class="qa-col-ico">🤖</div><div class="qa-col-text" style="--tc:#2e2e2e;color:#2e2e2e">QA agent checks every feature</div></div>
+      <div class="qa-col-item"><div class="qa-col-ico">🔁</div><div class="qa-col-text" style="color:#2e2e2e">Build → review → pass/fail loop</div></div>
+      <div class="qa-col-item"><div class="qa-col-ico">📋</div><div class="qa-col-text" style="color:#2e2e2e">101 stress tests before launch</div></div>
+      <div class="qa-col-item"><div class="qa-col-ico">✅</div><div class="qa-col-text" style="color:#2e2e2e">Every user journey tested</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 2 ════ Build Loop -->
+<section class="slide" id="slide-1">
+  <div class="slide-badge">QA Process · Build Loop</div>
+
+  <div class="section-title">The Automated QA Loop</div>
+  <div class="section-sub">Claude checks Claude — then humans verify</div>
+
+  <div class="loop-diagram">
+    <div class="loop-nodes">
+      <div class="loop-node" style="--bc:#3b0764;--bg:#0d0618;--ac:#c084fc;animation-delay:0.1s">
+        <div class="node-left"><div class="node-box">🤖</div><div class="node-connector"></div></div>
+        <div class="node-content">
+          <div class="node-label">Build Agent (Sonnet)</div>
+          <div class="node-name">Builds Feature</div>
+          <div class="node-desc">Picks up P0 Asana task. Reads codebase. Writes real files. One task, one commit. No batching.</div>
+        </div>
+      </div>
+      <div class="loop-node" style="--bc:#0e4a5e;--bg:#020a0d;--ac:#67e8f9;animation-delay:0.25s">
+        <div class="node-left"><div class="node-box">📤</div><div class="node-connector"></div></div>
+        <div class="node-content">
+          <div class="node-label">Automated</div>
+          <div class="node-name">Moves to Code Review</div>
+          <div class="node-desc">Build agent marks task complete. Creates a new QA task. Assigns to the visual QA agent.</div>
+        </div>
+      </div>
+      <div class="loop-node" style="--bc:#431407;--bg:#100400;--ac:#fb923c;animation-delay:0.4s">
+        <div class="node-left"><div class="node-box">👁️</div><div class="node-connector"></div></div>
+        <div class="node-content">
+          <div class="node-label">QA Agent (Sonnet)</div>
+          <div class="node-name">Visual Review</div>
+          <div class="node-desc">Takes screenshots. Checks the build against the spec. Tests the UI. Identifies any issues.</div>
+          <div class="node-fork">
+            <div class="fork-item" style="--fbc:#1c3a00;--fbg:#060f00;--fac:#86efac">
+              <div class="fork-ico">✅</div> Pass → Close
+            </div>
+            <div class="fork-item" style="--fbc:#431407;--fbg:#100400;--fac:#ef4444">
+              <div class="fork-ico">❌</div> Fail → New task
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="loop-node" style="--bc:#1c3a00;--bg:#060f00;--ac:#86efac;animation-delay:0.55s">
+        <div class="node-left"><div class="node-box">🔁</div><div class="node-connector" style="display:none"></div></div>
+        <div class="node-content">
+          <div class="node-label">Loop</div>
+          <div class="node-name">Repeat Until Pass</div>
+          <div class="node-desc">Failed tasks go back to the build agent. Max 3 attempts. If blocked, human reviews.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 3 ════ Wiki Structure -->
+<section class="slide" id="slide-2">
+  <div class="slide-badge">QA Process · Wiki / Bible</div>
+
+  <div class="wiki-intro" style="">
+    <div class="wiki-intro-text">
+      Built a <strong>product wiki inside the app</strong> — not just for reference, but as a live QA dashboard. Every doc is deployed to the server. Always accessible.
+    </div>
+  </div>
+
+  <div class="wiki-sections">
+    <div class="wiki-section" style="animation-delay:0.15s">
+      <div class="wiki-section-ico">📊</div>
+      <div class="wiki-section-info">
+        <div class="wiki-section-name">Live Metrics Dashboard (The Bible)</div>
+        <div class="wiki-section-desc">Supabase users, media files, galleries, Stripe subscribers — pulled live from API. Plus launch goal tracking.</div>
+      </div>
+      <span class="wiki-section-tag">Live API</span>
+    </div>
+    <div class="wiki-section" style="animation-delay:0.25s">
+      <div class="wiki-section-ico">🗺️</div>
+      <div class="wiki-section-info">
+        <div class="wiki-section-name">Page Map</div>
+        <div class="wiki-section-desc">Every page built so far with status. Visual reference for what's complete vs what's missing.</div>
+      </div>
+      <span class="wiki-section-tag">Visual</span>
+    </div>
+    <div class="wiki-section" style="animation-delay:0.35s">
+      <div class="wiki-section-ico">🧭</div>
+      <div class="wiki-section-info">
+        <div class="wiki-section-name">User Journeys</div>
+        <div class="wiki-section-desc">Every user flow mapped out step by step. Photographer journey + client journey. Used for manual testing.</div>
+      </div>
+      <span class="wiki-section-tag">Test guide</span>
+    </div>
+    <div class="wiki-section" style="animation-delay:0.45s">
+      <div class="wiki-section-ico">✅</div>
+      <div class="wiki-section-info">
+        <div class="wiki-section-name">QA Checklist</div>
+        <div class="wiki-section-desc">Categorized checklist by feature area. Authentication, payments, gallery, AI sort, analytics, etc.</div>
+      </div>
+      <span class="wiki-section-tag">Checklist</span>
+    </div>
+    <div class="wiki-section" style="animation-delay:0.55s">
+      <div class="wiki-section-ico">💥</div>
+      <div class="wiki-section-info">
+        <div class="wiki-section-name">Stress Test</div>
+        <div class="wiki-section-desc">101 tests before launch. Each test has pass/fail/blocked status. Failures create Asana tasks automatically.</div>
+      </div>
+      <span class="wiki-section-tag">101 tests</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 4 ════ User Journeys -->
+<section class="slide" id="slide-3">
+  <div class="slide-badge">QA Process · User Journeys</div>
+
+  <div class="section-title">Every Flow. Tested.</div>
+  <div class="section-sub">If it's not in the journey map, it doesn't count</div>
+
+  <div class="journey-wrap">
+    <div class="journey-card" style="--bc:#3b0764;--bg:#0d0618;--ac:#c084fc;animation-delay:0.1s">
+      <div class="journey-card-icon">📸</div>
+      <div class="journey-card-info">
+        <div class="journey-card-name">Photographer Onboarding</div>
+        <div class="journey-card-steps"><span>Sign up</span> → Stripe Connect → profile setup → first sort upload → first gallery → first share link</div>
+      </div>
+      <div class="journey-card-count">6 steps</div>
+    </div>
+    <div class="journey-card" style="--bc:#0e4a5e;--bg:#020a0d;--ac:#67e8f9;animation-delay:0.2s">
+      <div class="journey-card-icon">🤖</div>
+      <div class="journey-card-info">
+        <div class="journey-card-name">AI Sort Core Flow</div>
+        <div class="journey-card-steps"><span>Upload photos</span> → enter prompt → AI classifies → review Kanban → approve/reject → export to gallery</div>
+      </div>
+      <div class="journey-card-count">6 steps</div>
+    </div>
+    <div class="journey-card" style="--bc:#1c3a00;--bg:#060f00;--ac:#86efac;animation-delay:0.3s">
+      <div class="journey-card-icon">👤</div>
+      <div class="journey-card-info">
+        <div class="journey-card-name">Client Gallery Purchase</div>
+        <div class="journey-card-steps"><span>Receive magic link</span> → view watermarked gallery → select images → Stripe checkout → download zip</div>
+      </div>
+      <div class="journey-card-count">5 steps</div>
+    </div>
+    <div class="journey-card" style="--bc:#431407;--bg:#100400;--ac:#fb923c;animation-delay:0.4s">
+      <div class="journey-card-icon">💰</div>
+      <div class="journey-card-info">
+        <div class="journey-card-name">Booking + Contract + Invoice</div>
+        <div class="journey-card-steps"><span>Client books via public page</span> → contract sent → e-sign → invoice generated → payment tracked</div>
+      </div>
+      <div class="journey-card-count">5 steps</div>
+    </div>
+    <div class="journey-card" style="--bc:#3d2e00;--bg:#0d0900;--ac:#fde68a;animation-delay:0.5s">
+      <div class="journey-card-icon">📊</div>
+      <div class="journey-card-info">
+        <div class="journey-card-name">Analytics Review</div>
+        <div class="journey-card-steps"><span>Dashboard</span> → analytics page → revenue view → gallery performance → AI insights → generate report</div>
+      </div>
+      <div class="journey-card-count">6 steps</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 5 ════ QA Checklist -->
+<section class="slide" id="slide-4">
+  <div class="slide-badge">QA Process · Checklist</div>
+
+  <div class="section-title">QA Before Every Ship</div>
+  <div class="section-sub">Categorized by feature area</div>
+
+  <div class="checklist-cats">
+    <div class="checklist-cat" style="animation-delay:0.1s">
+      <div class="checklist-cat-header"><div class="checklist-cat-icon">🔐</div><div class="checklist-cat-name">Authentication</div></div>
+      <div class="checklist-items">
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Signup + email verify</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Login / logout</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Password reset flow</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Protected routes</div></div>
+      </div>
+    </div>
+    <div class="checklist-cat" style="animation-delay:0.2s">
+      <div class="checklist-cat-header"><div class="checklist-cat-icon">🤖</div><div class="checklist-cat-name">AI Sort</div></div>
+      <div class="checklist-items">
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Upload 100+ images</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Classification accuracy</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Drag-drop Kanban</div></div>
+        <div class="checklist-item"><div class="check-box todo">　</div><div class="check-label">Edge case: 0 photos</div></div>
+      </div>
+    </div>
+    <div class="checklist-cat" style="animation-delay:0.3s">
+      <div class="checklist-cat-header"><div class="checklist-cat-icon">💳</div><div class="checklist-cat-name">Payments</div></div>
+      <div class="checklist-items">
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Stripe Connect setup</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Gallery checkout</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Webhook handling</div></div>
+        <div class="checklist-item"><div class="check-box todo">　</div><div class="check-label">Refund flow</div></div>
+      </div>
+    </div>
+    <div class="checklist-cat" style="animation-delay:0.4s">
+      <div class="checklist-cat-header"><div class="checklist-cat-icon">🖼️</div><div class="checklist-cat-name">Gallery Delivery</div></div>
+      <div class="checklist-items">
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Watermark renders</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Magic link access</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">ZIP download</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Mobile view</div></div>
+      </div>
+    </div>
+    <div class="checklist-cat" style="animation-delay:0.5s">
+      <div class="checklist-cat-header"><div class="checklist-cat-icon">📊</div><div class="checklist-cat-name">Analytics</div></div>
+      <div class="checklist-items">
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Revenue chart</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Gallery performance</div></div>
+        <div class="checklist-item"><div class="check-box todo">　</div><div class="check-label">AI insights load</div></div>
+        <div class="checklist-item"><div class="check-box todo">　</div><div class="check-label">Report export</div></div>
+      </div>
+    </div>
+    <div class="checklist-cat" style="animation-delay:0.6s">
+      <div class="checklist-cat-header"><div class="checklist-cat-icon">📱</div><div class="checklist-cat-name">Mobile</div></div>
+      <div class="checklist-items">
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Dashboard responsive</div></div>
+        <div class="checklist-item"><div class="check-box pass">✓</div><div class="check-label pass">Client portal mobile</div></div>
+        <div class="checklist-item"><div class="check-box todo">　</div><div class="check-label">Booking page mobile</div></div>
+        <div class="checklist-item"><div class="check-box todo">　</div><div class="check-label">AI sort on mobile</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="checklist-total" style="animation-delay:0.8s">
+    <div class="total-chip" style="background:#0d2e0d;border:1px solid #16a34a;color:#22c55e">✓ 28 passed</div>
+    <div class="total-chip" style="background:#0a0a0a;border:1px solid #1a1a1a;color:#444">⬜ 8 pending</div>
+    <div class="total-chip" style="background:#2e0d0d;border:1px solid #7f1d1d;color:#ef4444">✗ 0 failed</div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 6 ════ Stress Test -->
+<section class="slide" id="slide-5">
+  <div class="slide-badge">QA Process · Stress Test</div>
+
+  <div class="stress-header">
+    <div class="stress-big-num">101</div>
+    <div class="stress-sub">Stress tests before launch</div>
+  </div>
+
+  <div class="stress-categories">
+    <div class="stress-cat" style="animation-delay:0.5s">
+      <div class="stress-cat-ico">🏠</div>
+      <div class="stress-cat-n" style="color:#c084fc">18</div>
+      <div class="stress-cat-l">Dashboard</div>
+    </div>
+    <div class="stress-cat" style="animation-delay:0.55s">
+      <div class="stress-cat-ico">🤖</div>
+      <div class="stress-cat-n" style="color:#67e8f9">16</div>
+      <div class="stress-cat-l">AI Sort</div>
+    </div>
+    <div class="stress-cat" style="animation-delay:0.6s">
+      <div class="stress-cat-ico">🖼️</div>
+      <div class="stress-cat-n" style="color:#86efac">14</div>
+      <div class="stress-cat-l">Galleries</div>
+    </div>
+    <div class="stress-cat" style="animation-delay:0.65s">
+      <div class="stress-cat-ico">💳</div>
+      <div class="stress-cat-n" style="color:#fde68a">12</div>
+      <div class="stress-cat-l">Payments</div>
+    </div>
+    <div class="stress-cat" style="animation-delay:0.7s">
+      <div class="stress-cat-ico">👥</div>
+      <div class="stress-cat-n" style="color:#fb923c">11</div>
+      <div class="stress-cat-l">Clients</div>
+    </div>
+    <div class="stress-cat" style="animation-delay:0.75s">
+      <div class="stress-cat-ico">🔌</div>
+      <div class="stress-cat-n" style="color:#e879f9">30</div>
+      <div class="stress-cat-l">Other</div>
+    </div>
+  </div>
+
+  <div class="stress-rules" style="animation-delay:1.0s">
+    <div class="stress-rule"><div class="stress-rule-ico">✅</div><div class="stress-rule-text"><strong>Pass</strong> — continues to next test</div></div>
+    <div class="stress-rule"><div class="stress-rule-ico">🔒</div><div class="stress-rule-text"><strong>Blocked</strong> — creates Asana task, agent fixes, then re-tests</div></div>
+    <div class="stress-rule"><div class="stress-rule-ico">🔁</div><div class="stress-rule-text"><strong>Max 3 attempts</strong> per blocked item before human escalation</div></div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 7 ════ The Bible -->
+<section class="slide" id="slide-6">
+  <div class="slide-badge">QA Process · The Bible</div>
+
+  <div class="section-title">Live Metrics Dashboard</div>
+  <div class="section-sub">The product Bible — all connected to real APIs</div>
+
+  <div class="bible-sections">
+    <div class="bible-section" style="animation-delay:0.15s">
+      <div class="bible-section-ico">🗄️</div>
+      <div class="bible-section-info">
+        <div class="bible-section-name">Supabase Metrics</div>
+        <div class="bible-section-desc">Total users, media files, galleries created, active sessions</div>
+      </div>
+      <span class="bible-live-tag live">● Live</span>
+    </div>
+    <div class="bible-section" style="animation-delay:0.25s">
+      <div class="bible-section-ico">💳</div>
+      <div class="bible-section-info">
+        <div class="bible-section-name">Stripe Metrics</div>
+        <div class="bible-section-desc">Active subscribers, MRR, total revenue, recent payments</div>
+      </div>
+      <span class="bible-live-tag live">● Live</span>
+    </div>
+    <div class="bible-section" style="animation-delay:0.35s">
+      <div class="bible-section-ico">🎯</div>
+      <div class="bible-section-info">
+        <div class="bible-section-name">Launch Goal Tracking</div>
+        <div class="bible-section-desc">20 pilots by Apr 20 · live Apr 30 · waitlist progress</div>
+      </div>
+      <span class="bible-live-tag live">● Live</span>
+    </div>
+    <div class="bible-section" style="animation-delay:0.45s">
+      <div class="bible-section-ico">📋</div>
+      <div class="bible-section-info">
+        <div class="bible-section-name">Product & Tech Docs</div>
+        <div class="bible-section-desc">SPEC.md, STATE.md, architecture decisions, build log</div>
+      </div>
+      <span class="bible-live-tag static">Static</span>
+    </div>
+    <div class="bible-section" style="animation-delay:0.55s">
+      <div class="bible-section-ico">📣</div>
+      <div class="bible-section-info">
+        <div class="bible-section-name">Marketing & GTM</div>
+        <div class="bible-section-desc">Launch checklist, content calendar, KPIs, agent team, budget</div>
+      </div>
+      <span class="bible-live-tag static">Static</span>
+    </div>
+  </div>
+
+  <div class="bible-metrics" style="animation-delay:0.75s">
+    <div class="bible-metric"><div class="bible-metric-n" style="color:#c084fc">1</div><div class="bible-metric-l">User (me)</div></div>
+    <div class="bible-metric"><div class="bible-metric-n" style="color:#67e8f9">0</div><div class="bible-metric-l">Subscribers yet</div></div>
+    <div class="bible-metric"><div class="bible-metric-n" style="color:#22c55e">↑</div><div class="bible-metric-l">Growing daily</div></div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 8 ════ Launch Ready -->
+<section class="slide" id="slide-7">
+  <div class="slide-badge">QA Process · Launch Ready</div>
+
+  <div class="launch-hero">
+    <div class="launch-status-tag">Phase 1 QA Complete</div>
+    <div class="launch-title">Ready.<br>Launching.</div>
+  </div>
+
+  <div class="launch-checklist">
+    <div class="launch-item" style="background:#0d2e0d;border:1px solid #16a34a;animation-delay:0.4s">
+      <div class="launch-item-check">✅</div>
+      <div class="launch-item-text" style="color:#22c55e">184 commits. 12+ pages. All building.</div>
+    </div>
+    <div class="launch-item" style="background:#0d2e0d;border:1px solid #16a34a;animation-delay:0.5s">
+      <div class="launch-item-check">✅</div>
+      <div class="launch-item-text" style="color:#22c55e">QA agent ran. 101 stress tests. Most passed.</div>
+    </div>
+    <div class="launch-item" style="background:#0d2e0d;border:1px solid #16a34a;animation-delay:0.6s">
+      <div class="launch-item-check">✅</div>
+      <div class="launch-item-text" style="color:#22c55e">User journeys mapped and tested.</div>
+    </div>
+    <div class="launch-item" style="background:#0d2e0d;border:1px solid #16a34a;animation-delay:0.7s">
+      <div class="launch-item-check">✅</div>
+      <div class="launch-item-text" style="color:#22c55e">Bible is live. Metrics connected.</div>
+    </div>
+    <div class="launch-item" style="background:#1a0d2e;border:1px solid #6d28d9;animation-delay:0.8s">
+      <div class="launch-item-check">🎯</div>
+      <div class="launch-item-text" style="color:#c084fc">20 pilots by April 20. Live April 30.</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════ SLIDE 9 ════ QA 3-Attempt Retry Pattern -->
+<section class="slide" id="slide-8">
+  <div class="slide-badge">QA System · 3-Attempt Retry Pattern</div>
+
+  <div class="tag tag-orange" style="opacity:0;animation:fade 0.4s ease 0.1s forwards">How Quality Compound</div>
+
+  <div class="section-title" style="opacity:0;animation:rise 0.4s ease 0.2s forwards">Pass. Pass. Blocked.<br>Fix. Pass.</div>
+  <div class="section-sub" style="opacity:0;animation:fade 0.4s ease 0.35s forwards">The QA agent runs until it passes or escalates</div>
+
+  <div style="width:100%;max-width:480px;display:flex;flex-direction:column;gap:0;margin-top:28px">
+    <div class="loop-node" style="display:flex;align-items:stretch;gap:16px;opacity:0;transform:translateY(10px);animation:none">
+      <div style="display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0">
+        <div style="width:40px;height:40px;border-radius:50%;background:#040f12;border:1px solid #0891b2;display:flex;align-items:center;justify-content:center;font-size:16px">🔍</div>
+        <div style="width:1px;flex:1;background:linear-gradient(to bottom,#0891b2,#111);min-height:20px;margin:4px 0"></div>
+      </div>
+      <div style="flex:1;padding:8px 0 20px">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#67e8f9;margin-bottom:3px">Attempt 1</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px">QA Agent reviews the build</div>
+        <div style="font-size:12px;color:#333;line-height:1.5">Visual scan. Functionality check. Does it match the spec?</div>
+      </div>
+    </div>
+    <div class="loop-node" style="display:flex;align-items:stretch;gap:16px;opacity:0;transform:translateY(10px);animation:none">
+      <div style="display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0">
+        <div style="width:40px;height:40px;border-radius:50%;background:#0a1f0a;border:1px solid #16a34a;display:flex;align-items:center;justify-content:center;font-size:16px">✅</div>
+        <div style="width:1px;flex:1;background:linear-gradient(to bottom,#16a34a,#111);min-height:20px;margin:4px 0"></div>
+      </div>
+      <div style="flex:1;padding:8px 0 20px">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#22c55e;margin-bottom:3px">Pass</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px">Task marked complete in Asana</div>
+        <div style="font-size:12px;color:#333;line-height:1.5">Moves to "Done". Next task picked up automatically.</div>
+      </div>
+    </div>
+    <div class="loop-node" style="display:flex;align-items:stretch;gap:16px;opacity:0;transform:translateY(10px);animation:none">
+      <div style="display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0">
+        <div style="width:40px;height:40px;border-radius:50%;background:#150500;border:1px solid #dc2626;display:flex;align-items:center;justify-content:center;font-size:16px">🚫</div>
+        <div style="width:1px;flex:1;background:linear-gradient(to bottom,#dc2626,#111);min-height:20px;margin:4px 0"></div>
+      </div>
+      <div style="flex:1;padding:8px 0 20px">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#ef4444;margin-bottom:3px">Blocked</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px">Creates a new fix task in Asana</div>
+        <div style="font-size:12px;color:#333;line-height:1.5">Comments what failed. Sends back to build agent with exact instructions.</div>
+      </div>
+    </div>
+    <div class="loop-node" style="display:flex;align-items:stretch;gap:16px;opacity:0;transform:translateY(10px);animation:none">
+      <div style="display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0">
+        <div style="width:40px;height:40px;border-radius:50%;background:#0a1f0a;border:1px solid #16a34a;display:flex;align-items:center;justify-content:center;font-size:16px">✅</div>
+      </div>
+      <div style="flex:1;padding:8px 0">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#22c55e;margin-bottom:3px">Re-Pass after fix</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px">Fixed and verified again</div>
+        <div style="font-size:12px;color:#333;line-height:1.5">Same QA checklist. Same standards. No shortcuts on re-review.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 10 ════ The Bible – Live Metrics -->
+<section class="slide" id="slide-9">
+  <div class="slide-badge">QA System · The View1 Bible</div>
+
+  <div class="tag tag-green" style="opacity:0;animation:fade 0.4s ease 0.1s forwards">Live · Connected · Real</div>
+
+  <div class="section-title" style="opacity:0;animation:rise 0.4s ease 0.2s forwards">Every metric.<br>Live. From the API.</div>
+  <div class="section-sub" style="opacity:0;animation:fade 0.4s ease 0.35s forwards">Not mocked. Pulled from Supabase + Stripe in real time.</div>
+
+  <div style="width:100%;max-width:520px;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:24px">
+    <div class="bible-section" style="background:#040f12;border:1px solid #0a2a32;border-radius:10px;padding:14px 16px;opacity:0;transform:translateY(10px);animation:none">
+      <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#67e8f9;margin-bottom:8px">Supabase</div>
+      <div class="bible-metrics" style="display:flex;flex-direction:column;gap:6px;opacity:0;animation:none">
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#333">Total users</span><span style="color:#67e8f9;font-weight:700">1 (me)</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#333">Media files</span><span style="color:#67e8f9;font-weight:700">0</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#333">Galleries</span><span style="color:#67e8f9;font-weight:700">0</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#333">DB tables</span><span style="color:#67e8f9;font-weight:700">28</span></div>
+      </div>
+    </div>
+    <div class="bible-section" style="background:#0a1f0a;border:1px solid #16a34a;border-radius:10px;padding:14px 16px;opacity:0;transform:translateY(10px);animation:none">
+      <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#22c55e;margin-bottom:8px">Stripe</div>
+      <div class="bible-metrics" style="display:flex;flex-direction:column;gap:6px;opacity:0;animation:none">
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#2a3a2a">Active subs</span><span style="color:#22c55e;font-weight:700">0 → soon</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#2a3a2a">MRR</span><span style="color:#22c55e;font-weight:700">$0 → live</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#2a3a2a">Webhook</span><span style="color:#22c55e;font-weight:700">✓ Active</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#2a3a2a">Connect</span><span style="color:#22c55e;font-weight:700">✓ Ready</span></div>
+      </div>
+    </div>
+    <div class="bible-section" style="background:#1a0d2e;border:1px solid #6d28d9;border-radius:10px;padding:14px 16px;opacity:0;transform:translateY(10px);animation:none">
+      <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#c084fc;margin-bottom:8px">Milestones</div>
+      <div class="bible-metrics" style="display:flex;flex-direction:column;gap:6px;opacity:0;animation:none">
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#3d1e5e">20 pilots</span><span style="color:#c084fc;font-weight:700">Apr 20</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#3d1e5e">Live</span><span style="color:#c084fc;font-weight:700">Apr 30</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#3d1e5e">100 waitlist</span><span style="color:#c084fc;font-weight:700">May</span></div>
+      </div>
+    </div>
+    <div class="bible-section" style="background:#150500;border:1px solid #431407;border-radius:10px;padding:14px 16px;opacity:0;transform:translateY(10px);animation:none">
+      <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#fb923c;margin-bottom:8px">Build</div>
+      <div class="bible-metrics" style="display:flex;flex-direction:column;gap:6px;opacity:0;animation:none">
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#4a2000">Commits</span><span style="color:#fb923c;font-weight:700">184</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#4a2000">Days</span><span style="color:#fb923c;font-weight:700">11</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#4a2000">Pages</span><span style="color:#fb923c;font-weight:700">12+</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#4a2000">Tests</span><span style="color:#fb923c;font-weight:700">101</span></div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:16px;font-size:11px;color:#1a1a1a;letter-spacing:1.5px;text-transform:uppercase;opacity:0;animation:fade 0.4s ease 1.2s forwards">
+    Every number here will change. That's the point.
+  </div>
+</section>
+
+<!-- ════ Navigation ════ -->
+<nav class="nav-bar">
+  <button class="nav-btn" onclick="move(-1)">←</button>
+  <div class="dots" id="dots"></div>
+  <button class="nav-btn" onclick="move(1)">→</button>
+  <span class="nav-counter" id="counter">1 / 10</span>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  const dotsEl = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => show(i);
+    dotsEl.appendChild(d);
+  });
+
+  function triggerAnimations(slideEl) {
+    const sel = '.qa-contrast-col, .qa-hero-quote, .loop-node, .wiki-intro, .wiki-section, .journey-card, .checklist-cat, .checklist-total, .stress-cat, .stress-rules, .bible-section, .bible-metrics, .launch-item, .doc-item';
+    slideEl.querySelectorAll(sel).forEach(el => {
+      el.classList.remove('animated');
+      void el.offsetWidth;
+      el.classList.add('animated');
+    });
+  }
+
+  function show(idx) {
+    slides[current].classList.remove('active');
+    dotsEl.children[current].classList.remove('active');
+    current = Math.max(0, Math.min(total - 1, idx));
+    slides[current].classList.add('active');
+    dotsEl.children[current].classList.add('active');
+    document.getElementById('counter').textContent = `${current + 1} / ${total}`;
+    triggerAnimations(slides[current]);
+  }
+
+  function move(dir) { show(current + dir); }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); move(1); }
+    if (e.key === 'ArrowLeft') move(-1);
+  });
+
+  triggerAnimations(slides[0]);
+</script>
+</body>
+</html>

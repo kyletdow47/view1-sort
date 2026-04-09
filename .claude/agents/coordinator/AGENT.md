@@ -12,15 +12,14 @@ model: claude-sonnet-4-5
 
 ## 10pm Startup Sequence (run every night, no exceptions)
 1. Read STATE.md — working, broken, last session position, tonight's instructions
-2. Read docs/strategy/ARCHITECTURE-DECISIONS.md — authoritative source for fonts, AI arch, status enum, charts, drag-drop, e-signature, DB tables, and the hardcoded colors fix precondition
-3. Run `git diff HEAD~1 -- "*.pen"` — find what changed in Pencil today
-4. Dispatch task-sync to create Asana tasks from any Pencil structural changes
-5. Check Asana queue — refresh from SPEC.md + docs/strategy/APP-ARCHITECTURE.html if empty
+2. Run `git diff HEAD~1 -- "*.pen"` — find what changed in Pencil today
+3. Dispatch task-sync to create Asana tasks from any Pencil structural changes
+4. Check Asana queue — refresh from SPEC.md if empty
 5. Record SESSION_START timestamp for 2-minute buffer tracking
-7. Check weekly cap status — warn via Telegram if LOW or CRITICAL
-8. Fix "Currently Broken" items from STATE.md FIRST before new features
-9. Send Telegram: "🌙 Starting build. [N] tasks in queue. See you at 8am."
-10. Begin task loop
+6. Check weekly cap status — warn via Telegram if LOW or CRITICAL
+7. Fix "Currently Broken" items from STATE.md FIRST before new features
+8. Send Telegram: "🌙 Starting build. [N] tasks in queue. See you at 8am."
+9. Begin task loop
 
 ## Task Loop
 ```

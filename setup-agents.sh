@@ -1166,6 +1166,10 @@ ok "Slash commands written: /start, /status, /morning, /test"
 # =============================================================================
 step "8/10 — Writing skills installer"
 
+# Skills must be installed inside a Claude Code session via /plugin commands.
+# This step writes a slash command and reference file so Claude Code can
+# install them all in one shot on first run.
+
 cat > .claude/commands/install-skills.md << 'CMD'
 Install all required skills for the view1-sort agent system.
 Run each command in order. Wait for confirmation before proceeding.
@@ -1226,7 +1230,6 @@ SKILLS
 
 ok "Skills installer written to .claude/commands/install-skills.md"
 ok ".claude/SKILLS.md reference written"
-
 # =============================================================================
 # STEP 9 — TELEGRAM SETUP CHECK
 # =============================================================================
@@ -1276,8 +1279,8 @@ echo "  STATE.md:         ✓"
 echo "  .claude/settings: ✓ (Agent Teams enabled)"
 echo "  .mcp.json:        ✓ (verify Pencil path)"
 echo "  CLAUDE.md:        ✓ (rules appended)"
-echo "  Slash commands:   ✓ /start /status /morning /test /install-skills"
-echo "  Skills ref:       ✓ .claude/SKILLS.md"
+echo "  Slash commands:   ✓ /start /status /morning /test /install-skills
+  Skills ref:       ✓ .claude/SKILLS.md"
 echo ""
 echo -e "${BOLD}Before first run — manual steps:${NC}"
 echo ""
@@ -1287,8 +1290,8 @@ echo "     find /Applications -name 'mcp-server-darwin*'"
 echo "  3. Connect Asana in claude.ai → Settings → Integrations"
 echo "  4. Connect Vercel in claude.ai → Settings → Integrations"
 echo "  5. Update STATE.md 'Currently Broken' with real current status"
-echo "  6. Install skills — open Claude Code and run: /install-skills"
-echo "  7. Run design-extractor on your Pencil screens FIRST:"
+echo "  6. Install skills — open Claude Code and run: /install-skills
+  7. Run design-extractor on your Pencil screens FIRST:"
 echo "     In Claude Code: 'Read all Pencil screens and extract design-refs'"
 echo ""
 echo -e "${BOLD}To start tonight's build:${NC}"

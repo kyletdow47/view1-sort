@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>View1 Sort — Phase 1 Review</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: #000; font-family: -apple-system, 'Inter', sans-serif; overflow: hidden; }
+
+  /* ── Grid background ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(168,85,247,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(168,85,247,0.035) 1px, transparent 1px);
+    background-size: 64px 64px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── Deck ── */
+  .deck { position: fixed; inset: 0; z-index: 1; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 72px 52px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .slide.active { opacity: 1; pointer-events: all; }
+
+  /* ── Slide number badge ── */
+  .slide-badge {
+    position: absolute; top: 36px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; color: #2a2a2a;
+    white-space: nowrap;
+  }
+
+  /* ── Nav bar ── */
+  .nav-bar {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(10,10,10,0.95);
+    border: 1px solid #1e1e1e; border-radius: 100px;
+    padding: 10px 20px; z-index: 100;
+  }
+  .nav-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #111; border: 1px solid #222;
+    color: #666; font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; font-family: inherit;
+  }
+  .nav-btn:hover { background: #1a1a1a; color: #ccc; border-color: #444; }
+  .dots { display: flex; gap: 6px; align-items: center; margin: 0 8px; }
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #2a2a2a; cursor: pointer; transition: all 0.2s;
+  }
+  .dot.active { background: #a855f7; transform: scale(1.4); }
+  .nav-counter { font-size: 11px; color: #333; letter-spacing: 1px; margin-left: 6px; }
+
+  /* ── Typography utils ── */
+  .tag {
+    font-size: 10px; font-weight: 700; letter-spacing: 3px;
+    text-transform: uppercase; padding: 4px 14px;
+    border-radius: 20px; margin-bottom: 20px;
+  }
+  .tag-purple { background: #1a0d2e; color: #c084fc; border: 1px solid #6d28d9; }
+  .tag-cyan   { background: #040f12; color: #67e8f9; border: 1px solid #0891b2; }
+  .tag-green  { background: #0a1f0a; color: #86efac; border: 1px solid #16a34a; }
+  .tag-orange { background: #150500; color: #fdba74; border: 1px solid #c2410c; }
+
+  .hero-num {
+    font-size: clamp(80px, 22vw, 160px);
+    font-weight: 900; line-height: 0.85;
+    letter-spacing: -5px;
+    background: linear-gradient(135deg, #fff 0%, #a855f7 50%, #06b6d4 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    text-align: center;
+  }
+
+  .hero-label {
+    font-size: clamp(13px, 3vw, 18px); font-weight: 500;
+    color: #444; letter-spacing: 3px; text-transform: uppercase;
+    margin-top: 10px; margin-bottom: 48px; text-align: center;
+  }
+
+  .section-title {
+    font-size: clamp(22px, 5vw, 36px); font-weight: 900;
+    color: #fff; text-align: center; letter-spacing: -1px;
+    line-height: 1.1; margin-bottom: 8px;
+  }
+
+  .section-sub {
+    font-size: clamp(11px, 2.5vw, 14px); color: #333;
+    letter-spacing: 2px; text-transform: uppercase;
+    text-align: center; margin-bottom: 40px;
+  }
+
+  /* ── SLIDE 1: Hero ── */
+  .s1-stats {
+    display: flex; gap: 0; align-items: stretch;
+    margin-top: 8px;
+  }
+  .s1-stat {
+    flex: 1; text-align: center; padding: 0 32px;
+    border-right: 1px solid #1a1a1a;
+  }
+  .s1-stat:last-child { border-right: none; }
+  .s1-stat-num {
+    font-size: clamp(36px, 9vw, 64px); font-weight: 900;
+    letter-spacing: -2px; line-height: 1;
+  }
+  .s1-stat-lbl {
+    font-size: 10px; color: #333; letter-spacing: 2px;
+    text-transform: uppercase; margin-top: 6px;
+  }
+
+  /* ── SLIDE 2: Core Flow ── */
+  .flow {
+    width: 100%; max-width: 540px;
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .flow-step {
+    display: flex; align-items: stretch; gap: 20px;
+    opacity: 0; transform: translateX(-16px);
+    animation: none;
+  }
+  .flow-step.animated { animation: slideIn 0.4s ease forwards; }
+  .flow-left {
+    display: flex; flex-direction: column;
+    align-items: center; width: 52px; flex-shrink: 0;
+  }
+  .flow-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; border: 1px solid var(--border); background: var(--bg);
+    flex-shrink: 0;
+  }
+  .flow-line {
+    width: 2px; flex: 1; min-height: 18px;
+    background: linear-gradient(to bottom, var(--border), transparent);
+    margin: 6px 0;
+  }
+  .flow-content { flex: 1; padding: 6px 0 22px; }
+  .flow-step-label {
+    font-size: 9px; font-weight: 800; letter-spacing: 2.5px;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 3px;
+  }
+  .flow-name {
+    font-size: clamp(17px, 4vw, 22px); font-weight: 800;
+    color: #fff; line-height: 1.1; margin-bottom: 4px;
+  }
+  .flow-desc { font-size: clamp(12px, 2.5vw, 14px); color: #333; line-height: 1.5; }
+  .flow-chips { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .chip {
+    font-size: 10px; font-family: 'SF Mono', monospace;
+    color: var(--accent); background: var(--chip-bg);
+    border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px;
+  }
+
+  /* ── SLIDE 3: Dashboard ── */
+  .widget-grid {
+    width: 100%; max-width: 540px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .widget {
+    background: #080808; border: 1px solid #1a1a1a;
+    border-radius: 12px; padding: 14px 16px;
+    opacity: 0; transform: translateY(10px);
+    animation: none;
+  }
+  .widget.animated { animation: rise 0.35s ease forwards; }
+  .widget-icon { font-size: 20px; margin-bottom: 6px; }
+  .widget-name { font-size: 13px; font-weight: 700; color: #ccc; margin-bottom: 3px; }
+  .widget-desc { font-size: 11px; color: #333; line-height: 1.4; }
+  .widget-tag {
+    display: inline-block; font-size: 9px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 4px; margin-top: 6px;
+    background: #1a0d2e; color: #c084fc; border: 1px solid #3b1d6e;
+  }
+
+  /* ── SLIDE 4: AI Sort ── */
+  .ai-steps {
+    width: 100%; max-width: 520px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .ai-step {
+    display: flex; align-items: flex-start; gap: 16px;
+    background: #060606; border: 1px solid #111;
+    border-radius: 12px; padding: 16px 18px;
+    opacity: 0; transform: translateX(-14px); animation: none;
+  }
+  .ai-step.animated { animation: slideIn 0.35s ease forwards; }
+  .ai-step-num {
+    font-size: 11px; font-weight: 800; letter-spacing: 1px;
+    color: var(--c, #a855f7); font-family: 'SF Mono', monospace;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .ai-step-body { flex: 1; }
+  .ai-step-name { font-size: 15px; font-weight: 700; color: #e0e0e0; margin-bottom: 3px; }
+  .ai-step-desc { font-size: 12px; color: #333; line-height: 1.5; }
+  .ai-badge {
+    margin-top: 5px; display: inline-block;
+    font-size: 9px; font-family: 'SF Mono', monospace;
+    color: var(--c, #a855f7); background: #0d0618;
+    border: 1px solid #3b1d6e; border-radius: 4px; padding: 2px 8px;
+  }
+
+  /* ── SLIDE 5: Client Mgmt ── */
+  .client-features {
+    width: 100%; max-width: 540px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .client-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 13px 16px; background: #070707;
+    border: 1px solid #1a1a1a; border-radius: 10px;
+    opacity: 0; transform: translateX(-12px); animation: none;
+  }
+  .client-row.animated { animation: slideIn 0.35s ease forwards; }
+  .client-row-icon { font-size: 18px; flex-shrink: 0; }
+  .client-row-text { flex: 1; }
+  .client-row-name { font-size: 14px; font-weight: 700; color: #ccc; margin-bottom: 2px; }
+  .client-row-desc { font-size: 11px; color: #333; }
+  .client-row-tag {
+    font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 5px; flex-shrink: 0;
+  }
+
+  /* ── SLIDE 6: Analytics ── */
+  .analytics-grid {
+    width: 100%; max-width: 540px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .analytics-card {
+    background: #040f12; border: 1px solid #0a2a32;
+    border-radius: 12px; padding: 16px 18px;
+    opacity: 0; transform: scale(0.95); animation: none;
+  }
+  .analytics-card.animated { animation: pop 0.35s ease forwards; }
+  .analytics-card-icon { font-size: 22px; margin-bottom: 8px; }
+  .analytics-card-name { font-size: 13px; font-weight: 700; color: #a5f3fc; margin-bottom: 4px; }
+  .analytics-card-desc { font-size: 11px; color: #1e4a57; line-height: 1.4; }
+
+  /* ── SLIDE 7: Pages grid ── */
+  .pages-grid {
+    width: 100%; max-width: 560px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .page-item {
+    background: #080808; border: 1px solid #1a1a1a;
+    border-radius: 10px; padding: 12px 14px;
+    opacity: 0; transform: scale(0.93); animation: none;
+  }
+  .page-item.animated { animation: pop 0.3s ease forwards; }
+  .page-item-icon { font-size: 16px; margin-bottom: 5px; }
+  .page-item-name { font-size: 12px; font-weight: 700; color: #ccc; }
+  .page-item-status { font-size: 9px; margin-top: 3px; }
+  .status-done { color: #22c55e; }
+  .status-beta { color: #f59e0b; }
+
+  /* ── SLIDE 8: Summary ── */
+  .summary-stats {
+    width: 100%; max-width: 520px;
+    display: flex; flex-direction: column; gap: 14px; margin-top: 12px;
+  }
+  .stat-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 20px; background: #060606;
+    border: 1px solid #111; border-radius: 10px;
+    opacity: 0; transform: translateY(10px); animation: none;
+  }
+  .stat-row.animated { animation: rise 0.35s ease forwards; }
+  .stat-row-val {
+    font-size: 28px; font-weight: 900; letter-spacing: -1px;
+    min-width: 72px; text-align: right;
+  }
+  .stat-row-info { flex: 1; }
+  .stat-row-label { font-size: 13px; font-weight: 700; color: #ccc; }
+  .stat-row-sub { font-size: 11px; color: #333; margin-top: 2px; }
+
+  /* ── Keyframes ── */
+  @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+  @keyframes rise    { to { opacity: 1; transform: translateY(0); } }
+  @keyframes pop     { to { opacity: 1; transform: scale(1); } }
+  @keyframes fade    { to { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<!-- ════ SLIDE 1 ════ Phase 1 Overview -->
+<section class="slide active" id="slide-0">
+  <div class="slide-badge">View1 Sort · Phase 1 Review</div>
+
+  <div class="tag tag-purple" style="opacity:0;animation:fade 0.4s ease 0.1s forwards">Phase 1 Complete</div>
+
+  <div class="hero-num" style="opacity:0;animation:rise 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s forwards">
+    12+
+  </div>
+  <div class="hero-label" style="opacity:0;animation:fade 0.4s ease 0.5s forwards">Pages Built & Working</div>
+
+  <div class="s1-stats" style="opacity:0;animation:fade 0.5s ease 0.7s forwards">
+    <div class="s1-stat">
+      <div class="s1-stat-num" style="color:#c084fc">184</div>
+      <div class="s1-stat-lbl">Commits</div>
+    </div>
+    <div class="s1-stat">
+      <div class="s1-stat-num" style="color:#67e8f9">11</div>
+      <div class="s1-stat-lbl">Days</div>
+    </div>
+    <div class="s1-stat">
+      <div class="s1-stat-num" style="color:#86efac">1</div>
+      <div class="s1-stat-lbl">Founder</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 2 ════ Core Flow -->
+<section class="slide" id="slide-1">
+  <div class="slide-badge">View1 Sort · Core Flow</div>
+
+  <div class="section-title">Upload → Sort → Deliver → Get Paid</div>
+  <div class="section-sub">The full photographer workflow</div>
+
+  <div class="flow">
+    <div class="flow-step" style="--border:#3b0764;--bg:#1a0d2e;--accent:#c084fc;--chip-bg:#0d0618">
+      <div class="flow-left">
+        <div class="flow-icon">📁</div>
+        <div class="flow-line"></div>
+      </div>
+      <div class="flow-content">
+        <div class="flow-step-label">Step 1</div>
+        <div class="flow-name">Upload Photos</div>
+        <div class="flow-desc">Drag and drop your shoot. Supports RAW, JPEG, and batch upload of thousands.</div>
+        <div class="flow-chips">
+          <span class="chip">Browser-side</span>
+          <span class="chip">Zero server upload during sort</span>
+        </div>
+      </div>
+    </div>
+    <div class="flow-step" style="--border:#0e4a5e;--bg:#040f12;--accent:#67e8f9;--chip-bg:#020a0d">
+      <div class="flow-left">
+        <div class="flow-icon">🤖</div>
+        <div class="flow-line"></div>
+      </div>
+      <div class="flow-content">
+        <div class="flow-step-label">Step 2</div>
+        <div class="flow-name">AI Sorts</div>
+        <div class="flow-desc">SigLIP runs in your browser. Prompt your shoot context. AI categorizes every image.</div>
+        <div class="flow-chips">
+          <span class="chip">SigLIP</span>
+          <span class="chip">Transformers.js</span>
+          <span class="chip">On-device</span>
+        </div>
+      </div>
+    </div>
+    <div class="flow-step" style="--border:#1c3a00;--bg:#070f00;--accent:#86efac;--chip-bg:#040900">
+      <div class="flow-left">
+        <div class="flow-icon">🖼️</div>
+        <div class="flow-line"></div>
+      </div>
+      <div class="flow-content">
+        <div class="flow-step-label">Step 3</div>
+        <div class="flow-name">Build Gallery</div>
+        <div class="flow-desc">Review selections, add watermarks, set download permissions. Share a link.</div>
+        <div class="flow-chips">
+          <span class="chip">Cloudflare Images</span>
+          <span class="chip">Magic links</span>
+        </div>
+      </div>
+    </div>
+    <div class="flow-step" style="--border:#3d2e00;--bg:#120e00;--accent:#fde68a;--chip-bg:#0d0900">
+      <div class="flow-left">
+        <div class="flow-icon">💳</div>
+        <div class="flow-line" style="display:none"></div>
+      </div>
+      <div class="flow-content">
+        <div class="flow-step-label">Step 4</div>
+        <div class="flow-name">Client Pays & Downloads</div>
+        <div class="flow-desc">Client opens the link. Selects images. Pays in the gallery. Downloads instantly.</div>
+        <div class="flow-chips">
+          <span class="chip">Stripe Connect</span>
+          <span class="chip">Branded portal</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 3 ════ Dashboard -->
+<section class="slide" id="slide-2">
+  <div class="slide-badge">View1 Sort · Dashboard</div>
+
+  <div class="section-title">Command Central</div>
+  <div class="section-sub">Everything in one view</div>
+
+  <div class="widget-grid">
+    <div class="widget" style="animation-delay:0.1s">
+      <div class="widget-icon">📊</div>
+      <div class="widget-name">Quick Stats</div>
+      <div class="widget-desc">Month-to-date revenue, projects completed, outstanding galleries.</div>
+      <span class="widget-tag">Live data</span>
+    </div>
+    <div class="widget" style="animation-delay:0.15s">
+      <div class="widget-icon">📅</div>
+      <div class="widget-name">Upcoming Shoots</div>
+      <div class="widget-desc">Next 7 days at a glance. Click any shoot to prep.</div>
+      <span class="widget-tag">Calendar</span>
+    </div>
+    <div class="widget" style="animation-delay:0.2s">
+      <div class="widget-icon">🔔</div>
+      <div class="widget-name">Recent Activity</div>
+      <div class="widget-desc">Client payments, gallery views, new bookings — all in one feed.</div>
+      <span class="widget-tag">Real-time</span>
+    </div>
+    <div class="widget" style="animation-delay:0.25s">
+      <div class="widget-icon">💬</div>
+      <div class="widget-name">Client Inbox</div>
+      <div class="widget-desc">Messages from clients directly in the app. No email switching.</div>
+      <span class="widget-tag">Inbox</span>
+    </div>
+    <div class="widget" style="animation-delay:0.3s">
+      <div class="widget-icon">📦</div>
+      <div class="widget-name">Active Projects</div>
+      <div class="widget-desc">Current shoots in progress with status indicators.</div>
+      <span class="widget-tag">Projects</span>
+    </div>
+    <div class="widget" style="animation-delay:0.35s">
+      <div class="widget-icon">⌘</div>
+      <div class="widget-name">Command Bar</div>
+      <div class="widget-desc">⌘K to navigate anywhere instantly. Keyboard-first design.</div>
+      <span class="widget-tag">⌘K Search</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 4 ════ AI Sort -->
+<section class="slide" id="slide-3">
+  <div class="slide-badge">View1 Sort · AI Sort</div>
+
+  <div class="section-title">AI Sorting Workspace</div>
+  <div class="section-sub">Your photos sorted before you make coffee</div>
+
+  <div class="ai-steps">
+    <div class="ai-step" style="--c:#c084fc;animation-delay:0.1s">
+      <div class="ai-step-num">01</div>
+      <div class="ai-step-body">
+        <div class="ai-step-name">Drop Your Photos</div>
+        <div class="ai-step-desc">Drag your shoot folder in. Thousands of images handled without breaking a sweat.</div>
+        <span class="ai-badge" style="color:#c084fc;border-color:#3b1d6e">On-device processing</span>
+      </div>
+    </div>
+    <div class="ai-step" style="--c:#67e8f9;animation-delay:0.2s">
+      <div class="ai-step-num" style="color:#67e8f9">02</div>
+      <div class="ai-step-body">
+        <div class="ai-step-name">Prompt Your Shoot</div>
+        <div class="ai-step-desc">Describe your shoot context. "Wedding ceremony, indoor low light, focus on emotion." AI adjusts what to look for.</div>
+        <span class="ai-badge" style="color:#67e8f9;background:#020a0d;border-color:#0891b2">SigLIP zero-shot classification</span>
+      </div>
+    </div>
+    <div class="ai-step" style="--c:#86efac;animation-delay:0.3s">
+      <div class="ai-step-num" style="color:#86efac">03</div>
+      <div class="ai-step-body">
+        <div class="ai-step-name">Kanban Review</div>
+        <div class="ai-step-desc">AI drops photos into categories. You drag to approve, reject, or move. You stay in control.</div>
+        <span class="ai-badge" style="color:#86efac;background:#040900;border-color:#16a34a">Kanban workspace</span>
+      </div>
+    </div>
+    <div class="ai-step" style="--c:#fde68a;animation-delay:0.4s">
+      <div class="ai-step-num" style="color:#fde68a">04</div>
+      <div class="ai-step-body">
+        <div class="ai-step-name">Export to Gallery</div>
+        <div class="ai-step-desc">Approved selections become a gallery instantly. Watermark, share link, attach to a project.</div>
+        <span class="ai-badge" style="color:#fde68a;background:#0d0900;border-color:#92400e">One click to gallery</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 5 ════ Client Management -->
+<section class="slide" id="slide-4">
+  <div class="slide-badge">View1 Sort · Client Management</div>
+
+  <div class="section-title">Client Profiles That<br>Actually Matter</div>
+  <div class="section-sub">Full CRM built for photographers</div>
+
+  <div class="client-features">
+    <div class="client-row" style="animation-delay:0.1s">
+      <div class="client-row-icon">📋</div>
+      <div class="client-row-text">
+        <div class="client-row-name">Kanban Board + List View</div>
+        <div class="client-row-desc">See every client and where they are in your workflow. Switch views instantly.</div>
+      </div>
+      <span class="client-row-tag" style="background:#1a0d2e;color:#c084fc;border:1px solid #6d28d9">Kanban</span>
+    </div>
+    <div class="client-row" style="animation-delay:0.2s">
+      <div class="client-row-icon">💰</div>
+      <div class="client-row-text">
+        <div class="client-row-name">Revenue Per Client</div>
+        <div class="client-row-desc">Total spend, project count, average project value, payment speed — all per client.</div>
+      </div>
+      <span class="client-row-tag" style="background:#0a1f0a;color:#86efac;border:1px solid #16a34a">Analytics</span>
+    </div>
+    <div class="client-row" style="animation-delay:0.3s">
+      <div class="client-row-icon">🔗</div>
+      <div class="client-row-text">
+        <div class="client-row-name">Client Portal</div>
+        <div class="client-row-desc">Branded client-facing page. They see all projects, galleries, invoices with you.</div>
+      </div>
+      <span class="client-row-tag" style="background:#040f12;color:#67e8f9;border:1px solid #0891b2">Portal</span>
+    </div>
+    <div class="client-row" style="animation-delay:0.4s">
+      <div class="client-row-icon">⚡</div>
+      <div class="client-row-text">
+        <div class="client-row-name">Quick Actions</div>
+        <div class="client-row-desc">Send email, create project, schedule shoot, generate invoice — one click from the client page.</div>
+      </div>
+      <span class="client-row-tag" style="background:#150500;color:#fdba74;border:1px solid #c2410c">Actions</span>
+    </div>
+    <div class="client-row" style="animation-delay:0.5s">
+      <div class="client-row-icon">🗒️</div>
+      <div class="client-row-text">
+        <div class="client-row-name">Notes + History</div>
+        <div class="client-row-desc">Private notes, past projects, upcoming shoots — everything in one client record.</div>
+      </div>
+      <span class="client-row-tag" style="background:#1a0d2e;color:#c084fc;border:1px solid #6d28d9">CRM</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 6 ════ Analytics -->
+<section class="slide" id="slide-5">
+  <div class="slide-badge">View1 Sort · Analytics</div>
+
+  <div class="section-title">Business Intelligence,<br>Not Just Numbers</div>
+  <div class="section-sub">Revenue · Bookings · Galleries · AI Insights</div>
+
+  <div class="analytics-grid">
+    <div class="analytics-card" style="animation-delay:0.1s">
+      <div class="analytics-card-icon">📈</div>
+      <div class="analytics-card-name">Revenue View</div>
+      <div class="analytics-card-desc">Revenue vs bookings per week. Track what's driving income.</div>
+    </div>
+    <div class="analytics-card" style="animation-delay:0.15s">
+      <div class="analytics-card-icon">📸</div>
+      <div class="analytics-card-name">Gallery Performance</div>
+      <div class="analytics-card-desc">Views, downloads, conversion rate per gallery.</div>
+    </div>
+    <div class="analytics-card" style="animation-delay:0.2s">
+      <div class="analytics-card-icon">📊</div>
+      <div class="analytics-card-name">Project Breakdown</div>
+      <div class="analytics-card-desc">Average project value, time to payment, projects per year.</div>
+    </div>
+    <div class="analytics-card" style="animation-delay:0.25s">
+      <div class="analytics-card-icon">🤖</div>
+      <div class="analytics-card-name">AI Insights</div>
+      <div class="analytics-card-desc">Claude analyzes your full data and surfaces what you're missing.</div>
+    </div>
+    <div class="analytics-card" style="animation-delay:0.3s">
+      <div class="analytics-card-icon">🎯</div>
+      <div class="analytics-card-name">Lead Tracking</div>
+      <div class="analytics-card-desc">Where do leads come from? Which convert? What's your close rate?</div>
+    </div>
+    <div class="analytics-card" style="animation-delay:0.35s">
+      <div class="analytics-card-icon">📄</div>
+      <div class="analytics-card-name">Report Builder</div>
+      <div class="analytics-card-desc">Generate PDF reports per client, per project, per period.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 7 ════ Pages Complete -->
+<section class="slide" id="slide-6">
+  <div class="slide-badge">View1 Sort · Pages Built</div>
+
+  <div class="section-title">Every Page. Working.</div>
+  <div class="section-sub">Phase 1 page map</div>
+
+  <div class="pages-grid">
+    <div class="page-item" style="animation-delay:0.05s">
+      <div class="page-item-icon">🏠</div>
+      <div class="page-item-name">Dashboard</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.1s">
+      <div class="page-item-icon">🤖</div>
+      <div class="page-item-name">AI Sort</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.15s">
+      <div class="page-item-icon">📦</div>
+      <div class="page-item-name">Projects</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.2s">
+      <div class="page-item-icon">🖼️</div>
+      <div class="page-item-name">Galleries</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.25s">
+      <div class="page-item-icon">👥</div>
+      <div class="page-item-name">Clients</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.3s">
+      <div class="page-item-icon">📅</div>
+      <div class="page-item-name">Bookings</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.35s">
+      <div class="page-item-icon">📝</div>
+      <div class="page-item-name">Contracts</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.4s">
+      <div class="page-item-icon">📊</div>
+      <div class="page-item-name">Analytics</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.45s">
+      <div class="page-item-icon">🌐</div>
+      <div class="page-item-name">Public Booking</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.5s">
+      <div class="page-item-icon">🔗</div>
+      <div class="page-item-name">Client Portal</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.55s">
+      <div class="page-item-icon">📣</div>
+      <div class="page-item-name">Content Hub</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.6s">
+      <div class="page-item-icon">⚙️</div>
+      <div class="page-item-name">Settings</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 8 ════ Summary -->
+<section class="slide" id="slide-7">
+  <div class="slide-badge">View1 Sort · Phase 1 Summary</div>
+
+  <div class="tag tag-green" style="opacity:0;animation:fade 0.4s ease 0.1s forwards">Ready for Pilots</div>
+
+  <div class="section-title" style="opacity:0;animation:rise 0.4s ease 0.2s forwards">This is what<br>Phase 1 looks like.</div>
+  <div class="section-sub" style="opacity:0;animation:fade 0.4s ease 0.35s forwards">Mar 26 → Apr 6, 2026</div>
+
+  <div class="summary-stats">
+    <div class="stat-row" style="animation-delay:0.45s">
+      <div class="stat-row-val" style="color:#c084fc">184</div>
+      <div class="stat-row-info">
+        <div class="stat-row-label">Git commits</div>
+        <div class="stat-row-sub">One feature. One commit. No batching.</div>
+      </div>
+    </div>
+    <div class="stat-row" style="animation-delay:0.55s">
+      <div class="stat-row-val" style="color:#67e8f9">12+</div>
+      <div class="stat-row-info">
+        <div class="stat-row-label">Pages built and working</div>
+        <div class="stat-row-sub">End-to-end from dashboard to client portal.</div>
+      </div>
+    </div>
+    <div class="stat-row" style="animation-delay:0.65s">
+      <div class="stat-row-val" style="color:#86efac">3</div>
+      <div class="stat-row-info">
+        <div class="stat-row-label">AI models working together</div>
+        <div class="stat-row-sub">Haiku · Sonnet · Opus — each with a role.</div>
+      </div>
+    </div>
+    <div class="stat-row" style="animation-delay:0.75s">
+      <div class="stat-row-val" style="color:#fde68a">20</div>
+      <div class="stat-row-info">
+        <div class="stat-row-label">Pilot spots open</div>
+        <div class="stat-row-sub">Commercial photographers. Real feedback. April 2026.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════ SLIDE 9 ════ Command Bar Deep Dive -->
+<section class="slide" id="slide-8">
+  <div class="slide-badge">View1 Sort · ⌘K Command Bar</div>
+
+  <div class="tag tag-cyan" style="opacity:0;animation:fade 0.4s ease 0.1s forwards">⌘K — Any Page. Anywhere. Instantly.</div>
+
+  <div class="section-title" style="opacity:0;animation:rise 0.4s ease 0.2s forwards">Developers build this<br>for themselves.</div>
+  <div class="section-sub" style="opacity:0;animation:fade 0.4s ease 0.35s forwards">I put it in a photographer's app.</div>
+
+  <div class="summary-stats">
+    <div class="stat-row" style="animation-delay:0.45s">
+      <div class="stat-row-val" style="color:#67e8f9">⌘K</div>
+      <div class="stat-row-info">
+        <div class="stat-row-label">Global command palette</div>
+        <div class="stat-row-sub">Jump to any page, project, client, or gallery from anywhere in the app.</div>
+      </div>
+    </div>
+    <div class="stat-row" style="animation-delay:0.55s">
+      <div class="stat-row-val" style="color:#a5f3fc">2</div>
+      <div class="stat-row-info">
+        <div class="stat-row-label">Keystrokes to anywhere</div>
+        <div class="stat-row-sub">Type "gallery", "project", or a client name and it surfaces instantly.</div>
+      </div>
+    </div>
+    <div class="stat-row" style="animation-delay:0.65s">
+      <div class="stat-row-val" style="color:#c084fc">∞</div>
+      <div class="stat-row-info">
+        <div class="stat-row-label">Searchable across entire app</div>
+        <div class="stat-row-sub">Pages, clients, projects, galleries — all indexed. No navigating menus.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 10 ════ Bookings + Pipeline -->
+<section class="slide" id="slide-9">
+  <div class="slide-badge">View1 Sort · Bookings + Pipeline</div>
+
+  <div class="tag tag-orange" style="opacity:0;animation:fade 0.4s ease 0.1s forwards">Calendar & Pipeline</div>
+
+  <div class="section-title" style="opacity:0;animation:rise 0.4s ease 0.2s forwards">Shoots booked.<br>Pipeline visible.</div>
+  <div class="section-sub" style="opacity:0;animation:fade 0.4s ease 0.35s forwards">Coming in later stages — already in the app</div>
+
+  <div class="page-list">
+    <div class="page-item" style="animation-delay:0.4s">
+      <div class="page-item-icon">📅</div>
+      <div class="page-item-name">Bookings Page — 3-column schedule</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.5s">
+      <div class="page-item-icon">📆</div>
+      <div class="page-item-name">Calendar list + pipeline view</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.6s">
+      <div class="page-item-icon">🌐</div>
+      <div class="page-item-name">Public booking page — clients book through your profile</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.7s">
+      <div class="page-item-icon">📦</div>
+      <div class="page-item-name">Pipeline view — packages opened + status</div>
+      <div class="page-item-status status-soon">Phase 2</div>
+    </div>
+    <div class="page-item" style="animation-delay:0.8s">
+      <div class="page-item-icon">🔔</div>
+      <div class="page-item-name">Upcoming shoots widget on dashboard → direct to bookings</div>
+      <div class="page-item-status status-done">✓ Live</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SLIDE 11 ════ Content Planning -->
+<section class="slide" id="slide-10">
+  <div class="slide-badge">View1 Sort · Content Hub</div>
+
+  <div class="tag tag-purple" style="opacity:0;animation:fade 0.4s ease 0.1s forwards">Content Planning</div>
+
+  <div class="section-title" style="opacity:0;animation:rise 0.4s ease 0.2s forwards">Your galleries.<br>Your feed. Your brand.</div>
+  <div class="section-sub" style="opacity:0;animation:fade 0.4s ease 0.35s forwards">Plan social content directly from your work</div>
+
+  <div class="summary-stats">
+    <div class="stat-row" style="animation-delay:0.45s">
+      <div class="stat-row-val" style="color:#c084fc">📱</div>
+      <div class="stat-row-info">
+        <div class="stat-row-label">Connect Instagram, TikTok, Facebook</div>
+        <div class="stat-row-sub">Plan and schedule posts from the photos you just sorted and delivered.</div>
+      </div>
+    </div>
+    <div class="stat-row" style="animation-delay:0.55s">
+      <div class="stat-row-val" style="color:#a855f7">📅</div>
+      <div class="stat-row-info">
+        <div class="stat-row-label">Content calendar built in</div>
+        <div class="stat-row-sub">See your post schedule next to your shoot schedule. One place.</div>
+      </div>
+    </div>
+    <div class="stat-row" style="animation-delay:0.65s">
+      <div class="stat-row-val" style="color:#f472b6">✍️</div>
+      <div class="stat-row-info">
+        <div class="stat-row-label">AI captions from your photos</div>
+        <div class="stat-row-sub">Claude reads the image and writes a caption. You approve or edit.</div>
+      </div>
+    </div>
+    <div class="stat-row" style="animation-delay:0.75s">
+      <div class="stat-row-val" style="color:#86efac">🔗</div>
+      <div class="stat-row-info">
+        <div class="stat-row-label">Pinterest + LinkedIn — open to integrations</div>
+        <div class="stat-row-sub">More platforms in Phase 2 based on what photographers need most.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ Navigation ════ -->
+<nav class="nav-bar">
+  <button class="nav-btn" onclick="move(-1)">←</button>
+  <div class="dots" id="dots"></div>
+  <button class="nav-btn" onclick="move(1)">→</button>
+  <span class="nav-counter" id="counter">1 / 11</span>
+</nav>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  // Build dots
+  const dotsEl = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => show(i);
+    dotsEl.appendChild(d);
+  });
+
+  function show(idx) {
+    slides[current].classList.remove('active');
+    dotsEl.children[current].classList.remove('active');
+    current = Math.max(0, Math.min(total - 1, idx));
+    slides[current].classList.add('active');
+    dotsEl.children[current].classList.add('active');
+    document.getElementById('counter').textContent = `${current + 1} / ${total}`;
+    // Trigger animations
+    slides[current].querySelectorAll('[style*="animation-delay"]').forEach(el => {
+      el.classList.remove('animated');
+      void el.offsetWidth; // reflow
+      el.classList.add('animated');
+    });
+  }
+
+  function move(dir) { show(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); move(1); }
+    if (e.key === 'ArrowLeft') move(-1);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research → Design → Build</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: #000; }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, 'Inter', sans-serif;
+    overflow: hidden;
+    padding: 48px 36px;
+  }
+
+  .title {
+    font-size: clamp(16px, 3.5vw, 22px);
+    font-weight: 800;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 6px;
+    opacity: 0;
+    animation: fade 0.4s ease forwards;
+  }
+  .subtitle {
+    font-size: clamp(10px, 2vw, 12px);
+    color: #333;
+    text-align: center;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: clamp(24px, 4vh, 40px);
+    opacity: 0;
+    animation: fade 0.4s ease 0.1s forwards;
+  }
+
+  .pipeline {
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: stretch;
+  }
+
+  .pipe-step {
+    display: flex;
+    gap: 16px;
+    align-items: stretch;
+    opacity: 0;
+    animation: slideIn 0.4s ease forwards;
+  }
+
+  .pipe-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 48px;
+    flex-shrink: 0;
+  }
+
+  .pipe-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .pipe-connector {
+    width: 2px;
+    flex: 1;
+    min-height: 16px;
+    background: linear-gradient(to bottom, var(--border), #111);
+    margin: 4px 0;
+  }
+
+  .pipe-content {
+    flex: 1;
+    padding: 4px 0 20px;
+  }
+
+  .pipe-step-label {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 3px;
+  }
+
+  .pipe-name {
+    font-size: clamp(16px, 3.5vw, 20px);
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 4px;
+    line-height: 1.1;
+  }
+
+  .pipe-desc {
+    font-size: clamp(11px, 2.2vw, 13px);
+    color: #3a3a3a;
+    line-height: 1.5;
+  }
+
+  .pipe-tools {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .tool-chip {
+    font-size: 10px;
+    font-family: 'SF Mono', monospace;
+    color: var(--accent);
+    background: var(--chip-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+
+  @keyframes fade { to { opacity: 1; } }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="title">Research → Design → Build</div>
+<div class="subtitle">The full pipeline for every feature</div>
+
+<div class="pipeline">
+
+  <div class="pipe-step" style="animation-delay:0.2s; --border:#3b0764; --bg:#1a0d2e; --accent:#c084fc; --chip-bg:#0d0618">
+    <div class="pipe-left">
+      <div class="pipe-icon-box">🔍</div>
+      <div class="pipe-connector"></div>
+    </div>
+    <div class="pipe-content">
+      <div class="pipe-step-label">Step 1</div>
+      <div class="pipe-name">Research</div>
+      <div class="pipe-desc">Ask Claude: what should this do? What does the user need? What are competitors missing?</div>
+      <div class="pipe-tools">
+        <span class="tool-chip">claude.ai</span>
+        <span class="tool-chip">ARCHITECTURE-DECISIONS.md</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-step" style="animation-delay:0.4s; --border:#1c3a00; --bg:#070f00; --accent:#86efac; --chip-bg:#040900">
+    <div class="pipe-left">
+      <div class="pipe-icon-box">📄</div>
+      <div class="pipe-connector"></div>
+    </div>
+    <div class="pipe-content">
+      <div class="pipe-step-label">Step 2</div>
+      <div class="pipe-name">Document</div>
+      <div class="pipe-desc">Write the spec before writing any code. Components, states, data model.</div>
+      <div class="pipe-tools">
+        <span class="tool-chip">SPEC.md</span>
+        <span class="tool-chip">APP-ARCHITECTURE.html</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-step" style="animation-delay:0.6s; --border:#431407; --bg:#150500; --accent:#fb923c; --chip-bg:#0d0300">
+    <div class="pipe-left">
+      <div class="pipe-icon-box">✏️</div>
+      <div class="pipe-connector"></div>
+    </div>
+    <div class="pipe-content">
+      <div class="pipe-step-label">Step 3</div>
+      <div class="pipe-name">Design in Pencil</div>
+      <div class="pipe-desc">UI built in Pencil. Frame names match component names exactly.</div>
+      <div class="pipe-tools">
+        <span class="tool-chip">Pencil</span>
+        <span class="tool-chip">design tokens</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-step" style="animation-delay:0.8s; --border:#0e4a5e; --bg:#040f12; --accent:#67e8f9; --chip-bg:#020a0d">
+    <div class="pipe-left">
+      <div class="pipe-icon-box">🏗️</div>
+      <div class="pipe-connector"></div>
+    </div>
+    <div class="pipe-content">
+      <div class="pipe-step-label">Step 4</div>
+      <div class="pipe-name">Agent Builds</div>
+      <div class="pipe-desc">design-extractor reads Pencil. ui-builder writes React. One pipeline.</div>
+      <div class="pipe-tools">
+        <span class="tool-chip">design-extractor</span>
+        <span class="tool-chip">ui-builder</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pipe-step" style="animation-delay:1.0s; --border:#3d2e00; --bg:#120e00; --accent:#fde68a; --chip-bg:#0d0900">
+    <div class="pipe-left">
+      <div class="pipe-icon-box">✅</div>
+      <div class="pipe-connector" style="display:none"></div>
+    </div>
+    <div class="pipe-content">
+      <div class="pipe-step-label">Step 5</div>
+      <div class="pipe-name">Review & Ship</div>
+      <div class="pipe-desc">Pencil frame next to localhost. Does it match? Commit. One task at a time.</div>
+      <div class="pipe-tools">
+        <span class="tool-chip">localhost:3000</span>
+        <span class="tool-chip">git commit</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

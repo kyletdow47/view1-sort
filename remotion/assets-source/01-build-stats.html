@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build Stats</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: #000; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, 'Inter', sans-serif;
+    overflow: hidden;
+  }
+
+  .frame {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    background: #000;
+    position: relative;
+  }
+
+  /* Subtle grid bg */
+  .frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(168,85,247,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(168,85,247,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .logo {
+    position: absolute;
+    top: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #333;
+  }
+
+  .stat-block {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: rise 0.6s ease forwards;
+  }
+  .stat-block:nth-child(2) { animation-delay: 0.1s; }
+  .stat-block:nth-child(3) { animation-delay: 0.2s; }
+  .stat-block:nth-child(4) { animation-delay: 0.3s; }
+
+  @keyframes rise {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .stat-number {
+    font-size: clamp(72px, 20vw, 140px);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -4px;
+    background: linear-gradient(135deg, #fff 0%, #a855f7 50%, #06b6d4 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: clamp(13px, 3.5vw, 18px);
+    font-weight: 500;
+    color: #555;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 8px;
+    margin-bottom: 40px;
+  }
+
+  .divider {
+    width: 1px;
+    height: 32px;
+    background: linear-gradient(to bottom, transparent, #333, transparent);
+    margin: 0 auto 40px;
+    opacity: 0;
+    animation: rise 0.4s ease 0.4s forwards;
+  }
+
+  .bottom-tag {
+    position: absolute;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #2a2a2a;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* Glow orb */
+  .glow {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="glow"></div>
+  <div class="logo">View1 Sort</div>
+
+  <div class="stat-block">
+    <div class="stat-number">184</div>
+    <div class="stat-label">Commits</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="stat-block">
+    <div class="stat-number">11</div>
+    <div class="stat-label">Days</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="stat-block">
+    <div class="stat-number">1</div>
+    <div class="stat-label">Founder</div>
+  </div>
+
+  <div class="bottom-tag">Mar 26 → Apr 6, 2026</div>
+</div>
+</body>
+</html>

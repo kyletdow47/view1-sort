@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibe Coding Loop</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: #000; }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, 'Inter', sans-serif;
+    overflow: hidden;
+    padding: 48px 40px;
+  }
+
+  .title {
+    font-size: clamp(18px, 4vw, 26px);
+    font-weight: 800;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 8px;
+    opacity: 0;
+    animation: fade 0.4s ease forwards;
+  }
+  .subtitle {
+    font-size: clamp(10px, 2vw, 12px);
+    color: #333;
+    text-align: center;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: clamp(28px, 5vh, 48px);
+    opacity: 0;
+    animation: fade 0.4s ease 0.15s forwards;
+  }
+
+  .steps {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .step {
+    width: 100%;
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    opacity: 0;
+    transform: translateY(12px);
+    animation: rise 0.4s ease forwards;
+  }
+
+  .step-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 44px;
+    flex-shrink: 0;
+  }
+
+  .step-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
+    background: var(--bg-color);
+  }
+
+  .step-line {
+    width: 1px;
+    flex: 1;
+    background: linear-gradient(to bottom, var(--line-color, #222), transparent);
+    margin: 4px 0;
+    min-height: 20px;
+  }
+
+  .step-content {
+    flex: 1;
+    padding: 10px 0 24px;
+  }
+
+  .step-num {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    color: var(--accent-color);
+  }
+
+  .step-name {
+    font-size: clamp(15px, 3.5vw, 20px);
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .step-desc {
+    font-size: clamp(11px, 2.2vw, 13px);
+    color: #444;
+    line-height: 1.5;
+  }
+
+  .loop-back {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 10px 16px;
+    background: #0a0a0a;
+    border: 1px dashed #222;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 480px;
+    opacity: 0;
+    animation: fade 0.4s ease 1.4s forwards;
+  }
+  .loop-back-icon { font-size: 16px; }
+  .loop-back-text { font-size: 12px; color: #333; }
+  .loop-back-text strong { color: #555; }
+
+  @keyframes fade { to { opacity: 1; } }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="title">The Vibe Coding Loop</div>
+<div class="subtitle">How 184 commits happened</div>
+
+<div class="steps">
+
+  <div class="step" style="animation-delay:0.2s; --border-color:#3b0764; --bg-color:#1a0d2e; --line-color:#3b0764; --accent-color:#c084fc">
+    <div class="step-left">
+      <div class="step-circle">📋</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-num" style="color:#c084fc">Step 01</div>
+      <div class="step-name">Read STATE.md</div>
+      <div class="step-desc">What's broken. What's next. Every single session. No exceptions.</div>
+    </div>
+  </div>
+
+  <div class="step" style="animation-delay:0.4s; --border-color:#0e4a5e; --bg-color:#040f12; --line-color:#0e4a5e; --accent-color:#67e8f9">
+    <div class="step-left">
+      <div class="step-circle">🎯</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-num" style="color:#67e8f9">Step 02</div>
+      <div class="step-name">Pick One Task</div>
+      <div class="step-desc">One thing. One commit. No batching. You stay in control.</div>
+    </div>
+  </div>
+
+  <div class="step" style="animation-delay:0.6s; --border-color:#1c2a00; --bg-color:#0a0f00; --line-color:#2a3d00; --accent-color:#a3e635">
+    <div class="step-left">
+      <div class="step-circle">🤖</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-num" style="color:#a3e635">Step 03</div>
+      <div class="step-name">Agent Builds</div>
+      <div class="step-desc">Reads the codebase. Writes real files. No hallucination loops.</div>
+    </div>
+  </div>
+
+  <div class="step" style="animation-delay:0.8s; --border-color:#431407; --bg-color:#150500; --line-color:#6b2100; --accent-color:#fb923c">
+    <div class="step-left">
+      <div class="step-circle">👁️</div>
+      <div class="step-line"></div>
+    </div>
+    <div class="step-content">
+      <div class="step-num" style="color:#fb923c">Step 04</div>
+      <div class="step-name">You Review</div>
+      <div class="step-desc">Does it work? Does it match the spec? Commit if yes. Fix if no.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="loop-back">
+  <div class="loop-back-icon">🔁</div>
+  <div class="loop-back-text">Back to step 01. <strong>Repeat until it ships.</strong></div>
+</div>
+
+</body>
+</html>

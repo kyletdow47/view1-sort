@@ -1,0 +1,29 @@
+{
+  "name": "view1-cuts",
+  "version": "1.0.0",
+  "description": "Remotion video editing pipeline for View1 Sort social clips",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@remotion/cli": "^4.0.446",
+    "@remotion/light-leaks": "^4.0.446",
+    "@remotion/media": "^4.0.446",
+    "@remotion/paths": "^4.0.446",
+    "@remotion/transitions": "^4.0.446",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "remotion": "^4.0.446"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.2"
+  }
+}

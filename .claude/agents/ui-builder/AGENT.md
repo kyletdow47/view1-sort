@@ -25,8 +25,8 @@ model: claude-sonnet-4-5
 - Named exports only — no default exports
 - One component per file
 - Mobile-first — everything works at 375px
-- Inter (font-sans) for UI text, Geist Mono (font-mono) for code/numbers/timestamps
-- Never use DM Sans, JetBrains Mono, Roboto, Arial, or system fonts
+- DM Sans for UI text, JetBrains Mono for code/numbers
+- Never use Inter, Roboto, Arial, or system fonts
 
 ## What you NEVER do
 - Delete or rename components marked working in STATE.md
