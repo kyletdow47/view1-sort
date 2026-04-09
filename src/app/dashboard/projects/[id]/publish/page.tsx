@@ -26,6 +26,7 @@ const DEMO_PROJECT: Project = {
   currency: 'usd',
   created_at: '2026-04-01',
   updated_at: '2026-04-04',
+  metadata: null,
 }
 
 export default async function PublishPage({ params }: PublishPageProps) {

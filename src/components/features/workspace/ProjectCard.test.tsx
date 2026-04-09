@@ -35,6 +35,7 @@ const baseProject: Project = {
   currency: 'usd',
   created_at: '2026-03-01T00:00:00Z',
   updated_at: '2026-03-15T00:00:00Z',
+  metadata: null,
 }
 
 describe('ProjectCard', () => {

@@ -19,6 +19,7 @@ interface AISortWorkspaceProps {
   onDoubleClick: (id: string) => void
   onReviewFlags: () => void
   onCategoryDrop?: (mediaId: string, targetCategory: string) => void
+  onBatchReclassify?: () => void
 }
 
 /**
@@ -34,6 +35,7 @@ export function AISortWorkspace({
   onDoubleClick,
   onReviewFlags,
   onCategoryDrop,
+  onBatchReclassify,
 }: AISortWorkspaceProps) {
   const [settings, setSettings] = useState<AISortSettings>(DEFAULT_AI_SORT_SETTINGS)
   const [isReclassifying, setIsReclassifying] = useState(false)
@@ -95,16 +97,24 @@ export function AISortWorkspace({
   const needsReviewCount = needsReviewPhotos.length
   const totalPhotos = allMedia.length || 847
 
-  // Batch reclassify handler
+  // Real culling counts from DB flags
+  const blurryCount = allMedia.filter((m) => m.is_blurry).length
+  const duplicateCount = allMedia.filter((m) => m.is_duplicate).length
+
+  // Batch reclassify handler — calls the real AI sort pipeline from parent
   const handleBatchReclassify = useCallback(() => {
-    setIsReclassifying(true)
-    if (reclassifyTimerRef.current) clearTimeout(reclassifyTimerRef.current)
-    // TODO: call onBatchReclassify prop when parent wires useAIClassifier
-    reclassifyTimerRef.current = setTimeout(() => {
-      setIsReclassifying(false)
-      reclassifyTimerRef.current = null
-    }, 3000)
-  }, [])
+    if (onBatchReclassify) {
+      onBatchReclassify()
+    } else {
+      // Fallback spinner for when no handler is wired (shouldn't happen in practice)
+      setIsReclassifying(true)
+      if (reclassifyTimerRef.current) clearTimeout(reclassifyTimerRef.current)
+      reclassifyTimerRef.current = setTimeout(() => {
+        setIsReclassifying(false)
+        reclassifyTimerRef.current = null
+      }, 3000)
+    }
+  }, [onBatchReclassify])
 
   return (
     <div className="flex gap-4 flex-1 min-h-0">
@@ -151,8 +161,8 @@ export function AISortWorkspace({
       <AIAnalysisPanel
         totalPhotos={totalPhotos}
         qualityDistribution={qualityDistribution}
-        duplicateCount={12}
-        blurryCount={5}
+        duplicateCount={duplicateCount}
+        blurryCount={blurryCount}
         onReviewFlags={onReviewFlags}
       />
     </div>

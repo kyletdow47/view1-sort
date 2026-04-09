@@ -24,6 +24,7 @@ const mockProject: Project = {
   currency: 'usd',
   created_at: '2026-01-01T00:00:00Z',
   updated_at: '2026-01-01T00:00:00Z',
+  metadata: null,
 }
 
 const makeMedia = (overrides: Partial<Media> = {}): Media => ({
@@ -45,6 +46,13 @@ const makeMedia = (overrides: Partial<Media> = {}): Media => ({
   ai_labels: null,
   sort_order: 0,
   created_at: '2026-01-01T00:00:00Z',
+  is_blurry: null,
+  is_duplicate: null,
+  is_overexposed: null,
+  is_underexposed: null,
+  culling_confidence: null,
+  is_starred: null,
+  review_flag: null,
   ...overrides,
 })
 
