@@ -502,8 +502,9 @@ function SortPhase({
   onDone: (sorted: SortableFile[]) => void
 }) {
   const [progress, setProgress] = useState(0)
-  const [stage, setStage] = useState<'loading' | 'classifying' | 'done'>('loading')
+  const [stage, setStage] = useState<'loading' | 'classifying' | 'done' | 'error'>('loading')
   const [modelProgress, setModelProgress] = useState(0)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const workerRef = useRef<Worker | null>(null)
   const hasDoneRef = useRef(false)
 
@@ -514,8 +515,23 @@ function SortPhase({
     const results = new Map<string, string>()
     let classified = 0
 
-    const worker = new Worker(new URL('@/lib/ai/worker.ts', import.meta.url))
+    let worker: Worker
+    try {
+      // Use relative path — @/ alias does not resolve inside new URL() in
+      // production Webpack builds. Path: app/dashboard/ai-sort → lib/ai/worker.ts
+      worker = new Worker(new URL('../../../lib/ai/worker.ts', import.meta.url))
+    } catch (err) {
+      setStage('error')
+      setErrorMsg(`Could not start AI worker: ${err instanceof Error ? err.message : String(err)}`)
+      return
+    }
     workerRef.current = worker
+
+    // Surface uncaught worker errors (script load failure, syntax errors, etc.)
+    worker.onerror = (e) => {
+      setStage('error')
+      setErrorMsg(e.message ?? 'Worker failed to start — check browser console for details')
+    }
 
     // Resolve preset labels once before classification starts so the CLIP model
     // scores against niche-specific vocabulary (travel, wedding, etc.) rather
@@ -526,6 +542,12 @@ function SortPhase({
     worker.onmessage = async (e: MessageEvent<WorkerResponse>) => {
       const msg = e.data
       if (msg.type === 'loadProgress') { setModelProgress(msg.progress); return }
+      if (msg.type === 'error' && !msg.photoId) {
+        // Global worker error (e.g. model load failed)
+        setStage('error')
+        setErrorMsg(msg.message)
+        return
+      }
       if (msg.type === 'modelLoaded') {
         setStage('classifying')
         for (const item of kept) {
@@ -576,14 +598,58 @@ function SortPhase({
 
   const displayProgress = stage === 'loading' ? modelProgress : progress
 
+  // ── Error state ──────────────────────────────────────────────────────────
+  if (stage === 'error') {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-6 px-10 py-6">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20">
+          <AlertTriangle className="h-8 w-8 text-red-400" />
+        </div>
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-white">AI Sort failed</h2>
+          <p className="mt-2 max-w-sm text-[13px] text-white/60">{errorMsg ?? 'An unexpected error occurred.'}</p>
+        </div>
+        <p className="max-w-sm text-center text-[11px] text-white/30">
+          Try refreshing the page. If this is your first time, the AI model (~330 MB) needs to download once — make sure you have a stable internet connection.
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-[13px] font-semibold text-white/80 hover:bg-white/15 transition-colors"
+        >
+          Reload &amp; retry
+        </button>
+      </div>
+    )
+  }
+
+  // ── Normal sort progress ─────────────────────────────────────────────────
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-10 px-10 py-6">
+    <div className="flex flex-1 flex-col items-center justify-center gap-8 px-10 py-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-white">AI Sorting</h2>
         <p className="mt-1 text-sm text-white/60">
-          {stage === 'loading' ? `Loading AI model… ${modelProgress}%` : stage === 'classifying' ? `Classifying photos… ${progress}%` : 'Complete!'}
+          {stage === 'loading'
+            ? modelProgress === 0
+              ? 'Starting AI model…'
+              : `Downloading AI model… ${modelProgress}%`
+            : stage === 'classifying'
+              ? `Classifying photos… ${progress}% (${Math.round(progress * files.filter(f => f.keep).length / 100)} / ${files.filter(f => f.keep).length})`
+              : 'Complete!'}
         </p>
       </div>
+
+      {/* First-run notice — shown only while model is downloading */}
+      {stage === 'loading' && (
+        <div
+          className="flex max-w-sm items-start gap-3 rounded-2xl px-4 py-3 text-[12px] text-amber-200/80"
+          style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)' }}
+        >
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+          <span>
+            <strong className="font-semibold">First-time setup:</strong> The AI model (~330 MB) is downloading to your browser cache. This only happens once and takes 1–3 minutes on a fast connection.
+          </span>
+        </div>
+      )}
 
       <div className="relative h-40 w-40">
         <div className="absolute inset-0 animate-ping rounded-full bg-indigo-400/10" style={{ animationDuration: '2s' }} />
