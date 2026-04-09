@@ -190,7 +190,7 @@ function SortSettingsPanel({
 
   return (
     <div
-      className="flex w-full md:w-[320px] shrink-0 flex-col gap-5 overflow-y-auto rounded-3xl p-5"
+      className="flex h-full w-full md:w-[320px] shrink-0 flex-col gap-5 overflow-y-auto rounded-3xl p-5"
       style={{
         background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)',
         backdropFilter: 'blur(32px)',
@@ -1448,53 +1448,89 @@ export default function AISortPage() {
     { id: 'vibePresets', label: 'Vibe Presets' },
   ]
 
+  const tabBar = (
+    <div
+      className="flex w-fit items-center gap-1 rounded-2xl p-1"
+      style={{
+        background: 'rgba(255,255,255,0.08)',
+        backdropFilter: 'blur(16px)',
+        border: '1px solid rgba(255,255,255,0.2)',
+      }}
+    >
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setActiveTab(tab.id)}
+          className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-medium transition-colors ${activeTab === tab.id ? 'bg-white/[0.15] font-semibold text-white' : 'text-white/60 hover:text-white/80'}`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  )
+
+  const isUploadPhase = activeTab === 'upload' && phase === 'upload'
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Page Header */}
-      <div className="flex flex-col gap-4 px-10 pb-0 pt-6">
-        <h1 className="text-[28px] font-bold text-white">AI Sort</h1>
+      {isUploadPhase ? (
+        /* Upload phase: right panel spans full height alongside header + content */
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+          {/* Left column: header + upload area + start button + stepper */}
+          <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+            <div className="flex flex-col gap-4 px-10 pb-0 pt-6">
+              <h1 className="text-[28px] font-bold text-white">AI Sort</h1>
+              {tabBar}
+            </div>
+            <div className="flex flex-1 min-h-0 overflow-hidden px-10 py-6">
+              <UploadZone files={files} onAddFiles={handleAddFiles} onRemoveFile={handleRemoveFile} />
+            </div>
 
-        {/* Sub-tab bar */}
-        <div
-          className="flex w-fit items-center gap-1 rounded-2xl p-1"
-          style={{
-            background: 'rgba(255,255,255,0.08)',
-            backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-          }}
-        >
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-medium transition-colors ${activeTab === tab.id ? 'bg-white/[0.15] font-semibold text-white' : 'text-white/60 hover:text-white/80'}`}
-            >
-              {tab.label}
-            </button>
-          ))}
+            {/* Start Sorting button */}
+            <div className="shrink-0 px-10 pb-2 pt-2">
+              <button
+                onClick={handleStartSorting}
+                disabled={files.length === 0}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl font-semibold text-white transition-opacity disabled:opacity-40 hover:opacity-90"
+                style={{
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)',
+                  boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
+                }}
+              >
+                <Zap className="h-4 w-4" />
+                Start Sorting
+              </button>
+            </div>
+
+            <ProgressStepper stage={stepperStage} />
+          </div>
+
+          {/* Right column: Sort Settings Panel — full height from top */}
+          <div className="shrink-0 overflow-y-auto py-6 pr-10">
+            <SortSettingsPanel
+              presetId={presetId}
+              setPresetId={setPresetId}
+              confidence={confidence}
+              setConfidence={setConfidence}
+              categories={categories}
+              setCategories={setCategories}
+              vibeKeywords={vibeKeywords}
+              setVibeKeywords={setVibeKeywords}
+              onStartSorting={handleStartSorting}
+              disabled={files.length === 0}
+              showStartButton={false}
+            />
+          </div>
         </div>
-      </div>
-
-      {/* ── Upload tab ─────────────────────────────────────────────────────── */}
-      {activeTab === 'upload' && phase === 'upload' && (
-        <div className="flex flex-col md:flex-row flex-1 gap-6 overflow-hidden px-10 py-6">
-          <UploadZone files={files} onAddFiles={handleAddFiles} onRemoveFile={handleRemoveFile} />
-          <SortSettingsPanel
-            presetId={presetId}
-            setPresetId={setPresetId}
-            confidence={confidence}
-            setConfidence={setConfidence}
-            categories={categories}
-            setCategories={setCategories}
-            vibeKeywords={vibeKeywords}
-            setVibeKeywords={setVibeKeywords}
-            onStartSorting={handleStartSorting}
-            disabled={files.length === 0}
-            showStartButton={false}
-          />
+      ) : (
+        /* Non-upload tabs: standard header */
+        <div className="flex flex-col gap-4 px-10 pb-0 pt-6">
+          <h1 className="text-[28px] font-bold text-white">AI Sort</h1>
+          {tabBar}
         </div>
       )}
 
+      {/* ── Upload tab (non-upload phases) ─────────────────────────────────── */}
       {activeTab === 'upload' && phase === 'cull' && (
         <CullPhase files={files} onContinue={handleCullDone} />
       )}
@@ -1503,7 +1539,6 @@ export default function AISortPage() {
         <SortPhase files={files} presetId={presetId} onDone={handleSortDone} />
       )}
 
-      {/* If sort finishes and user is still on upload tab, show a nudge */}
       {activeTab === 'upload' && phase === 'results' && (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-10 py-6">
           <CheckCircle2 className="h-12 w-12 text-emerald-300" />
@@ -1545,8 +1580,8 @@ export default function AISortPage() {
         <VibePresetsTab presetId={presetId} setPresetId={setPresetId} />
       )}
 
-      {/* Bottom stepper — only show during active sort phases */}
-      {(activeTab === 'upload' || phase !== 'upload') && (
+      {/* Bottom stepper — only show during non-upload active sort phases (upload phase has it inline) */}
+      {!isUploadPhase && (activeTab === 'upload' || phase !== 'upload') && (
         <ProgressStepper stage={stepperStage} />
       )}
     </div>

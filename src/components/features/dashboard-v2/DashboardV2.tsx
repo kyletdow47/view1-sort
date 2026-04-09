@@ -28,12 +28,9 @@ export function DashboardV2({
   pendingActions = 0,
 }: DashboardV2Props) {
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
+    <div className="relative flex h-full min-h-0 flex-col gap-4">
       {/* Welcome / chat */}
       <WelcomeSection userName={userName} />
-
-      {/* AI Briefing Card */}
-      <AIBriefingCard userName={userName} />
 
       {/* Quick Actions */}
       <QuickActions />
@@ -51,6 +48,9 @@ export function DashboardV2({
           />
         </div>
       </div>
+
+      {/* AI Briefing — floating bottom-right */}
+      <AIBriefingCard userName={userName} />
     </div>
   )
 }
