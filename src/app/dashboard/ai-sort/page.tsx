@@ -18,6 +18,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { analyzeFile, type CullResult } from '@/lib/ai/culling'
+import { BUILT_IN_PRESETS, getPreset, getAllLabels, getCategoryForLabel as getPresetCategoryForLabel } from '@/lib/ai/presets'
 import type { WorkerResponse } from '@/lib/ai/worker'
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
@@ -77,6 +78,8 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 /* ─── Sort Settings Panel ───────────────────────────────────────────────── */
 
 function SortSettingsPanel({
+  presetId,
+  setPresetId,
   confidence,
   setConfidence,
   categories,
@@ -86,6 +89,8 @@ function SortSettingsPanel({
   onStartSorting,
   disabled,
 }: {
+  presetId: string
+  setPresetId: (v: string) => void
   confidence: number
   setConfidence: (v: number) => void
   categories: SortCategories
@@ -118,7 +123,28 @@ function SortSettingsPanel({
       {/* Header */}
       <div className="flex items-center justify-between">
         <span className="text-[15px] font-semibold text-white">Sort Settings</span>
-        <span className="text-[11px] font-medium text-white/40">70%</span>
+        <span className="text-[11px] font-medium text-white/40">{confidence}%</span>
+      </div>
+
+      <div className="h-px w-full bg-white/[0.12]" />
+
+      {/* Preset Selector */}
+      <div className="flex flex-col gap-2">
+        <span className="text-[13px] font-medium text-white/80">Photography Type</span>
+        <select
+          value={presetId}
+          onChange={(e) => setPresetId(e.target.value)}
+          className="w-full rounded-xl bg-white/[0.08] border border-white/10 px-3 py-2 text-[13px] text-white outline-none focus:ring-1 focus:ring-indigo-400/50 appearance-none cursor-pointer"
+        >
+          {BUILT_IN_PRESETS.map((p) => (
+            <option key={p.id} value={p.id} className="bg-[#1a1a2e] text-white">
+              {p.icon} {p.name}
+            </option>
+          ))}
+        </select>
+        <p className="text-[11px] text-white/30">
+          {BUILT_IN_PRESETS.find((p) => p.id === presetId)?.description ?? ''}
+        </p>
       </div>
 
       <div className="h-px w-full bg-white/[0.12]" />
@@ -215,7 +241,7 @@ function UploadZone({
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return
-    onFiles(Array.from(files).filter((f) => /\.(jpe?g|png|webp|raw|cr2|nef|arw|dng)$/i.test(f.name)))
+    onFiles(Array.from(files).filter((f) => /\.(jpe?g|png|webp|tiff?|raw|cr2|nef|arw|dng|heic|heif)$/i.test(f.name)))
   }
 
   return (
@@ -240,7 +266,7 @@ function UploadZone({
           {fileCount > 0 ? `${fileCount} photo${fileCount > 1 ? 's' : ''} selected` : 'Drop photos or folders here'}
         </p>
         <p className="text-[12px] text-white/40">
-          Supports JPEG, PNG, RAW, TIFF — up to 500 photos per batch
+          Supports JPEG, PNG, HEIC, RAW, TIFF — up to 500 photos per batch
         </p>
       </div>
 
@@ -259,7 +285,7 @@ function UploadZone({
         ref={inputRef}
         type="file"
         multiple
-        accept=".jpg,.jpeg,.png,.webp,.raw,.cr2,.nef,.arw,.dng"
+        accept=".jpg,.jpeg,.png,.webp,.tif,.tiff,.raw,.cr2,.nef,.arw,.dng,.heic,.heif"
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />
@@ -491,6 +517,12 @@ function SortPhase({
     const worker = new Worker(new URL('@/lib/ai/worker.ts', import.meta.url))
     workerRef.current = worker
 
+    // Resolve preset labels once before classification starts so the CLIP model
+    // scores against niche-specific vocabulary (travel, wedding, etc.) rather
+    // than the hardcoded 25-label wedding-only fallback in labels.ts.
+    const activePreset = getPreset(presetId)
+    const presetLabels = activePreset ? getAllLabels(activePreset) : undefined
+
     worker.onmessage = async (e: MessageEvent<WorkerResponse>) => {
       const msg = e.data
       if (msg.type === 'loadProgress') { setModelProgress(msg.progress); return }
@@ -499,7 +531,8 @@ function SortPhase({
         for (const item of kept) {
           try {
             const dataUrl = await readAsDataURL(item.file)
-            worker.postMessage({ type: 'classify', photoId: item.id, imageData: dataUrl, topK: 3 })
+            // Pass preset labels so the worker uses the right vocabulary
+            worker.postMessage({ type: 'classify', photoId: item.id, imageData: dataUrl, labels: presetLabels, topK: 3 })
           } catch { classified++ }
         }
         return
@@ -507,10 +540,13 @@ function SortPhase({
       if (msg.type === 'result') {
         const top = msg.results[0]
         if (top) {
-          const { getCategoryForLabel: getPresetCat, getPreset } = await import('@/lib/ai/presets')
-          const preset = getPreset(presetId)
+          // top.label is now one of the preset's own label strings, so
+          // getPresetCategoryForLabel will correctly map it to a category name.
           let category = top.category as string
-          if (preset) { const mapped = getPresetCat(preset, top.label); if (mapped) category = mapped }
+          if (activePreset) {
+            const mapped = getPresetCategoryForLabel(activePreset, top.label)
+            if (mapped) category = mapped
+          }
           results.set(msg.photoId, category)
         }
         classified++
@@ -664,7 +700,6 @@ export default function AISortPage() {
 
   const handleCullDone = useCallback((updated: SortableFile[]) => {
     setFiles(updated)
-    setPresetId('wedding')
     setPhase('sort')
   }, [])
 
@@ -721,6 +756,8 @@ export default function AISortPage() {
         <div className="flex flex-col md:flex-row flex-1 gap-6 overflow-hidden px-10 py-6">
           <UploadZone onFiles={handleFiles} fileCount={files.length} />
           <SortSettingsPanel
+            presetId={presetId}
+            setPresetId={setPresetId}
             confidence={confidence}
             setConfidence={setConfidence}
             categories={categories}
