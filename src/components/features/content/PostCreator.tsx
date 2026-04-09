@@ -41,22 +41,28 @@ const PLATFORM_CONFIG: Record<Platform, { label: string; color: string; bg: stri
   pinterest: { label: 'Pinterest', color: 'text-red-400', bg: 'bg-red-400/15' },
 }
 
-const CAPTION_MOCK: Record<CaptionTone, string[]> = {
+const CAPTION_FALLBACK: Record<CaptionTone, string[]> = {
   professional: [
     'Capturing the essence of timeless elegance. Every detail tells a story, and every moment deserves to be preserved with intention and artistry.',
     'Behind every great photograph is a vision brought to life. This session exemplifies the beauty of light, composition, and genuine connection.',
     'Award-winning imagery crafted for those who appreciate the art of photography. Inquiries open for 2026 dates.',
   ],
   casual: [
-    "Honestly, days like this are why I do what I do 📸✨ The light was *chef's kiss* and the vibes were immaculate.",
-    "Look at them go!! Still smiling thinking about this session — easily one of my favorites from the past month 🫶",
-    "Can't stop, won't stop obsessing over this golden hour magic. Who else is a sucker for that warm glow? 🌅",
+    "Honestly, days like this are why I do what I do. The light was perfect and the vibes were immaculate.",
+    "Look at them go! Still smiling thinking about this session — easily one of my favorites from the past month.",
+    "Can't stop, won't stop obsessing over this golden hour magic. Who else is a sucker for that warm glow?",
   ],
   storytelling: [
     'It was late afternoon when the light finally broke through the clouds — that soft, golden kind that photographers wait all day for. This was that moment.',
     'She whispered something to him and he laughed — the real kind, the unguarded kind. I pressed the shutter and knew immediately: this is the one.',
     'There are shoots you forget and then there are shoots that stay with you. This one will stay with me for a long time.',
   ],
+}
+
+interface CaptionApiResponse {
+  captions: string[]
+  tone_variants: Record<string, string>
+  source: 'claude' | 'cache' | 'mock'
 }
 
 const HASHTAG_SUGGESTIONS = [
@@ -110,6 +116,8 @@ export function PostCreator({ onClose }: PostCreatorProps) {
   const [selectedTone, setSelectedTone] = useState<CaptionTone>('professional')
   const [captionOptions, setCaptionOptions] = useState<CaptionOption[]>([])
   const [generatingCaption, setGeneratingCaption] = useState(false)
+  const [captionSource, setCaptionSource] = useState<'claude' | 'cache' | 'mock' | null>(null)
+  const [captionError, setCaptionError] = useState<string | null>(null)
 
   // Hashtags
   const [hashtags, setHashtags] = useState<string[]>([])
@@ -147,15 +155,60 @@ export function PostCreator({ onClose }: PostCreatorProps) {
   const handleGenerateCaptions = async () => {
     setGeneratingCaption(true)
     setShowToneSelector(false)
-    // TODO(content-api): call POST /api/content/generate-caption { photoIds, tone }
-    await new Promise<void>((resolve) => { setTimeout(resolve, 1600) })
-    const options = CAPTION_MOCK[selectedTone].map((text, i) => ({
-      id: `opt-${i}`,
-      text,
-      tone: selectedTone,
-    }))
-    setCaptionOptions(options)
-    setGeneratingCaption(false)
+    setCaptionError(null)
+    setCaptionSource(null)
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30_000)
+
+    try {
+      const selectedPhoto = selectedPhotos[0]
+      const imageDescription = selectedPhoto
+        ? `${selectedPhoto.category} photography — ${selectedPhoto.name} from ${selectedPhoto.projectName}`
+        : undefined
+
+      const res = await fetch('/api/ai/captions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          platform: selectedPlatforms[0] ?? 'instagram',
+          tone: selectedTone,
+          imageDescription,
+        }),
+        signal: controller.signal,
+      })
+
+      if (!res.ok) throw new Error(`API error: ${res.status}`)
+
+      const data = (await res.json()) as CaptionApiResponse
+      setCaptionSource(data.source)
+
+      // Build options from tone_variants (professional, warm, storytelling)
+      const toneKeys: CaptionTone[] = ['professional', 'casual', 'storytelling']
+      const variantKeys = ['professional', 'warm', 'storytelling']
+      const options: CaptionOption[] = variantKeys.map((key, i) => ({
+        id: `opt-${i}`,
+        text: data.tone_variants[key] ?? data.captions[i] ?? '',
+        tone: toneKeys[i] ?? 'professional',
+      })).filter(opt => opt.text)
+
+      setCaptionOptions(options)
+    } catch (err) {
+      console.warn('[PostCreator] Caption generation failed, using fallback:', err)
+      setCaptionError('AI unavailable, showing suggestions')
+      setCaptionSource('mock')
+
+      // Fallback to local mock captions
+      const options = CAPTION_FALLBACK[selectedTone].map((text, i) => ({
+        id: `opt-${i}`,
+        text,
+        tone: selectedTone,
+      }))
+      setCaptionOptions(options)
+    } finally {
+      clearTimeout(timeout)
+      setGeneratingCaption(false)
+    }
   }
 
   const selectCaption = (text: string) => {
@@ -331,20 +384,65 @@ export function PostCreator({ onClose }: PostCreatorProps) {
               </div>
             )}
 
-            {/* Caption options */}
-            {captionOptions.length > 0 && (
+            {/* Loading skeleton */}
+            {generatingCaption && (
               <div className="mt-3 flex flex-col gap-2">
-                <p className="text-[10px] text-white/40">Pick a caption:</p>
-                {captionOptions.map((opt) => (
-                  <button
-                    key={opt.id}
-                    onClick={() => selectCaption(opt.text)}
-                    className="rounded-xl p-3 text-left text-[12px] leading-relaxed text-white/80 transition-colors hover:bg-white/10"
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="animate-pulse rounded-xl p-3"
                     style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
                   >
-                    {opt.text}
-                  </button>
+                    <div className="mb-2 h-3 w-20 rounded bg-white/10" />
+                    <div className="mb-1.5 h-2.5 w-full rounded bg-white/[0.06]" />
+                    <div className="mb-1.5 h-2.5 w-4/5 rounded bg-white/[0.06]" />
+                    <div className="h-2.5 w-3/5 rounded bg-white/[0.06]" />
+                  </div>
                 ))}
+              </div>
+            )}
+
+            {/* AI unavailable banner */}
+            {captionError && captionOptions.length > 0 && (
+              <div className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2 text-[11px] text-amber-300/80"
+                style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)' }}>
+                <Sparkles className="h-3.5 w-3.5 shrink-0" />
+                {captionError}
+              </div>
+            )}
+
+            {/* Caption options */}
+            {!generatingCaption && captionOptions.length > 0 && (
+              <div className="mt-3 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] text-white/40">
+                    Pick a caption:
+                    {captionSource === 'claude' && <span className="ml-1 text-indigo-400/60">Powered by Claude</span>}
+                    {captionSource === 'cache' && <span className="ml-1 text-emerald-400/60">Cached</span>}
+                  </p>
+                  <button
+                    onClick={handleGenerateCaptions}
+                    className="flex items-center gap-1 text-[10px] text-indigo-400/70 transition-colors hover:text-indigo-300"
+                  >
+                    <RefreshCw className="h-3 w-3" /> Regenerate
+                  </button>
+                </div>
+                {captionOptions.map((opt) => {
+                  const toneLabels: Record<string, string> = { professional: 'Professional', casual: 'Warm', storytelling: 'Storytelling' }
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => selectCaption(opt.text)}
+                      className="rounded-xl p-3 text-left transition-colors hover:bg-white/10"
+                      style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    >
+                      <p className="mb-1 text-[9px] font-semibold uppercase tracking-wider text-indigo-400/50">
+                        {toneLabels[opt.tone] ?? opt.tone}
+                      </p>
+                      <p className="text-[12px] leading-relaxed text-white/80">{opt.text}</p>
+                    </button>
+                  )
+                })}
               </div>
             )}
           </GlassPanel>
