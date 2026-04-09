@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 
 const DEMO_BYPASS_KEY = 'view1-preview-2026'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Pass through immediately if Supabase env vars are not configured
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     return NextResponse.next({ request })
