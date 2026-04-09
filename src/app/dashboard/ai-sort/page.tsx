@@ -673,6 +673,248 @@ function ResultsPhase({ files }: { files: SortableFile[] }) {
   )
 }
 
+/* ─── Workspace Empty State ─────────────────────────────────────────────── */
+
+function WorkspaceEmptyState({ onGoToUpload }: { onGoToUpload: () => void }) {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-6 px-10 py-6">
+      <div
+        className="flex flex-col items-center gap-5 rounded-3xl px-12 py-12 text-center"
+        style={{
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
+          border: '1px solid rgba(255,255,255,0.12)',
+        }}
+      >
+        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.06]">
+          <Sparkles className="h-9 w-9 text-white/30" />
+        </div>
+        <div className="flex flex-col gap-2">
+          <h3 className="text-xl font-bold text-white">No sort results yet</h3>
+          <p className="max-w-sm text-[13px] text-white/50">
+            Upload photos and run AI Sort to see your photos organized into categories here.
+          </p>
+        </div>
+        <button
+          onClick={onGoToUpload}
+          className="flex items-center gap-2 rounded-xl px-6 py-3 text-[13px] font-semibold text-white"
+          style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
+        >
+          <Upload className="h-4 w-4" />
+          Go to Upload
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Preferences Tab ────────────────────────────────────────────────────── */
+
+function PreferencesTab({
+  presetId,
+  setPresetId,
+  confidence,
+  setConfidence,
+  categories,
+  setCategories,
+  vibeKeywords,
+  setVibeKeywords,
+}: {
+  presetId: string
+  setPresetId: (v: string) => void
+  confidence: number
+  setConfidence: (v: number) => void
+  categories: SortCategories
+  setCategories: (c: SortCategories) => void
+  vibeKeywords: string
+  setVibeKeywords: (v: string) => void
+}) {
+  const catItems: { key: keyof SortCategories; label: string; desc: string }[] = [
+    { key: 'blurry', label: 'Blurry / Out of focus', desc: 'Flag photos that fail sharpness analysis' },
+    { key: 'shaky', label: 'Shaky / Motion blur', desc: 'Flag photos with camera shake artifacts' },
+    { key: 'duplicates', label: 'Near-duplicates', desc: 'Flag photos that are too similar to another' },
+    { key: 'eyesClosed', label: 'Eyes closed', desc: 'Flag photos where subjects have closed eyes' },
+    { key: 'lensFlare', label: 'Lens flare', desc: 'Flag photos with distracting lens flare' },
+    { key: 'group', label: 'Group shots', desc: 'Separate group photos into their own category' },
+    { key: 'others', label: 'Other issues', desc: 'Flag photos with unexpected technical problems' },
+  ]
+
+  return (
+    <div className="flex-1 overflow-auto px-10 py-6">
+      <div className="mx-auto max-w-2xl space-y-6">
+
+        {/* Photography Type */}
+        <div
+          className="rounded-3xl p-6"
+          style={{
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
+            border: '1px solid rgba(255,255,255,0.12)',
+          }}
+        >
+          <h3 className="mb-4 text-[15px] font-semibold text-white">Photography Type</h3>
+          <select
+            value={presetId}
+            onChange={(e) => setPresetId(e.target.value)}
+            className="w-full rounded-xl bg-white/[0.08] border border-white/10 px-4 py-3 text-[14px] text-white outline-none focus:ring-1 focus:ring-indigo-400/50 appearance-none cursor-pointer"
+          >
+            {BUILT_IN_PRESETS.map((p) => (
+              <option key={p.id} value={p.id} className="bg-[#1a1a2e] text-white">
+                {p.icon} {p.name}
+              </option>
+            ))}
+          </select>
+          <p className="mt-2 text-[12px] text-white/40">
+            {BUILT_IN_PRESETS.find((p) => p.id === presetId)?.description ?? ''}
+          </p>
+        </div>
+
+        {/* Confidence Threshold */}
+        <div
+          className="rounded-3xl p-6"
+          style={{
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
+            border: '1px solid rgba(255,255,255,0.12)',
+          }}
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-[15px] font-semibold text-white">Confidence Threshold</h3>
+            <span className="text-[20px] font-bold text-indigo-300">{confidence}%</span>
+          </div>
+          <div className="relative h-2 w-full rounded-full bg-white/20">
+            <div className="absolute left-0 top-0 h-full rounded-full bg-indigo-400" style={{ width: `${confidence}%` }} />
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={confidence}
+              onChange={(e) => setConfidence(Number(e.target.value))}
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            />
+            <div className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-white shadow" style={{ left: `calc(${confidence}% - 8px)` }} />
+          </div>
+          <p className="mt-3 text-[12px] text-white/40">
+            Photos classified below this confidence will be moved to the Needs Review column.
+          </p>
+        </div>
+
+        {/* Smart Cull Flags */}
+        <div
+          className="rounded-3xl p-6"
+          style={{
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
+            border: '1px solid rgba(255,255,255,0.12)',
+          }}
+        >
+          <h3 className="mb-4 text-[15px] font-semibold text-white">Smart Cull — Quality Flags</h3>
+          <div className="space-y-3">
+            {catItems.map(({ key, label, desc }) => (
+              <div key={key} className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[13px] font-medium text-white/90">{label}</span>
+                  <span className="text-[11px] text-white/40">{desc}</span>
+                </div>
+                <Toggle on={categories[key]} onChange={(v) => setCategories({ ...categories, [key]: v })} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Vibe Keywords */}
+        <div
+          className="rounded-3xl p-6"
+          style={{
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
+            border: '1px solid rgba(255,255,255,0.12)',
+          }}
+        >
+          <h3 className="mb-1 text-[15px] font-semibold text-white">Vibe Keywords</h3>
+          <p className="mb-4 text-[12px] text-white/40">
+            Describe the mood or style of this session to refine AI categorization.
+          </p>
+          <textarea
+            value={vibeKeywords}
+            onChange={(e) => setVibeKeywords(e.target.value)}
+            placeholder="e.g. golden hour, moody, outdoor ceremony, candid moments, film-inspired…"
+            rows={3}
+            className="w-full rounded-xl bg-white/[0.08] px-4 py-3 text-[13px] text-white placeholder:text-white/30 outline-none focus:ring-1 focus:ring-indigo-400/50 border border-white/10 resize-none"
+          />
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+/* ─── Vibe Presets Tab ───────────────────────────────────────────────────── */
+
+function VibePresetsTab({
+  presetId,
+  setPresetId,
+}: {
+  presetId: string
+  setPresetId: (v: string) => void
+}) {
+  return (
+    <div className="flex-1 overflow-auto px-10 py-6">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-white">Photography Presets</h2>
+        <p className="mt-1 text-[13px] text-white/50">
+          Each preset uses a tailored vocabulary so the AI recognises the categories that matter most for your niche.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {BUILT_IN_PRESETS.map((preset) => {
+          const isActive = preset.id === presetId
+          return (
+            <button
+              key={preset.id}
+              onClick={() => setPresetId(preset.id)}
+              className="flex flex-col gap-3 rounded-2xl p-5 text-left transition-all"
+              style={{
+                background: isActive
+                  ? 'linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(168,85,247,0.15) 100%)'
+                  : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${isActive ? 'rgba(99,102,241,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                boxShadow: isActive ? '0 0 0 1px rgba(99,102,241,0.3)' : 'none',
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-2xl">{preset.icon}</span>
+                {isActive && (
+                  <span className="flex items-center gap-1 rounded-full bg-indigo-500/30 px-2 py-0.5 text-[10px] font-semibold text-indigo-200">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Active
+                  </span>
+                )}
+              </div>
+              <div>
+                <p className="text-[14px] font-semibold text-white">{preset.name}</p>
+                <p className="mt-0.5 text-[12px] text-white/50">{preset.description}</p>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {preset.categories.slice(0, 4).map((cat) => (
+                  <span
+                    key={cat.name}
+                    className="rounded-full px-2.5 py-0.5 text-[10px] font-medium text-white/70"
+                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+                  >
+                    {cat.name}
+                  </span>
+                ))}
+                {preset.categories.length > 4 && (
+                  <span className="rounded-full px-2.5 py-0.5 text-[10px] text-white/30" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    +{preset.categories.length - 4} more
+                  </span>
+                )}
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 /* ─── Main Page ──────────────────────────────────────────────────────────── */
 
 type ActiveTab = 'upload' | 'workspace' | 'preferences' | 'vibePresets'
@@ -695,6 +937,7 @@ export default function AISortPage() {
 
   const handleStartSorting = useCallback(() => {
     if (files.length === 0) return
+    setActiveTab('upload')
     setPhase('cull')
   }, [files.length])
 
@@ -706,6 +949,7 @@ export default function AISortPage() {
   const handleSortDone = useCallback((sorted: SortableFile[]) => {
     setFiles(sorted)
     setPhase('results')
+    setActiveTab('workspace') // Auto-switch to Workspace when sort is done
   }, [])
 
   const stepperStage: StepperStage =
@@ -720,9 +964,6 @@ export default function AISortPage() {
     { id: 'preferences', label: 'Preferences' },
     { id: 'vibePresets', label: 'Vibe Presets' },
   ]
-
-  // Show non-upload phases in a padded wrapper
-  const showPhaseContent = phase !== 'upload'
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -751,8 +992,8 @@ export default function AISortPage() {
         </div>
       </div>
 
-      {/* Content area */}
-      {!showPhaseContent && activeTab === 'upload' && (
+      {/* ── Upload tab ─────────────────────────────────────────────────────── */}
+      {activeTab === 'upload' && phase === 'upload' && (
         <div className="flex flex-col md:flex-row flex-1 gap-6 overflow-hidden px-10 py-6">
           <UploadZone onFiles={handleFiles} fileCount={files.length} />
           <SortSettingsPanel
@@ -770,20 +1011,60 @@ export default function AISortPage() {
         </div>
       )}
 
-      {showPhaseContent && phase === 'cull' && (
+      {activeTab === 'upload' && phase === 'cull' && (
         <CullPhase files={files} onContinue={handleCullDone} />
       )}
 
-      {showPhaseContent && phase === 'sort' && (
+      {activeTab === 'upload' && phase === 'sort' && (
         <SortPhase files={files} presetId={presetId} onDone={handleSortDone} />
       )}
 
-      {showPhaseContent && phase === 'results' && (
-        <ResultsPhase files={files} />
+      {/* If sort finishes and user is still on upload tab, show a nudge */}
+      {activeTab === 'upload' && phase === 'results' && (
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-10 py-6">
+          <CheckCircle2 className="h-12 w-12 text-emerald-300" />
+          <p className="text-lg font-semibold text-white">Sort complete!</p>
+          <button
+            onClick={() => setActiveTab('workspace')}
+            className="flex items-center gap-2 rounded-xl px-6 py-3 text-[13px] font-semibold text-white"
+            style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
+          >
+            View Results in Workspace
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       )}
 
-      {/* Bottom stepper */}
-      <ProgressStepper stage={stepperStage} />
+      {/* ── Workspace tab ──────────────────────────────────────────────────── */}
+      {activeTab === 'workspace' && (
+        phase === 'results'
+          ? <ResultsPhase files={files} />
+          : <WorkspaceEmptyState onGoToUpload={() => setActiveTab('upload')} />
+      )}
+
+      {/* ── Preferences tab ────────────────────────────────────────────────── */}
+      {activeTab === 'preferences' && (
+        <PreferencesTab
+          presetId={presetId}
+          setPresetId={setPresetId}
+          confidence={confidence}
+          setConfidence={setConfidence}
+          categories={categories}
+          setCategories={setCategories}
+          vibeKeywords={vibeKeywords}
+          setVibeKeywords={setVibeKeywords}
+        />
+      )}
+
+      {/* ── Vibe Presets tab ───────────────────────────────────────────────── */}
+      {activeTab === 'vibePresets' && (
+        <VibePresetsTab presetId={presetId} setPresetId={setPresetId} />
+      )}
+
+      {/* Bottom stepper — only show during active sort phases */}
+      {(activeTab === 'upload' || phase !== 'upload') && (
+        <ProgressStepper stage={stepperStage} />
+      )}
     </div>
   )
 }
