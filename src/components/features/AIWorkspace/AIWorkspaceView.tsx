@@ -374,6 +374,19 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     [allRawMedia, editMedia, recordStyleFeedback],
   )
 
+  // Approve all — set review_flag = 'keep' for every unflagged photo
+  const handleApproveAll = useCallback(async () => {
+    const unflagged = allRawMedia.filter(
+      (m) => (m as unknown as { review_flag?: string | null }).review_flag == null,
+    )
+    if (unflagged.length === 0) return
+    await Promise.all(
+      unflagged.map((m) =>
+        editMedia(m.id, { review_flag: 'keep' } as Parameters<typeof editMedia>[1]),
+      ),
+    )
+  }, [allRawMedia, editMedia])
+
   const handleReviewFlags = useCallback(() => {
     setActiveTab('review')
   }, [])
@@ -383,9 +396,13 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
   // Derive Run AI button label from classifier status
   const runAILabel = useMemo(() => {
     if (classifierStatus === 'loading') return `Loading model (${loadProgress}%)…`
-    if (isAIRunning) return `Sorting… ${runProgress}%`
+    if (isAIRunning) {
+      const total = allRawMedia.length
+      const done = Math.round((runProgress / 100) * total)
+      return `Sorting… ${runProgress}% (${done}/${total} photos)`
+    }
     return 'Run AI Sort'
-  }, [classifierStatus, loadProgress, isAIRunning, runProgress])
+  }, [classifierStatus, loadProgress, isAIRunning, runProgress, allRawMedia.length])
 
   return (
     <div className="flex flex-col h-full w-full min-h-0 overflow-hidden">
@@ -414,11 +431,28 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
             <SubTabRow
               activeSubTab={activeSubTab}
               onSubTabChange={setActiveSubTab}
-              onApproveAll={() => {/* TODO: approve all */}}
+              onApproveAll={handleApproveAll}
               onReSort={handleRunAI}
             />
 
             {activeSubTab === 'workspace' ? (
+              allRawMedia.length > 0 && allRawMedia.every((m) => !m.ai_category) ? (
+                /* Empty state: photos uploaded but AI Sort hasn't run yet */
+                <div className="flex flex-col items-center justify-center flex-1 gap-4 text-center">
+                  <p className="text-white/50 text-sm max-w-xs">
+                    Run AI Sort to automatically categorize your photos into the workspace.
+                  </p>
+                  <button
+                    onClick={handleRunAI}
+                    disabled={classifierStatus !== 'ready' || isAIRunning}
+                    className="px-5 py-2.5 rounded-xl text-sm font-medium bg-white/10 border border-white/20
+                      text-white hover:bg-white/[0.15] disabled:opacity-40 disabled:cursor-not-allowed
+                      transition-all"
+                  >
+                    {runAILabel}
+                  </button>
+                </div>
+              ) : (
               <AISortWorkspace
                 categoryColumns={categoryColumns}
                 allMedia={allMedia}
@@ -428,6 +462,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
                 onReviewFlags={handleReviewFlags}
                 onCategoryDrop={handleCategoryDrop}
               />
+              )
             ) : activeSubTab === 'upload' ? (
               <div className="flex items-center justify-center flex-1">
                 <UploadZone projectId={project.id} onFilesQueued={handleFilesQueued} />
