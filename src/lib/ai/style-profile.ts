@@ -111,6 +111,56 @@ export function applyPersonalization<T extends { category: string; score: number
     .sort((a, b) => b.score - a.score)
 }
 
+/* ─── Supabase sync ────────────────────────────────────────────────────── */
+
+/**
+ * Sync a feedback event to Supabase (fire-and-forget).
+ * localStorage is updated optimistically; this persists to the cloud.
+ */
+export async function syncFeedbackToSupabase(
+  presetId: string,
+  category: string,
+  accepted: boolean,
+): Promise<void> {
+  try {
+    await fetch('/api/style-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ presetId, category, accepted }),
+    })
+  } catch {
+    // Silently fail — localStorage is the optimistic source of truth
+  }
+}
+
+/**
+ * Load the style profile from Supabase and merge with localStorage.
+ * Supabase wins on conflict (feedbackCount, weights).
+ */
+export async function loadProfileFromSupabase(userId: string): Promise<StyleProfile | null> {
+  try {
+    const res = await fetch('/api/style-profile')
+    if (!res.ok) return null
+    const data = (await res.json()) as {
+      feedbackCount: number
+      personalizedModeUnlocked: boolean
+      categoryWeights: Record<string, number>
+    }
+    const profile: StyleProfile = {
+      userId,
+      feedbackCount: data.feedbackCount,
+      personalizedModeUnlocked: data.personalizedModeUnlocked,
+      categoryWeights: data.categoryWeights,
+      lastUpdated: Date.now(),
+    }
+    // Persist to localStorage as cache
+    saveStyleProfile(profile)
+    return profile
+  } catch {
+    return null
+  }
+}
+
 /* ─── Progress helpers ──────────────────────────────────────────────────── */
 
 export function progressToUnlock(profile: StyleProfile): number {

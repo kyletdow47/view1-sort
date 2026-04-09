@@ -127,5 +127,9 @@ function extractStyleParams(description: string): ParseVibeResponse {
         : ['blurry', 'poor exposure'],
   }
 
-  return { presetName, styleParams }
+  // Confidence based on how many keywords matched
+  const matchCount = [isMoody, isBright, isEditorial, isWarm, isCool].filter(Boolean).length
+  const confidence = matchCount > 0 ? Math.min(0.4 + matchCount * 0.15, 0.75) : 0.2
+
+  return { presetName, styleParams, confidence, source: 'heuristic' as const }
 }

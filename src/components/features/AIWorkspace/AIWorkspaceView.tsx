@@ -9,6 +9,7 @@ import { useBatchSelect } from '@/hooks/useBatchSelect'
 import { useAIClassifier } from '@/hooks/useAIClassifier'
 import { useAuth } from '@/hooks/useAuth'
 import { useStyleProfile } from '@/hooks/useStyleProfile'
+import { applyPersonalization } from '@/lib/ai/style-profile'
 import type { CullResult } from '@/lib/ai/culling'
 import { Lightbox } from '@/components/features/Lightbox'
 import { UploadZone } from '@/components/features/UploadZone'
@@ -21,8 +22,10 @@ import { AIAnalysisPanel } from './AIAnalysisPanel'
 import { AISortWorkspace } from './AISortWorkspace'
 import { AISortPreferences } from './AISortPreferences'
 import { VibePresetsTab } from './VibePresetsTab'
+import { CullingReviewPanel } from './CullingReviewPanel'
 import { CullSliderBar } from './CullSliderBar'
 import { WorkspaceSelectionToolbar } from './WorkspaceSelectionToolbar'
+import { PersonalizationProgress } from './PersonalizationProgress'
 import { UploadPhotoGrid } from './UploadPhotoGrid'
 
 import { getPreset } from '@/lib/ai/presets'
@@ -96,19 +99,26 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     loadProgress,
     runProgress,
     isRunning: isAIRunning,
+    cullingProgress,
     classifyBatch,
     runCullingOnFiles,
   } = useAIClassifier()
 
   // Style profile learning
-  const { feedback: recordStyleFeedback } = useStyleProfile(user?.id)
+  const {
+    feedback: recordStyleFeedback,
+    progress: personalizationProgress,
+    unlocked: personalizationUnlocked,
+    profile: styleProfile,
+  } = useStyleProfile(user?.id)
+  const [personalizationEnabled, setPersonalizationEnabled] = useState(true)
 
   // UI state
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('ai-sort')
   const [activeSubTab, setActiveSubTab] = useState<AISortSubTab>('workspace')
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [showUpload, setShowUpload] = useState(false)
-  const [keepCount, setKeepCount] = useState(340)
+  const [keepCountOverride, setKeepCountOverride] = useState<number | null>(null)
   const [autoSortEnabled] = useState(true)
   const lastSelectedRef = useRef<string | null>(null)
 
@@ -211,6 +221,15 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
   const flatMediaItems = useMemo(() => allMedia.map(mediaToItem), [allMedia])
   const totalPhotos = allMedia.length
 
+  // ─── Culling slider data ────────────────────────────────────────────────────
+  // Count of photos without any culling flags = AI recommended keep count
+  const aiRecommendedKeep = useMemo(() => {
+    return allMedia.filter(
+      (m) => !m.is_blurry && !m.is_duplicate && !m.is_overexposed && !m.is_underexposed,
+    ).length
+  }, [allMedia])
+  const keepCount = keepCountOverride ?? aiRecommendedKeep
+
   // ─── Preset resolution ───────────────────────────────────────────────────────
   // Reads the presetId stored in project.metadata.ai_preferences, defaulting to
   // 'wedding' so existing projects keep their current column layout.
@@ -309,10 +328,20 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     if (itemsToClassify.length === 0) return
 
     try {
-      const results = await classifyBatch(itemsToClassify, {
+      let results = await classifyBatch(itemsToClassify, {
         projectId: project.id,
         presetId: activePresetId,
       })
+
+      // Apply personalized re-ranking if enabled and unlocked
+      if (personalizationEnabled && styleProfile?.personalizedModeUnlocked && styleProfile) {
+        const reranked = applyPersonalization(
+          results.map((r) => ({ category: r.category, score: r.confidence, id: r.id })),
+          styleProfile,
+          activePresetId,
+        )
+        results = reranked.map((r) => ({ id: r.id, category: r.category, confidence: r.score }))
+      }
 
       // Update the local media store with AI results
       await Promise.all(
@@ -323,7 +352,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     } catch (err) {
       console.error('AI Sort failed:', err)
     }
-  }, [classifierStatus, isAIRunning, allRawMedia, classifyBatch, project.id, activePresetId, editMedia])
+  }, [classifierStatus, isAIRunning, allRawMedia, classifyBatch, project.id, activePresetId, editMedia, personalizationEnabled, styleProfile])
 
   const handlePublish = useCallback(() => {
     router.push(`/dashboard/project/${project.id}/publish`)
@@ -355,10 +384,18 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       const m = allRawMedia.find((media) => media.id === id)
       return m?.is_starred === true
     })
+    const starring = !allStarred
     await Promise.all(
-      ids.map((id) => editMedia(id, { is_starred: !allStarred })),
+      ids.map((id) => {
+        const m = allRawMedia.find((media) => media.id === id)
+        // Starring = positive feedback for the category assignment
+        if (starring && m?.ai_category) {
+          recordStyleFeedback(activePresetId, m.ai_category, true)
+        }
+        return editMedia(id, { is_starred: starring })
+      }),
     )
-  }, [selectedIds, allRawMedia, editMedia])
+  }, [selectedIds, allRawMedia, editMedia, recordStyleFeedback, activePresetId])
 
   // Flag red = reject
   const handleFlagRed = useCallback(async () => {
@@ -368,7 +405,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       ids.map((id) => {
         const m = allRawMedia.find((media) => media.id === id)
         if (m?.ai_category) {
-          recordStyleFeedback('default', m.ai_category, false)
+          recordStyleFeedback(activePresetId, m.ai_category, false)
         }
         return editMedia(id, { review_flag: 'reject' })
       }),
@@ -383,7 +420,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       ids.map((id) => {
         const m = allRawMedia.find((media) => media.id === id)
         if (m?.ai_category) {
-          recordStyleFeedback('default', m.ai_category, true)
+          recordStyleFeedback(activePresetId, m.ai_category, true)
         }
         return editMedia(id, { review_flag: 'keep' })
       }),
@@ -398,8 +435,8 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       ids.map((id) => {
         const m = allRawMedia.find((media) => media.id === id)
         if (m?.ai_category) {
-          recordStyleFeedback('default', m.ai_category, false)
-          recordStyleFeedback('default', targetCategory, true)
+          recordStyleFeedback(activePresetId, m.ai_category, false)
+          recordStyleFeedback(activePresetId, targetCategory, true)
         }
         return editMedia(id, { ai_category: targetCategory })
       }),
@@ -413,9 +450,9 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       const m = allRawMedia.find((media) => media.id === mediaId)
       if (m?.ai_category === targetCategory) return
       if (m?.ai_category) {
-        recordStyleFeedback('default', m.ai_category, false)
+        recordStyleFeedback(activePresetId, m.ai_category, false)
       }
-      recordStyleFeedback('default', targetCategory, true)
+      recordStyleFeedback(activePresetId, targetCategory, true)
       await editMedia(mediaId, { ai_category: targetCategory })
     },
     [allRawMedia, editMedia, recordStyleFeedback],
@@ -424,6 +461,23 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
   const handleReviewFlags = useCallback(() => {
     setActiveTab('review')
   }, [])
+
+  // Keep/Reject handlers for the Culling Review Panel
+  const handleKeepSingle = useCallback(async (id: string) => {
+    await editMedia(id, { review_flag: 'keep' })
+  }, [editMedia])
+
+  const handleRejectSingle = useCallback(async (id: string) => {
+    await editMedia(id, { review_flag: 'reject' })
+  }, [editMedia])
+
+  const handleKeepBatch = useCallback(async (ids: string[]) => {
+    await Promise.all(ids.map((id) => editMedia(id, { review_flag: 'keep' })))
+  }, [editMedia])
+
+  const handleRejectBatch = useCallback(async (ids: string[]) => {
+    await Promise.all(ids.map((id) => editMedia(id, { review_flag: 'reject' })))
+  }, [editMedia])
 
   // Approve all — set review_flag = 'keep' for every photo that hasn't been flagged yet
   const handleApproveAll = useCallback(async () => {
@@ -477,10 +531,33 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         </div>
       )}
 
+      {/* Culling Analysis Progress */}
+      {cullingProgress.isRunning && (
+        <div className="mx-6 mt-3 flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          <svg className="h-4 w-4 shrink-0 text-amber-400 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span>
+            <strong className="font-semibold text-amber-100">Analyzing quality…</strong>
+            {' '}{cullingProgress.current}/{cullingProgress.total}
+          </span>
+        </div>
+      )}
+
       {/* Content Area */}
       <div className="flex flex-col flex-1 min-h-0 gap-4 px-6">
         {activeTab === 'ai-sort' && (
           <>
+            {/* Personalization Progress */}
+            <PersonalizationProgress
+              feedbackCount={styleProfile?.feedbackCount ?? 0}
+              unlocked={personalizationUnlocked}
+              progress={personalizationProgress}
+              enabled={personalizationEnabled}
+              onToggle={setPersonalizationEnabled}
+            />
+
             <SubTabRow
               activeSubTab={activeSubTab}
               onSubTabChange={setActiveSubTab}
@@ -542,7 +619,13 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
             ) : activeSubTab === 'preferences' ? (
               <AISortPreferences projectId={project.id} />
             ) : activeSubTab === 'vibe-presets' ? (
-              <VibePresetsTab projectId={project.id} />
+              <VibePresetsTab
+                projectId={project.id}
+                categoryDistribution={categoryColumns.map((col) => ({
+                  name: col.name,
+                  count: col.photoCount,
+                }))}
+              />
             ) : (
               <div className="flex gap-4 flex-1 min-h-0">
                 <div className="flex gap-3 flex-1 min-h-0">
@@ -565,9 +648,13 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         )}
 
         {activeTab === 'review' && (
-          <div className="flex items-center justify-center flex-1 text-white/30 text-lg">
-            Review tab — coming soon
-          </div>
+          <CullingReviewPanel
+            media={flatMediaItems}
+            onKeep={handleKeepSingle}
+            onReject={handleRejectSingle}
+            onKeepAll={handleKeepBatch}
+            onRejectAll={handleRejectBatch}
+          />
         )}
 
         {activeTab === 'shot-list' && (
@@ -600,8 +687,8 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         <CullSliderBar
           keepCount={keepCount}
           totalCount={totalPhotos}
-          aiRecommendation={Math.round(totalPhotos * 0.4)}
-          onKeepCountChange={setKeepCount}
+          aiRecommendation={aiRecommendedKeep}
+          onKeepCountChange={setKeepCountOverride}
         />
       )}
 

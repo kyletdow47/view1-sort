@@ -1,3 +1,6 @@
+import type { VibePreset, VibeStyleParams } from '@/types/vibe-presets'
+import type { VibePresetRow } from '@/types/supabase'
+
 export interface SortCategory {
   name: string
   description?: string
@@ -144,6 +147,8 @@ export function getCategoryForLabel(preset: SortPreset, label: string): string |
   return undefined
 }
 
+/* ── localStorage fallback (anonymous / offline) ──────────────────────── */
+
 /** Persist custom presets to localStorage */
 export function saveCustomPreset(preset: SortPreset): void {
   if (typeof window === 'undefined') return
@@ -163,6 +168,82 @@ export function getCustomPresets(): SortPreset[] {
   }
 }
 
+export function deleteCustomPreset(id: string): void {
+  if (typeof window === 'undefined') return
+  const stored = getCustomPresets().filter((p) => p.id !== id)
+  localStorage.setItem('v1-presets', JSON.stringify(stored))
+}
+
 export function getAllPresets(): SortPreset[] {
   return [...BUILT_IN_PRESETS, ...getCustomPresets()]
+}
+
+/* ── Supabase-backed CRUD (authenticated users) ──────────────────────── */
+
+/** Convert a DB row to the client-side VibePreset shape */
+export function rowToVibePreset(row: VibePresetRow): VibePreset {
+  const sp = row.style_params as Record<string, unknown>
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description ?? '',
+    styleParams: {
+      mood: (sp.mood as string) ?? '',
+      lighting: (sp.lighting as string) ?? '',
+      composition: (sp.composition as string) ?? '',
+      colorTemp: (sp.colorTemp as VibeStyleParams['colorTemp']) ?? 'neutral',
+      subjects: (sp.subjects as string[]) ?? [],
+      avoidPatterns: (sp.avoidPatterns as string[]) ?? [],
+    },
+    createdAt: row.created_at,
+    isActive: row.is_active,
+  }
+}
+
+export async function fetchPresetsFromAPI(): Promise<VibePreset[]> {
+  const res = await fetch('/api/presets')
+  if (!res.ok) return []
+  const { presets } = (await res.json()) as { presets: VibePresetRow[] }
+  return presets.map(rowToVibePreset)
+}
+
+export async function savePresetToAPI(preset: {
+  name: string
+  description: string
+  styleParams: VibeStyleParams
+  projectId?: string
+  source?: 'custom' | 'ai_parsed'
+}): Promise<VibePreset | null> {
+  const res = await fetch('/api/presets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(preset),
+  })
+  if (!res.ok) return null
+  const { preset: row } = (await res.json()) as { preset: VibePresetRow }
+  return rowToVibePreset(row)
+}
+
+export async function updatePresetInAPI(update: {
+  id: string
+  name?: string
+  description?: string
+  styleParams?: VibeStyleParams
+  isActive?: boolean
+}): Promise<VibePreset | null> {
+  const res = await fetch('/api/presets', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(update),
+  })
+  if (!res.ok) return null
+  const { preset: row } = (await res.json()) as { preset: VibePresetRow }
+  return rowToVibePreset(row)
+}
+
+export async function deletePresetFromAPI(id: string): Promise<boolean> {
+  const res = await fetch(`/api/presets?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  })
+  return res.ok
 }

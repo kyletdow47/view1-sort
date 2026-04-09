@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { Zap, ChevronRight, RefreshCw, TrendingUp, AlertTriangle, Lightbulb, Star } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { Zap, ChevronRight, RefreshCw, TrendingUp, AlertTriangle, Lightbulb, Star, Sparkles } from 'lucide-react'
 import type { DateRange } from '@/types/analytics'
 
 /* ------------------------------------------------------------------ */
-/*  Mock data                                                          */
+/*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
 type InsightType = 'opportunity' | 'warning' | 'trend' | 'achievement'
@@ -20,7 +20,16 @@ type Insight = {
   color: string
 }
 
-const INSIGHTS: Insight[] = [
+interface InsightsApiResponse {
+  insights: string[]
+  source: 'claude' | 'cache' | 'fallback'
+}
+
+/* ------------------------------------------------------------------ */
+/*  Mock fallback data                                                 */
+/* ------------------------------------------------------------------ */
+
+const FALLBACK_INSIGHTS: Insight[] = [
   {
     id: 1,
     type: 'opportunity',
@@ -60,22 +69,17 @@ const INSIGHTS: Insight[] = [
   {
     id: 5,
     type: 'opportunity',
-    title: 'Instagram engagement → bookings gap',
+    title: 'Instagram engagement to bookings gap',
     body: 'Your Instagram posts get 3.2x your average engagement, but only 14% of inquiries mention social media. Connecting analytics could reveal hidden attribution.',
     impact: 'Medium',
     cta: 'Connect Instagram',
     color: '#F472B6',
   },
-  {
-    id: 6,
-    type: 'trend',
-    title: 'Gallery delivery time improved 22%',
-    body: 'Your average gallery delivery is now 9.2 days post-shoot, down from 11.8 days last quarter. AI sorting is saving ~3.4 hours per project.',
-    impact: 'Low',
-    cta: 'View AI Stats',
-    color: '#34D399',
-  },
 ]
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
 
 const TYPE_ICONS: Record<InsightType, typeof Zap> = {
   opportunity: Lightbulb,
@@ -88,6 +92,48 @@ const IMPACT_COLORS = {
   High: 'text-red-400 bg-red-400/10',
   Medium: 'text-amber-400 bg-amber-400/10',
   Low: 'text-emerald-400 bg-emerald-400/10',
+}
+
+/** Convert a raw insight string into a structured Insight object */
+function parseInsightString(text: string, index: number): Insight {
+  // Detect type by keywords
+  const lower = text.toLowerCase()
+  let type: InsightType = 'trend'
+  let color = '#60A5FA'
+
+  if (lower.includes('opportunity') || lower.includes('upsell') || lower.includes('consider') || lower.includes('could')) {
+    type = 'opportunity'
+    color = '#34D399'
+  } else if (lower.includes('warning') || lower.includes('overdue') || lower.includes('risk') || lower.includes('drop')) {
+    type = 'warning'
+    color = '#FBBF24'
+  } else if (lower.includes('best') || lower.includes('improved') || lower.includes('excellent') || lower.includes('above average')) {
+    type = 'achievement'
+    color = '#A78BFA'
+  }
+
+  // Extract impact: high if numbers > 50% or money mentioned
+  let impact: 'High' | 'Medium' | 'Low' = 'Medium'
+  if (lower.includes('high') || /\$\d{3,}/.test(text) || /\d{2,}%/.test(text)) {
+    impact = 'High'
+  } else if (lower.includes('low') || lower.includes('minor')) {
+    impact = 'Low'
+  }
+
+  // Split on first period or dash for title/body
+  const splitIdx = text.indexOf(' — ')
+  const title = splitIdx > 0 ? text.slice(0, splitIdx) : text.slice(0, 60) + (text.length > 60 ? '...' : '')
+  const body = splitIdx > 0 ? text.slice(splitIdx + 3) : text
+
+  return {
+    id: index + 1,
+    type,
+    title,
+    body,
+    impact,
+    cta: type === 'opportunity' ? 'Take Action' : type === 'warning' ? 'Review' : 'View Details',
+    color,
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -109,8 +155,27 @@ function GlassCard({ children, className = '' }: { children: React.ReactNode; cl
   )
 }
 
+function InsightSkeleton() {
+  return (
+    <GlassCard className="flex flex-col gap-3">
+      <div className="flex items-start gap-2.5">
+        <div className="h-8 w-8 shrink-0 animate-pulse rounded-xl bg-white/10" />
+        <div className="flex-1">
+          <div className="mb-2 h-3.5 w-3/4 animate-pulse rounded bg-white/10" />
+          <div className="h-3 w-1/3 animate-pulse rounded bg-white/[0.06]" />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <div className="h-2.5 w-full animate-pulse rounded bg-white/[0.06]" />
+        <div className="h-2.5 w-4/5 animate-pulse rounded bg-white/[0.06]" />
+        <div className="h-2.5 w-3/5 animate-pulse rounded bg-white/[0.06]" />
+      </div>
+    </GlassCard>
+  )
+}
+
 /* ------------------------------------------------------------------ */
-/*  Tab                                                                */
+/*  Tab component                                                      */
 /* ------------------------------------------------------------------ */
 
 interface AIInsightsTabProps {
@@ -119,20 +184,79 @@ interface AIInsightsTabProps {
 
 export function AIInsightsTab({ dateRange }: AIInsightsTabProps) {
   const [filter, setFilter] = useState<InsightType | 'all'>('all')
-  const [generating, setGenerating] = useState(false)
+  const [insights, setInsights] = useState<Insight[]>(FALLBACK_INSIGHTS)
+  const [loading, setLoading] = useState(false)
+  const [source, setSource] = useState<'claude' | 'cache' | 'fallback'>('fallback')
+  const [error, setError] = useState<string | null>(null)
 
-  // TODO(ai-insights): fetch real AI-generated insights via Supabase Edge Function for dateRange
-  void dateRange
+  // Cache insights in ref to avoid re-fetch on tab switches
+  const cachedRef = useRef<{ key: string; insights: Insight[]; source: 'claude' | 'cache' | 'fallback' } | null>(null)
+
+  const cacheKey = `${dateRange.from}-${dateRange.to}`
+
+  const fetchInsights = useCallback(async (force = false) => {
+    // Use cache if not forced and same date range
+    if (!force && cachedRef.current?.key === cacheKey) {
+      setInsights(cachedRef.current.insights)
+      setSource(cachedRef.current.source)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30_000)
+
+    try {
+      // Mock stats for the demo — in production these come from Supabase queries
+      const stats = {
+        totalPhotos: 1247,
+        categoryCounts: {
+          portraits: 420,
+          ceremony: 310,
+          details: 210,
+          reception: 180,
+          candid: 127,
+        },
+        qualityDistribution: { high: 890, medium: 280, low: 77 },
+        duplicateCount: 23,
+        blurryCount: 15,
+      }
+
+      const res = await fetch('/api/ai/insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stats }),
+        signal: controller.signal,
+      })
+
+      if (!res.ok) throw new Error(`API error: ${res.status}`)
+
+      const data = (await res.json()) as InsightsApiResponse
+      const parsed = data.insights.map(parseInsightString)
+
+      setInsights(parsed)
+      setSource(data.source)
+      cachedRef.current = { key: cacheKey, insights: parsed, source: data.source }
+    } catch (err) {
+      console.warn('[AIInsightsTab] Failed to fetch insights:', err)
+      setError('Could not generate insights. Showing saved suggestions.')
+      setInsights(FALLBACK_INSIGHTS)
+      setSource('fallback')
+    } finally {
+      clearTimeout(timeout)
+      setLoading(false)
+    }
+  }, [cacheKey])
+
+  // Fetch on mount and date range changes
+  useEffect(() => {
+    void fetchInsights()
+  }, [fetchInsights])
 
   const filtered =
-    filter === 'all' ? INSIGHTS : INSIGHTS.filter((i) => i.type === filter)
-
-  const handleGenerate = async () => {
-    setGenerating(true)
-    // TODO(ai-insights): call /api/ai/generate-insights
-    await new Promise<void>((resolve) => { setTimeout(resolve, 1800) })
-    setGenerating(false)
-  }
+    filter === 'all' ? insights : insights.filter((i) => i.type === filter)
 
   return (
     <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
@@ -145,20 +269,31 @@ export function AIInsightsTab({ dateRange }: AIInsightsTabProps) {
           <div>
             <p className="text-[14px] font-semibold text-white">AI Business Intelligence</p>
             <p className="text-[12px] text-white/45">
-              {INSIGHTS.length} insights for selected period
+              {insights.length} insights for selected period
+              {source === 'claude' && <span className="ml-1.5 text-indigo-400/60">Powered by Claude</span>}
+              {source === 'cache' && <span className="ml-1.5 text-emerald-400/60">Cached</span>}
             </p>
           </div>
         </div>
         <button
-          onClick={handleGenerate}
-          disabled={generating}
+          onClick={() => void fetchInsights(true)}
+          disabled={loading}
           className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-[12px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
           style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${generating ? 'animate-spin' : ''}`} />
-          {generating ? 'Generating…' : 'Regenerate'}
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+          {loading ? 'Generating...' : 'Refresh Insights'}
         </button>
       </div>
+
+      {/* Error banner */}
+      {error && (
+        <div className="flex items-center gap-2 rounded-xl px-3 py-2 text-[11px] text-amber-300/80"
+          style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)' }}>
+          <Sparkles className="h-3.5 w-3.5 shrink-0" />
+          {error}
+        </div>
+      )}
 
       {/* Filter chips */}
       <div className="flex items-center gap-2">
@@ -172,56 +307,67 @@ export function AIInsightsTab({ dateRange }: AIInsightsTabProps) {
                 : 'border border-white/15 bg-white/[0.06] text-white/60 hover:bg-white/10 hover:text-white/80'
             }`}
           >
-            {type === 'all' ? `All (${INSIGHTS.length})` : type}
+            {type === 'all' ? `All (${insights.length})` : type}
           </button>
         ))}
       </div>
 
+      {/* Loading skeletons */}
+      {loading && (
+        <div className="grid grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <InsightSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
       {/* Insights grid */}
-      <div className="grid grid-cols-2 gap-4">
-        {filtered.map((insight) => {
-          const Icon = TYPE_ICONS[insight.type]
-          return (
-            <GlassCard key={insight.id} className="flex flex-col gap-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-2.5">
-                  <div
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
-                    style={{ background: insight.color + '20' }}
-                  >
-                    <Icon className="h-4 w-4" style={{ color: insight.color }} />
+      {!loading && (
+        <div className="grid grid-cols-2 gap-4">
+          {filtered.map((insight) => {
+            const Icon = TYPE_ICONS[insight.type]
+            return (
+              <GlassCard key={insight.id} className="flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <div
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
+                      style={{ background: insight.color + '20' }}
+                    >
+                      <Icon className="h-4 w-4" style={{ color: insight.color }} />
+                    </div>
+                    <p className="text-[13px] font-semibold leading-tight text-white">
+                      {insight.title}
+                    </p>
                   </div>
-                  <p className="text-[13px] font-semibold leading-tight text-white">
-                    {insight.title}
-                  </p>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${IMPACT_COLORS[insight.impact]}`}
+                  >
+                    {insight.impact}
+                  </span>
                 </div>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${IMPACT_COLORS[insight.impact]}`}
-                >
-                  {insight.impact}
-                </span>
-              </div>
 
-              <p className="text-[12px] leading-relaxed text-white/55">{insight.body}</p>
+                <p className="text-[12px] leading-relaxed text-white/55">{insight.body}</p>
 
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[10px] font-medium capitalize text-white/30">
-                  {insight.type}
-                </span>
-                <button
-                  className="flex items-center gap-1 text-[12px] font-medium transition-opacity hover:opacity-80"
-                  style={{ color: insight.color }}
-                >
-                  {insight.cta}
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </GlassCard>
-          )
-        })}
-      </div>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[10px] font-medium capitalize text-white/30">
+                    {insight.type}
+                  </span>
+                  <button
+                    className="flex items-center gap-1 text-[12px] font-medium transition-opacity hover:opacity-80"
+                    style={{ color: insight.color }}
+                  >
+                    {insight.cta}
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </GlassCard>
+            )
+          })}
+        </div>
+      )}
 
-      {filtered.length === 0 && (
+      {!loading && filtered.length === 0 && (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 py-12">
           <Zap className="h-8 w-8 text-white/20" />
           <p className="text-[14px] text-white/35">No {filter} insights for this period</p>

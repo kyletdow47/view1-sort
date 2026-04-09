@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { CheckCircle2, ExternalLink, Unlink } from 'lucide-react'
 import { GlassCard } from '@/components/features/dashboard-v2/GlassCard'
+import { AIConfigSection } from '@/components/features/settings/AIConfigSection'
 
 /* ─── Types & Data ───────────────────────────────────────────────────────── */
 
@@ -158,6 +159,9 @@ export default function IntegrationsPage() {
           <p className="text-sm text-white/50">Connect your favorite tools · {connectedCount} of {integrations.length} connected</p>
         </div>
       </div>
+
+      {/* AI Configuration */}
+      <AIConfigSection />
 
       {/* Category filter */}
       <div className="flex flex-wrap gap-1.5">

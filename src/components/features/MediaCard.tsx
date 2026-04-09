@@ -2,7 +2,7 @@
 
 import { memo, useRef } from 'react'
 import { clsx } from 'clsx'
-import { ImageOff, Maximize2, RectangleHorizontal, RectangleVertical, Square } from 'lucide-react'
+import { ImageOff, Maximize2, RectangleHorizontal, RectangleVertical, Square, Eye, Link2, Sun, Moon } from 'lucide-react'
 import { Badge } from '@/components/common'
 import type { MediaItem, MediaOrientation } from '@/types/media'
 
@@ -23,6 +23,12 @@ function OrientationIcon({ orientation }: { orientation?: MediaOrientation | nul
 
 export const MediaCard = memo(function MediaCard({ media, onSelect, onDoubleClick, className }: MediaCardProps) {
   const lastClickRef = useRef<number>(0)
+  const isRejected = media.review_flag === 'reject'
+  const isBlurry = media.is_blurry === true
+  const isDuplicate = media.is_duplicate === true
+  const isOverexposed = media.is_overexposed === true
+  const isUnderexposed = media.is_underexposed === true
+  const hasCullFlags = isBlurry || isDuplicate || isOverexposed || isUnderexposed
 
   function handleClick(e: React.MouseEvent) {
     const now = Date.now()
@@ -52,6 +58,7 @@ export const MediaCard = memo(function MediaCard({ media, onSelect, onDoubleClic
         media.selected
           ? 'border-blue-500 ring-2 ring-blue-500/40'
           : 'border-view1-border hover:border-white/20',
+        isRejected && 'opacity-40',
         className
       )}
       onClick={handleClick}
@@ -75,6 +82,11 @@ export const MediaCard = memo(function MediaCard({ media, onSelect, onDoubleClic
           <div className="absolute inset-0 flex items-center justify-center">
             <ImageOff className="w-8 h-8 text-white/20" />
           </div>
+        )}
+
+        {/* Blurry overlay — red tint */}
+        {isBlurry && (
+          <div className="absolute inset-0 bg-red-500/20 pointer-events-none" />
         )}
 
         {/* Hover overlay */}
@@ -101,6 +113,35 @@ export const MediaCard = memo(function MediaCard({ media, onSelect, onDoubleClic
           <Maximize2 className="w-4 h-4 text-white/70" />
         </div>
 
+        {/* Culling flag badges — bottom-right stack */}
+        {hasCullFlags && (
+          <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-0.5 items-end">
+            {isBlurry && (
+              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/80 text-white text-[9px] font-semibold backdrop-blur-sm">
+                <Eye className="w-2.5 h-2.5" />
+                Blurry
+              </span>
+            )}
+            {isDuplicate && (
+              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/80 text-white text-[9px] font-semibold backdrop-blur-sm">
+                <Link2 className="w-2.5 h-2.5" />
+                Duplicate
+              </span>
+            )}
+            {isOverexposed && (
+              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-500/80 text-white text-[9px] font-semibold backdrop-blur-sm">
+                <Sun className="w-2.5 h-2.5" />
+                Overexposed
+              </span>
+            )}
+            {isUnderexposed && (
+              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-500/80 text-white text-[9px] font-semibold backdrop-blur-sm">
+                <Moon className="w-2.5 h-2.5" />
+                Underexposed
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Footer info */}
