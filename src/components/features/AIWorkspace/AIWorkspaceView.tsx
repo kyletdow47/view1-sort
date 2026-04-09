@@ -110,7 +110,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
   const [activeSubTab, setActiveSubTab] = useState<AISortSubTab>('workspace')
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [showUpload, setShowUpload] = useState(false)
-  const [keepCount, setKeepCount] = useState(340)
+  const [keepCountOverride, setKeepCountOverride] = useState<number | null>(null)
   const [autoSortEnabled] = useState(true)
   const lastSelectedRef = useRef<string | null>(null)
 
@@ -212,6 +212,15 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
   const allMedia = useMemo(() => filteredMedia(), [filteredMedia])
   const flatMediaItems = useMemo(() => allMedia.map(mediaToItem), [allMedia])
   const totalPhotos = allMedia.length
+
+  // ─── Culling slider data ────────────────────────────────────────────────────
+  // Count of photos without any culling flags = AI recommended keep count
+  const aiRecommendedKeep = useMemo(() => {
+    return allMedia.filter(
+      (m) => !m.is_blurry && !m.is_duplicate && !m.is_overexposed && !m.is_underexposed,
+    ).length
+  }, [allMedia])
+  const keepCount = keepCountOverride ?? aiRecommendedKeep
 
   // ─── Preset resolution ───────────────────────────────────────────────────────
   // Reads the presetId stored in project.metadata.ai_preferences, defaulting to
@@ -637,8 +646,8 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         <CullSliderBar
           keepCount={keepCount}
           totalCount={totalPhotos}
-          aiRecommendation={Math.round(totalPhotos * 0.4)}
-          onKeepCountChange={setKeepCount}
+          aiRecommendation={aiRecommendedKeep}
+          onKeepCountChange={setKeepCountOverride}
         />
       )}
 
