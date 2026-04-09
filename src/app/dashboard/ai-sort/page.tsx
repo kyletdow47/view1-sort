@@ -68,14 +68,13 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
       role="switch"
       aria-checked={on}
       onClick={() => onChange(!on)}
-      className={`relative h-6 w-11 shrink-0 rounded-full border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${
-        on ? 'border-indigo-400/50 bg-indigo-500' : 'border-white/20 bg-white/10'
+      className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${
+        on ? 'bg-indigo-500' : 'bg-white/15'
       }`}
     >
       <span
-        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-md transition-transform duration-200 ${
-          on ? 'translate-x-5' : 'translate-x-0.5'
-        }`}
+        className="absolute top-[2px] h-5 w-5 rounded-full bg-white shadow-md transition-all duration-200"
+        style={{ left: on ? 'calc(100% - 22px)' : '2px' }}
       />
     </button>
   )
@@ -832,18 +831,38 @@ function PhotoThumbnail({
   onClick?: () => void
 }) {
   const [src, setSrc] = useState<string | null>(null)
+  const [imgError, setImgError] = useState(false)
 
   useEffect(() => {
     const url = URL.createObjectURL(file)
     setSrc(url)
+    setImgError(false)
     return () => URL.revokeObjectURL(url)
   }, [file])
 
-  if (!src) return <div className={`flex items-center justify-center bg-white/[0.04] ${className ?? ''}`}><ImageIcon className="h-6 w-6 text-white/20" /></div>
+  // RAW files (and any format the browser can't decode) fall back to a labeled tile
+  if (!src || imgError) {
+    const ext = file.name.split('.').pop()?.toUpperCase() ?? '?'
+    return (
+      <div
+        className={`flex flex-col items-center justify-center gap-1 bg-white/[0.06] ${className ?? ''}`}
+        onClick={onClick}
+      >
+        <ImageIcon className="h-5 w-5 text-white/25" />
+        <span className="text-[8px] font-semibold tracking-wide text-white/30">{ext}</span>
+      </div>
+    )
+  }
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} className={className} onClick={onClick} />
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onClick={onClick}
+      onError={() => setImgError(true)}
+    />
   )
 }
 
