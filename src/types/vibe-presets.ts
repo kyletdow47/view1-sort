@@ -26,6 +26,8 @@ export interface ParseVibeRequest {
 export interface ParseVibeResponse {
   styleParams: VibeStyleParams
   presetName: string
+  confidence?: number
+  source?: 'claude' | 'heuristic'
 }
 
 export const EXAMPLE_PROMPTS = [
