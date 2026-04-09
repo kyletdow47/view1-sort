@@ -1,6 +1,7 @@
 'use client'
 
 import { WelcomeSection } from './WelcomeSection'
+import { AIBriefingCard } from './AIBriefingCard'
 import { QuickActions } from './QuickActions'
 import { RecentActivity } from './RecentActivity'
 import { RecentProjects } from './RecentProjects'
@@ -33,6 +34,9 @@ export function DashboardV2({
     <div className="flex flex-col gap-5">
       {/* Welcome / chat */}
       <WelcomeSection userName={userName} />
+
+      {/* AI Briefing Card */}
+      <AIBriefingCard userName={userName} />
 
       {/* Quick Actions */}
       <QuickActions />
