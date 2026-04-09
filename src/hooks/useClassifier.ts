@@ -15,8 +15,10 @@ export interface UseClassifierReturn {
    * Classify an image.
    * Pass a File/Blob (converted to base64) or a URL string — the CLIP pipeline
    * accepts both. Passing a URL avoids a CORS fetch round-trip.
+   * Optionally supply a custom `labels` array (e.g. from a preset) to override
+   * the default wedding-only taxonomy in labels.ts.
    */
-  classify: (fileOrUrl: File | string, photoId: string, topK?: number) => Promise<ClassificationResult[]>
+  classify: (fileOrUrl: File | string, photoId: string, labels?: string[], topK?: number) => Promise<ClassificationResult[]>
 }
 
 export function useClassifier(): UseClassifierReturn {
@@ -87,7 +89,7 @@ export function useClassifier(): UseClassifierReturn {
   }, [])
 
   const classify = useCallback(
-    async (fileOrUrl: File | string, photoId: string, topK = 5): Promise<ClassificationResult[]> => {
+    async (fileOrUrl: File | string, photoId: string, labels?: string[], topK = 5): Promise<ClassificationResult[]> => {
       if (!workerRef.current) throw new Error('Worker not initialised')
       if (status === 'loading') throw new Error('Model is still loading')
 
@@ -100,7 +102,7 @@ export function useClassifier(): UseClassifierReturn {
         pendingRef.current.set(photoId, { resolve, reject })
         setStatus('classifying')
 
-        const request: WorkerRequest = { type: 'classify', photoId, imageData, topK }
+        const request: WorkerRequest = { type: 'classify', photoId, imageData, labels, topK }
         workerRef.current!.postMessage(request)
       })
     },

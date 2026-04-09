@@ -51,6 +51,7 @@ export async function loadModel(onProgress?: (progress: number) => void): Promis
 export async function classify(
   imageSource: string,
   photoId: string,
+  labels: string[] = LABEL_STRINGS,
   topK = 5
 ): Promise<ClassificationResult[]> {
   if (pipelineInstance === null) {
@@ -58,7 +59,7 @@ export async function classify(
   }
 
   const pipe = pipelineInstance as ClassificationPipeline
-  const rawOutput = (await (pipe as any)(imageSource, LABEL_STRINGS, { topk: topK })) as RawPipelineResult
+  const rawOutput = (await (pipe as any)(imageSource, labels, { topk: topK })) as RawPipelineResult
 
   return rawOutput.map((item) => ({
     photoId,

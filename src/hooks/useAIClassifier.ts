@@ -15,6 +15,7 @@ import { useCallback, useState } from 'react'
 import { useClassifier } from './useClassifier'
 import { analyzeFile, type CullResult } from '@/lib/ai/culling'
 import type { ClassificationResult } from '@/lib/ai/classifier'
+import { getPreset, getAllLabels, getCategoryForLabel as getPresetCategoryForLabel } from '@/lib/ai/presets'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -94,6 +95,11 @@ export function useAIClassifier(): UseAIClassifierReturn {
       const startTime = Date.now()
       const outputs: AIClassifierOutput[] = []
 
+      // Resolve the active preset so we use niche-specific labels and category names.
+      // Falls back to the generic labels.ts taxonomy when no preset is provided.
+      const preset = options.presetId ? getPreset(options.presetId) : undefined
+      const presetLabels = preset ? getAllLabels(preset) : undefined
+
       try {
         for (let i = 0; i < mediaItems.length; i += BATCH_SIZE) {
           const batch = mediaItems.slice(i, i + BATCH_SIZE)
@@ -103,13 +109,21 @@ export function useAIClassifier(): UseAIClassifierReturn {
               if (!thumbnail_url) return null
               // Pass the URL directly — @xenova/transformers fetches it internally,
               // avoiding the CORS preflight we would get from a client-side fetch().
-              const results: ClassificationResult[] = await classify(thumbnail_url, id)
+              // Pass preset-specific labels when available so the model scores against
+              // niche-appropriate vocabulary (travel, wedding, real-estate, etc.)
+              const results: ClassificationResult[] = await classify(thumbnail_url, id, presetLabels)
               // Take the top result as the canonical category
               const top = results[0]
               if (!top) return null
+              // Map the winning label to a human-readable preset category name
+              // (e.g. 'iconic landmark' → 'Architecture' for the travel preset).
+              // Fall back to the PhotoCategory value from labels.ts when no preset is active.
+              const category = preset
+                ? (getPresetCategoryForLabel(preset, top.label) ?? top.category as string)
+                : (top.category as string)
               return {
                 id,
-                category: top.category as string,
+                category,
                 confidence: top.score,
               } satisfies AIClassifierOutput
             }),

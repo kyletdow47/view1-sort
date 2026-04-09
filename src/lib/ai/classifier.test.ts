@@ -122,14 +122,14 @@ describe('classify', () => {
   it('uses "other" category for unknown labels', async () => {
     mockPipelineFn.mockResolvedValue([{ label: 'unknown futuristic label', score: 0.99 }])
 
-    const results = await classify('data:image/jpeg;base64,...', 'photo-3', 1)
+    const results = await classify('data:image/jpeg;base64,...', 'photo-3', undefined, 1)
     expect(results[0].category).toBe('other')
   })
 
   it('respects custom topK parameter', async () => {
     mockPipelineFn.mockResolvedValue(makeMockResults(['wedding ceremony', 'first dance', 'cake cutting']))
 
-    await classify('data:image/jpeg;base64,...', 'photo-4', 3)
+    await classify('data:image/jpeg;base64,...', 'photo-4', undefined, 3)
 
     expect(mockPipelineFn).toHaveBeenCalledWith(
       'data:image/jpeg;base64,...',
@@ -143,7 +143,7 @@ describe('classify', () => {
     vi.mocked(pipeline).mockClear()
     mockPipelineFn.mockResolvedValue([{ label: 'wedding ceremony', score: 0.9 }])
 
-    await classify('data:image/jpeg;base64,...', 'photo-5', 1)
+    await classify('data:image/jpeg;base64,...', 'photo-5', undefined, 1)
     expect(pipeline).toHaveBeenCalledTimes(1)
   })
 })

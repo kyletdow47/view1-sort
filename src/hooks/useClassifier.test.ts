@@ -108,7 +108,7 @@ describe('useClassifier', () => {
 
     let classifyPromise!: Promise<ClassificationResult[]>
     act(() => {
-      classifyPromise = result.current.classify(mockFile, 'p1', 2)
+      classifyPromise = result.current.classify(mockFile, 'p1', undefined, 2)
     })
 
     // classify is async: it awaits fileToBase64 before posting to the worker.
@@ -158,7 +158,7 @@ describe('useClassifier', () => {
 
     const mockFile = new File([''], 'test.jpg', { type: 'image/jpeg' })
     act(() => {
-      result.current.classify(mockFile, 'p3', 3)
+      result.current.classify(mockFile, 'p3', undefined, 3)
     })
 
     // fileToBase64 is async — wait for the postMessage to land

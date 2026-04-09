@@ -13,7 +13,7 @@ import type { ClassificationResult } from './classifier'
 
 export type WorkerRequest =
   | { type: 'loadModel' }
-  | { type: 'classify'; photoId: string; imageData: string; topK?: number }
+  | { type: 'classify'; photoId: string; imageData: string; labels?: string[]; topK?: number }
 
 export type WorkerResponse =
   | { type: 'modelLoaded' }
@@ -44,7 +44,7 @@ self.addEventListener('message', async (event: MessageEvent<WorkerRequest>) => {
 
   if (req.type === 'classify') {
     try {
-      const results = await classify(req.imageData, req.photoId, req.topK ?? 5)
+      const results = await classify(req.imageData, req.photoId, req.labels, req.topK ?? 5)
       const response: WorkerResponse = { type: 'result', photoId: req.photoId, results }
       self.postMessage(response)
     } catch (err) {

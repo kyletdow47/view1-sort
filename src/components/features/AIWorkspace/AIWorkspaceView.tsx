@@ -25,6 +25,8 @@ import { CullSliderBar } from './CullSliderBar'
 import { WorkspaceSelectionToolbar } from './WorkspaceSelectionToolbar'
 import { UploadPhotoGrid } from './UploadPhotoGrid'
 
+import { getPreset } from '@/lib/ai/presets'
+
 import type { Media, Project } from '@/types/supabase'
 import type { MediaItem } from '@/types/media'
 import type {
@@ -33,6 +35,18 @@ import type {
   ProjectStatus,
 } from '@/types/ai-workspace'
 import { DEFAULT_CATEGORIES } from '@/types/ai-workspace'
+
+/** Color palette cycled across dynamically-generated preset category columns */
+const PRESET_COLORS = [
+  '#F59E0B', // amber
+  '#3B82F6', // blue
+  '#A855F7', // purple
+  '#EC4899', // pink
+  '#10B981', // emerald
+  '#F97316', // orange
+  '#06B6D4', // cyan
+  '#8B5CF6', // violet
+]
 
 function mediaToItem(m: Media): MediaItem {
   return {
@@ -141,7 +155,15 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
 
         if (itemsToClassify.length === 0) return
 
-        const results = await classifyBatch(itemsToClassify, { projectId: project.id })
+        // Read presetId inline from project metadata so this effect doesn't need
+        // activePresetId in its dependency array (which would cause re-sort on every
+        // preferences change even with no new uploads).
+        const metaPresetId = (
+          (project.metadata as Record<string, unknown> | null)
+            ?.ai_preferences as { presetId?: string } | undefined
+        )?.presetId ?? 'wedding'
+
+        const results = await classifyBatch(itemsToClassify, { projectId: project.id, presetId: metaPresetId })
 
         // Update local store + apply any culling results we have
         await Promise.all(
@@ -189,14 +211,39 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
   const flatMediaItems = useMemo(() => allMedia.map(mediaToItem), [allMedia])
   const totalPhotos = allMedia.length
 
-  // Category columns with photo counts
+  // ─── Preset resolution ───────────────────────────────────────────────────────
+  // Reads the presetId stored in project.metadata.ai_preferences, defaulting to
+  // 'wedding' so existing projects keep their current column layout.
+  const activePresetId = useMemo(() => {
+    const meta = project.metadata as Record<string, unknown> | null
+    const prefs = meta?.ai_preferences as { presetId?: string } | undefined
+    return prefs?.presetId ?? 'wedding'
+  }, [project.metadata])
+
+  const activePreset = useMemo(() => getPreset(activePresetId), [activePresetId])
+
+  // Category columns with photo counts.
+  // When an active preset is resolved its SortCategory list drives the columns
+  // (names like 'Architecture', 'Street', 'Food' for the travel preset).
+  // Falls back to DEFAULT_CATEGORIES (Ceremony/Portraits/Reception/Details)
+  // only when no preset is found — this should never happen in practice because
+  // every project defaults to 'wedding'.
   const categoryColumns = useMemo(() => {
+    if (activePreset) {
+      return activePreset.categories.map((cat, i) => ({
+        id: cat.name.toLowerCase().replace(/[\s&/]+/g, '-'),
+        name: cat.name,
+        color: PRESET_COLORS[i % PRESET_COLORS.length],
+        photos: (groups[cat.name] ?? []).map(mediaToItem),
+        photoCount: (groups[cat.name] ?? []).length,
+      }))
+    }
     return DEFAULT_CATEGORIES.map((cat) => ({
       ...cat,
       photos: (groups[cat.name] ?? []).map(mediaToItem),
       photoCount: (groups[cat.name] ?? []).length,
     }))
-  }, [groups])
+  }, [activePreset, groups])
 
   // Uncategorized photos
   const uncategorizedPhotos = useMemo(() => {
@@ -264,6 +311,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     try {
       const results = await classifyBatch(itemsToClassify, {
         projectId: project.id,
+        presetId: activePresetId,
       })
 
       // Update the local media store with AI results
@@ -275,7 +323,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     } catch (err) {
       console.error('AI Sort failed:', err)
     }
-  }, [classifierStatus, isAIRunning, allRawMedia, classifyBatch, project.id, editMedia])
+  }, [classifierStatus, isAIRunning, allRawMedia, classifyBatch, project.id, activePresetId, editMedia])
 
   const handlePublish = useCallback(() => {
     router.push(`/dashboard/project/${project.id}/publish`)
