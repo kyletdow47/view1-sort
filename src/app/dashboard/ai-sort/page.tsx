@@ -760,9 +760,22 @@ function SortPhase({
 
     // Surface uncaught worker errors (script load failure, syntax errors, etc.)
     worker.onerror = (e) => {
+      clearTimeout(modelLoadTimeout)
       setStage('error')
       setErrorMsg(e.message ?? 'Worker failed to start — check browser console for details')
     }
+
+    // Safety timeout: if the model hasn't sent loadProgress within 30s, the
+    // worker likely silently crashed (e.g. WASM failed to load). Surface it.
+    const modelLoadTimeout = setTimeout(() => {
+      if (!hasDoneRef.current) {
+        setStage('error')
+        setErrorMsg(
+          'AI model timed out. This can happen on a slow connection or if your browser blocks WebAssembly. Try refreshing — the model downloads once (~330 MB) and is then cached.'
+        )
+        worker.terminate()
+      }
+    }, 30_000)
 
     // Resolve preset labels once before classification starts so the CLIP model
     // scores against niche-specific vocabulary (travel, wedding, etc.) rather
@@ -772,7 +785,7 @@ function SortPhase({
 
     worker.onmessage = async (e: MessageEvent<WorkerResponse>) => {
       const msg = e.data
-      if (msg.type === 'loadProgress') { setModelProgress(msg.progress); return }
+      if (msg.type === 'loadProgress') { clearTimeout(modelLoadTimeout); setModelProgress(msg.progress); return }
       if (msg.type === 'error' && !msg.photoId) {
         // Global worker error (e.g. model load failed)
         setStage('error')
@@ -780,6 +793,7 @@ function SortPhase({
         return
       }
       if (msg.type === 'modelLoaded') {
+        clearTimeout(modelLoadTimeout)
         setStage('classifying')
         for (const item of kept) {
           try {
@@ -823,7 +837,7 @@ function SortPhase({
     }
 
     worker.postMessage({ type: 'loadModel' })
-    return () => { worker.terminate() }
+    return () => { clearTimeout(modelLoadTimeout); worker.terminate() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
