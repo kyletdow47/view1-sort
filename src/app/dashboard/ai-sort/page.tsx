@@ -164,6 +164,7 @@ function SortSettingsPanel({
   setVibeKeywords,
   onStartSorting,
   disabled,
+  showStartButton = true,
 }: {
   presetId: string
   setPresetId: (v: string) => void
@@ -175,6 +176,7 @@ function SortSettingsPanel({
   setVibeKeywords: (v: string[]) => void
   onStartSorting: () => void
   disabled: boolean
+  showStartButton?: boolean
 }) {
   const catItems: { key: keyof SortCategories; label: string }[] = [
     { key: 'blurry', label: 'Blurry' },
@@ -277,22 +279,26 @@ function SortSettingsPanel({
         <VibeTagInput keywords={vibeKeywords} onChange={setVibeKeywords} compact />
       </div>
 
-      {/* Spacer */}
-      <div className="flex-1" />
+      {showStartButton && (
+        <>
+          {/* Spacer */}
+          <div className="flex-1" />
 
-      {/* Start Sorting */}
-      <button
-        onClick={onStartSorting}
-        disabled={disabled}
-        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl font-semibold text-white transition-opacity disabled:opacity-40 hover:opacity-90"
-        style={{
-          background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)',
-          boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
-        }}
-      >
-        <Zap className="h-4 w-4" />
-        Start Sorting
-      </button>
+          {/* Start Sorting */}
+          <button
+            onClick={onStartSorting}
+            disabled={disabled}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl font-semibold text-white transition-opacity disabled:opacity-40 hover:opacity-90"
+            style={{
+              background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)',
+              boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
+            }}
+          >
+            <Zap className="h-4 w-4" />
+            Start Sorting
+          </button>
+        </>
+      )}
     </div>
   )
 }
@@ -736,21 +742,36 @@ function SortPhase({
   const [stage, setStage] = useState<'loading' | 'classifying' | 'done' | 'error'>('loading')
   const [modelProgress, setModelProgress] = useState(0)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const workerRef = useRef<Worker | null>(null)
   const hasDoneRef = useRef(false)
+
+  const handleRetry = useCallback(() => {
+    // Terminate any hanging worker before restarting
+    workerRef.current?.terminate()
+    workerRef.current = null
+    hasDoneRef.current = false
+    setStage('loading')
+    setModelProgress(0)
+    setProgress(0)
+    setErrorMsg(null)
+    setRetryCount((n) => n + 1)
+  }, [])
 
   useEffect(() => {
     const kept = files.filter((f) => f.keep)
     if (kept.length === 0) { onDone(files); return }
 
+    hasDoneRef.current = false
     const results = new Map<string, string>()
     let classified = 0
 
     let worker: Worker
     try {
-      // Use relative path — @/ alias does not resolve inside new URL() in
-      // production Webpack builds. Path: app/dashboard/ai-sort → lib/ai/worker.ts
-      worker = new Worker(new URL('../../../lib/ai/worker.ts', import.meta.url))
+      // Use the static public worker — bypasses Turbopack/Webpack entirely.
+      // It imports @xenova/transformers from CDN as an ES module, which also
+      // resolves WASM binaries from an absolute CDN URL (no blob-URL path issue).
+      worker = new Worker('/ai-worker.js', { type: 'module' })
     } catch (err) {
       setStage('error')
       setErrorMsg(`Could not start AI worker: ${err instanceof Error ? err.message : String(err)}`)
@@ -758,24 +779,29 @@ function SortPhase({
     }
     workerRef.current = worker
 
-    // Surface uncaught worker errors (script load failure, syntax errors, etc.)
+    // Surface uncaught worker errors (script load failure, CORS issues, etc.)
     worker.onerror = (e) => {
       clearTimeout(modelLoadTimeout)
       setStage('error')
-      setErrorMsg(e.message ?? 'Worker failed to start — check browser console for details')
+      const raw = e.message ?? ''
+      setErrorMsg(
+        raw.includes('Failed to fetch') || raw.includes('NetworkError')
+          ? 'Could not download the AI model. Check your internet connection and try again.'
+          : raw || 'Worker failed — open browser console for details'
+      )
     }
 
-    // Safety timeout: if the model hasn't sent loadProgress within 30s, the
-    // worker likely silently crashed (e.g. WASM failed to load). Surface it.
+    // Safety timeout: if no loadProgress fires within 90 s the worker silently
+    // crashed before it could start the model download.
     const modelLoadTimeout = setTimeout(() => {
       if (!hasDoneRef.current) {
         setStage('error')
         setErrorMsg(
-          'AI model timed out. This can happen on a slow connection or if your browser blocks WebAssembly. Try refreshing — the model downloads once (~330 MB) and is then cached.'
+          'AI model is taking too long to start. Make sure you have a stable internet connection — the model downloads once (~330 MB) and is cached after that. Chrome works best.'
         )
         worker.terminate()
       }
-    }, 30_000)
+    }, 90_000)
 
     // Resolve preset labels once before classification starts so the CLIP model
     // scores against niche-specific vocabulary (travel, wedding, etc.) rather
@@ -839,7 +865,7 @@ function SortPhase({
     worker.postMessage({ type: 'loadModel' })
     return () => { clearTimeout(modelLoadTimeout); worker.terminate() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [retryCount])
 
   const displayProgress = stage === 'loading' ? modelProgress : progress
 
@@ -854,15 +880,25 @@ function SortPhase({
           <h2 className="text-xl font-bold text-white">AI Sort failed</h2>
           <p className="mt-2 max-w-sm text-[13px] text-white/60">{errorMsg ?? 'An unexpected error occurred.'}</p>
         </div>
-        <p className="max-w-sm text-center text-[11px] text-white/30">
-          Try refreshing the page. If this is your first time, the AI model (~330 MB) needs to download once — make sure you have a stable internet connection.
+        <div className="flex gap-3">
+          <button
+            onClick={handleRetry}
+            className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
+          >
+            <Zap className="h-4 w-4" />
+            Try again
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-[13px] font-semibold text-white/80 hover:bg-white/15 transition-colors"
+          >
+            Reload page
+          </button>
+        </div>
+        <p className="max-w-xs text-center text-[11px] text-white/25">
+          First-time setup downloads the AI model (~330 MB). Requires a stable connection and a modern browser — Chrome works best.
         </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-[13px] font-semibold text-white/80 hover:bg-white/15 transition-colors"
-        >
-          Reload &amp; retry
-        </button>
       </div>
     )
   }
@@ -1454,6 +1490,7 @@ export default function AISortPage() {
             setVibeKeywords={setVibeKeywords}
             onStartSorting={handleStartSorting}
             disabled={files.length === 0}
+            showStartButton={false}
           />
         </div>
       )}
