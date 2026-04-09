@@ -58,11 +58,6 @@ export function AISortWorkspace({
       }
     }
 
-    // Use mock data if no real confidence scores available
-    if (allMedia.length === 0 || (high === 0 && medium === 0 && low === allMedia.length)) {
-      return { high: 312, medium: 423, low: 112 }
-    }
-
     return { high, medium, low }
   }, [allMedia])
 
@@ -95,7 +90,7 @@ export function AISortWorkspace({
   }, [categoryColumns, settings.confidenceThreshold, settings.categoryMappings])
 
   const needsReviewCount = needsReviewPhotos.length
-  const totalPhotos = allMedia.length || 847
+  const totalPhotos = allMedia.length
 
   // Real culling counts from DB flags
   const blurryCount = allMedia.filter((m) => m.is_blurry).length

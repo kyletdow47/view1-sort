@@ -547,12 +547,12 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         )}
       </div>
 
-      {/* Cull Slider Bar */}
-      {activeTab === 'ai-sort' && (
+      {/* Cull Slider Bar — only shown when real photos exist and AI sort has run */}
+      {activeTab === 'ai-sort' && hasAICategories && totalPhotos > 0 && (
         <CullSliderBar
           keepCount={keepCount}
-          totalCount={totalPhotos || 847}
-          aiRecommendation={Math.round((totalPhotos || 847) * 0.4)}
+          totalCount={totalPhotos}
+          aiRecommendation={Math.round(totalPhotos * 0.4)}
           onKeepCountChange={setKeepCount}
         />
       )}
