@@ -9,4 +9,13 @@ export interface MediaItem {
   ai_confidence?: number | null
   orientation?: MediaOrientation | null
   selected?: boolean
+  // Culling flags set by canvas-based analysis during upload
+  is_blurry?: boolean | null
+  is_duplicate?: boolean | null
+  is_overexposed?: boolean | null
+  is_underexposed?: boolean | null
+  culling_confidence?: number | null
+  // User review flags
+  is_starred?: boolean | null
+  review_flag?: 'keep' | 'reject' | null
 }

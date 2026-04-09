@@ -34,6 +34,7 @@ import type {
 import { DEFAULT_CATEGORIES } from '@/types/ai-workspace'
 
 function mediaToItem(m: Media): MediaItem {
+  const ext = m as unknown as Record<string, unknown>
   return {
     id: m.id,
     filename: m.filename,
@@ -42,6 +43,13 @@ function mediaToItem(m: Media): MediaItem {
     ai_category: m.ai_category,
     ai_confidence: m.ai_confidence,
     orientation: m.orientation,
+    is_blurry: ext.is_blurry as boolean | null | undefined,
+    is_duplicate: ext.is_duplicate as boolean | null | undefined,
+    is_overexposed: ext.is_overexposed as boolean | null | undefined,
+    is_underexposed: ext.is_underexposed as boolean | null | undefined,
+    culling_confidence: ext.culling_confidence as number | null | undefined,
+    is_starred: ext.is_starred as boolean | null | undefined,
+    review_flag: ext.review_flag as 'keep' | 'reject' | null | undefined,
   }
 }
 

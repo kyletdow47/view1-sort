@@ -101,13 +101,9 @@ export function useAIClassifier(): UseAIClassifierReturn {
           const batchResults = await Promise.allSettled(
             batch.map(async ({ id, thumbnail_url }) => {
               if (!thumbnail_url) return null
-              // Create a synthetic File-like object from the URL for classify().
-              // Since useClassifier.classify() calls fileToBase64(file), we need
-              // to fetch the thumbnail and wrap it as a Blob/File.
-              const res = await fetch(thumbnail_url)
-              const blob = await res.blob()
-              const file = new File([blob], `${id}.jpg`, { type: blob.type || 'image/jpeg' })
-              const results: ClassificationResult[] = await classify(file, id)
+              // Pass the URL directly — @xenova/transformers fetches it internally,
+              // avoiding the CORS preflight we would get from a client-side fetch().
+              const results: ClassificationResult[] = await classify(thumbnail_url, id)
               // Take the top result as the canonical category
               const top = results[0]
               if (!top) return null
