@@ -1,16 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
-// TODO: Wire to Claude API (claude-sonnet-4-6) via Supabase Edge Function.
-// See ARCHITECTURE-DECISIONS.md Decision 2 — AI Architecture (server-side language tasks).
-//
-// Implementation plan:
-//   1. Accept platform, tone, and optional image description in POST body
-//   2. Build a system prompt: "You are a professional photographer's social media assistant..."
-//   3. Call claude-sonnet-4-6 with the photographer's brand tone + image context
-//   4. Return 3 caption variants (Professional / Warm / Storytelling)
-//
-// For now this stub returns mock captions to unblock UI development.
-
+// Mock fallback — used when ANTHROPIC_API_KEY is not set (local dev)
 const MOCK_CAPTIONS: Record<string, string[]> = {
   instagram: [
     "✨ Golden hour never disappoints. Every frame tells a story — this one tells a thousand. #GoldenHour #WeddingPhotography #CapturedMoments",
@@ -18,9 +9,9 @@ const MOCK_CAPTIONS: Record<string, string[]> = {
     "The light, the laughter, the love. Three things I chase every single shoot. #Photography #WeddingPhotographer #NaturalLight",
   ],
   facebook: [
-    "What an incredible day with Emily & Ryan. The light was absolutely perfect and these two were naturals in front of the camera. Full gallery is ready — link in bio!",
-    "Another beautiful wedding in the books! Thank you to this amazing couple for letting me be a part of your special day. Swipe through for some of my favorite moments.",
-    "When the light cooperates and the couple is magic — you get days like this. So honored to capture these moments for families to treasure for generations.",
+    "What an incredible day with this amazing couple. The light was absolutely perfect and these two were naturals in front of the camera. Full gallery is ready — link in bio!",
+    "Another beautiful wedding in the books! Thank you to this amazing couple for letting me be a part of your special day.",
+    "When the light cooperates and the couple is magic — you get days like this.",
   ],
   pinterest: [
     "Golden Hour Wedding Photography Inspiration | Soft light portraits | Natural outdoor ceremony | Pacific Northwest wedding photographer",
@@ -42,17 +33,33 @@ const DEFAULT_CAPTIONS = [
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
-  const { platform, imageDescription } = body as {
+  const { platform, imageDescription, tone, photographerStyle } = body as {
     platform?: string
     imageDescription?: string
+    tone?: string
+    photographerStyle?: string
   }
 
-  // Suppress unused warning — will be used when wired to real Claude API
-  void imageDescription
+  try {
+    // Try to call the Supabase Edge Function (requires ANTHROPIC_API_KEY on Edge)
+    const supabase = await createClient()
+    const { data, error } = await supabase.functions.invoke('generate-captions', {
+      body: { platform, imageDescription, tone, photographerStyle },
+    })
 
-  // TODO: remove artificial delay once real API is wired
-  await new Promise((resolve) => setTimeout(resolve, 800))
+    if (!error && data) {
+      return NextResponse.json(data)
+    }
 
+    // Log but fall through to mock
+    if (error) {
+      console.warn('[captions] Edge function unavailable, using mock:', error.message)
+    }
+  } catch (err) {
+    console.warn('[captions] Edge function call failed, using mock:', err)
+  }
+
+  // Mock fallback
   const captions =
     (platform && MOCK_CAPTIONS[platform.toLowerCase()]) ?? DEFAULT_CAPTIONS
 
@@ -63,6 +70,6 @@ export async function POST(req: NextRequest) {
       warm: captions[1] ?? DEFAULT_CAPTIONS[1],
       storytelling: captions[2] ?? DEFAULT_CAPTIONS[2],
     },
-    source: 'mock', // TODO: remove this field when wired to real Claude API
+    source: 'mock',
   })
 }

@@ -31,19 +31,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'description is required' }, { status: 400 })
     }
 
-    // TODO: Remove mock and call Supabase Edge Function
-    // const supabase = createServiceClient()
-    // const { data, error } = await supabase.functions.invoke('parse-vibe', {
-    //   body: { description, projectId },
-    // })
-    // if (error) throw error
-    // return NextResponse.json(data)
+    // Try Supabase Edge Function (backed by claude-haiku-4-5-20251001)
+    let response: ParseVibeResponse | null = null
+    try {
+      const { createClient } = await import('@/lib/supabase/server')
+      const supabase = await createClient()
+      const { data, error } = await supabase.functions.invoke('parse-vibe', {
+        body: { description, projectId },
+      })
+      if (!error && data) {
+        response = data as ParseVibeResponse
+      } else if (error) {
+        console.warn('[parse-vibe] Edge function unavailable, using heuristic:', error.message)
+      }
+    } catch (invokeErr) {
+      console.warn('[parse-vibe] Edge function call failed, using heuristic:', invokeErr)
+    }
 
-    // Heuristic mock — simulates Claude API structured extraction
-    const mockResponse: ParseVibeResponse = extractStyleParams(description)
-
-    // Simulate edge function latency
-    await new Promise<void>((resolve) => setTimeout(resolve, 700))
+    // Heuristic fallback — simulates Claude API structured extraction
+    const mockResponse: ParseVibeResponse = response ?? extractStyleParams(description)
 
     return NextResponse.json(mockResponse)
   } catch (err) {

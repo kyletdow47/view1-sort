@@ -20,17 +20,42 @@ const MOCK_ANSWER =
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
-  const { prompt } = body as { prompt?: string }
+  const { prompt, stats } = body as {
+    prompt?: string
+    stats?: {
+      totalPhotos: number
+      categoryCounts: Record<string, number>
+      qualityDistribution: { high: number; medium: number; low: number }
+      duplicateCount?: number
+      blurryCount?: number
+    }
+  }
 
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
     return NextResponse.json({ error: 'prompt is required' }, { status: 400 })
   }
 
-  // TODO: remove artificial delay once real API is wired
-  await new Promise((resolve) => setTimeout(resolve, 900))
+  // Try Supabase Edge Function (backed by claude-haiku-4-5-20251001) when stats provided
+  if (stats) {
+    try {
+      const { createClient } = await import('@/lib/supabase/server')
+      const supabase = await createClient()
+      const { data, error } = await supabase.functions.invoke('generate-insights', {
+        body: { stats },
+      })
+      if (!error && data) {
+        return NextResponse.json({ answer: (data as { insights: string[] }).insights?.join('\n\n') ?? '', insights: (data as { insights: string[] }).insights, source: 'claude' })
+      }
+      if (error) {
+        console.warn('[insights] Edge function unavailable, using mock:', error.message)
+      }
+    } catch (err) {
+      console.warn('[insights] Edge function call failed, using mock:', err)
+    }
+  }
 
   return NextResponse.json({
     answer: MOCK_ANSWER,
-    source: 'mock', // TODO: remove this field when wired to real Claude API
+    source: 'mock',
   })
 }

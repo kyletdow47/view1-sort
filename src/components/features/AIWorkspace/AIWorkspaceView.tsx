@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation'
 
 import { useMediaStore } from '@/stores/mediaStore'
 import { useBatchSelect } from '@/hooks/useBatchSelect'
+import { useAIClassifier } from '@/hooks/useAIClassifier'
+import { useAuth } from '@/hooks/useAuth'
+import { useStyleProfile } from '@/hooks/useStyleProfile'
 import { Lightbox } from '@/components/features/Lightbox'
 import { UploadZone } from '@/components/features/UploadZone'
 
@@ -47,6 +50,7 @@ export interface AIWorkspaceViewProps {
 
 export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps) {
   const router = useRouter()
+  const { user } = useAuth()
 
   // Store & selection
   const {
@@ -54,15 +58,28 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     groupedByCategory,
     filteredMedia,
     removeMedia,
+    editMedia,
+    media: allRawMedia,
   } = useMediaStore()
   const { selectedIds, toggle, selectRange, selectAll, deselectAll } = useBatchSelect()
+
+  // AI classifier
+  const {
+    status: classifierStatus,
+    loadProgress,
+    runProgress,
+    isRunning: isAIRunning,
+    classifyBatch,
+  } = useAIClassifier()
+
+  // Style profile learning
+  const { feedback: recordStyleFeedback } = useStyleProfile(user?.id)
 
   // UI state
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('ai-sort')
   const [activeSubTab, setActiveSubTab] = useState<AISortSubTab>('workspace')
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [showUpload, setShowUpload] = useState(false)
-  const [isAIRunning, setIsAIRunning] = useState(false)
   const [keepCount, setKeepCount] = useState(340)
   const lastSelectedRef = useRef<string | null>(null)
 
@@ -86,7 +103,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     }))
   }, [groups])
 
-  // Uncategorized photos go to a separate bucket
+  // Uncategorized photos
   const uncategorizedPhotos = useMemo(() => {
     const knownCategories = new Set(DEFAULT_CATEGORIES.map((c) => c.name))
     return Object.entries(groups)
@@ -94,7 +111,10 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       .flatMap(([, photos]) => photos.map(mediaToItem))
   }, [groups])
 
-  // Handlers
+  void uncategorizedPhotos // used by child components when needed
+
+  // ─── Handlers ──────────────────────────────────────────────────────────────
+
   const handleSelect = useCallback(
     (id: string, shiftKey: boolean) => {
       if (shiftKey && lastSelectedRef.current) {
@@ -116,11 +136,30 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     [flatMediaItems],
   )
 
-  const handleRunAI = useCallback(() => {
-    setIsAIRunning(true)
-    // TODO: Wire up actual AI classification via Web Worker
-    setTimeout(() => setIsAIRunning(false), 3000)
-  }, [])
+  const handleRunAI = useCallback(async () => {
+    if (classifierStatus !== 'ready' || isAIRunning) return
+
+    const itemsToClassify = allRawMedia
+      .filter((m) => m.thumbnail_url)
+      .map((m) => ({ id: m.id, thumbnail_url: m.thumbnail_url }))
+
+    if (itemsToClassify.length === 0) return
+
+    try {
+      const results = await classifyBatch(itemsToClassify, {
+        projectId: project.id,
+      })
+
+      // Update the local media store with AI results
+      await Promise.all(
+        results.map(({ id, category, confidence }) =>
+          editMedia(id, { ai_category: category, ai_confidence: confidence }),
+        ),
+      )
+    } catch (err) {
+      console.error('AI Sort failed:', err)
+    }
+  }, [classifierStatus, isAIRunning, allRawMedia, classifyBatch, project.id, editMedia])
 
   const handlePublish = useCallback(() => {
     router.push(`/dashboard/project/${project.id}/publish`)
@@ -143,29 +182,100 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     }
   }, [selectedIds, removeMedia, deselectAll])
 
-  // Placeholder handlers for selection toolbar actions
-  const handleStar = useCallback(() => {
-    // TODO: Implement star functionality
-  }, [])
+  // Star — toggle is_starred for all selected photos
+  const handleStar = useCallback(async () => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return
+    // Check if all are starred → toggle off, else star all
+    const allStarred = ids.every((id) => {
+      const m = allRawMedia.find((media) => media.id === id)
+      return (m as unknown as { is_starred?: boolean })?.is_starred === true
+    })
+    await Promise.all(
+      ids.map((id) => editMedia(id, { is_starred: !allStarred } as Parameters<typeof editMedia>[1])),
+    )
+  }, [selectedIds, allRawMedia, editMedia])
 
-  const handleFlagRed = useCallback(() => {
-    // TODO: Implement reject flag
-  }, [])
+  // Flag red = reject
+  const handleFlagRed = useCallback(async () => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return
+    await Promise.all(
+      ids.map((id) => {
+        const m = allRawMedia.find((media) => media.id === id)
+        if (m?.ai_category) {
+          recordStyleFeedback('default', m.ai_category, false)
+        }
+        return editMedia(id, { review_flag: 'reject' } as Parameters<typeof editMedia>[1])
+      }),
+    )
+  }, [selectedIds, allRawMedia, editMedia, recordStyleFeedback])
 
-  const handleFlagGreen = useCallback(() => {
-    // TODO: Implement keep flag
-  }, [])
+  // Flag green = keep
+  const handleFlagGreen = useCallback(async () => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return
+    await Promise.all(
+      ids.map((id) => {
+        const m = allRawMedia.find((media) => media.id === id)
+        if (m?.ai_category) {
+          recordStyleFeedback('default', m.ai_category, true)
+        }
+        return editMedia(id, { review_flag: 'keep' } as Parameters<typeof editMedia>[1])
+      }),
+    )
+  }, [selectedIds, allRawMedia, editMedia, recordStyleFeedback])
 
-  const handleMove = useCallback(() => {
-    // TODO: Implement move to category
-  }, [])
+  // Move selected photos to a category (opens prompt for now; replaced by drag-drop)
+  const handleMove = useCallback(async () => {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return
+    const categoryNames = DEFAULT_CATEGORIES.map((c) => c.name).join(', ')
+    const target = window.prompt(`Move ${ids.length} photo(s) to category:\n${categoryNames}`)
+    if (!target) return
+    const matched = DEFAULT_CATEGORIES.find(
+      (c) => c.name.toLowerCase() === target.toLowerCase().trim(),
+    )
+    if (!matched) return
+    await Promise.all(
+      ids.map((id) => {
+        const m = allRawMedia.find((media) => media.id === id)
+        if (m?.ai_category) {
+          recordStyleFeedback('default', m.ai_category, false)
+          recordStyleFeedback('default', matched.name, true)
+        }
+        return editMedia(id, { ai_category: matched.name })
+      }),
+    )
+    deselectAll()
+  }, [selectedIds, allRawMedia, editMedia, recordStyleFeedback, deselectAll])
+
+  // Handle drag-drop between category columns
+  const handleCategoryDrop = useCallback(
+    async (mediaId: string, targetCategory: string) => {
+      const m = allRawMedia.find((media) => media.id === mediaId)
+      if (m?.ai_category === targetCategory) return
+      if (m?.ai_category) {
+        recordStyleFeedback('default', m.ai_category, false)
+      }
+      recordStyleFeedback('default', targetCategory, true)
+      await editMedia(mediaId, { ai_category: targetCategory })
+    },
+    [allRawMedia, editMedia, recordStyleFeedback],
+  )
 
   const handleReviewFlags = useCallback(() => {
-    // TODO: Navigate to review tab with flags filter
     setActiveTab('review')
   }, [])
 
   const projectStatus = (project.status ?? 'processing') as ProjectStatus
+
+  // Derive Run AI button label from classifier status
+  const runAILabel = useMemo(() => {
+    if (classifierStatus === 'loading') return `Loading model (${loadProgress}%)…`
+    if (isAIRunning) return `Sorting… ${runProgress}%`
+    return 'Run AI Sort'
+  }, [classifierStatus, loadProgress, isAIRunning, runProgress])
 
   return (
     <div className="flex flex-col h-full w-full min-h-0 overflow-hidden">
@@ -176,7 +286,8 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         photoCount={totalPhotos}
         onRunAI={handleRunAI}
         onPublish={handlePublish}
-        isAIRunning={isAIRunning}
+        isAIRunning={isAIRunning || classifierStatus === 'loading'}
+        runAILabel={runAILabel}
       />
 
       {/* Tab Bar */}
@@ -186,19 +297,17 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         photoCount={totalPhotos}
       />
 
-      {/* Content Area — grows to fill remaining space */}
+      {/* Content Area */}
       <div className="flex flex-col flex-1 min-h-0 gap-4 px-6">
         {activeTab === 'ai-sort' && (
           <>
-            {/* Sub-Tab Row */}
             <SubTabRow
               activeSubTab={activeSubTab}
               onSubTabChange={setActiveSubTab}
-              onApproveAll={() => {/* TODO: approve all photos in current category */}}
+              onApproveAll={() => {/* TODO: approve all */}}
               onReSort={handleRunAI}
             />
 
-            {/* Main Content: Sort Controls + Category Columns + AI Panel */}
             {activeSubTab === 'workspace' ? (
               <AISortWorkspace
                 categoryColumns={categoryColumns}
@@ -207,10 +316,11 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
                 onSelect={handleSelect}
                 onDoubleClick={handleDoubleClick}
                 onReviewFlags={handleReviewFlags}
+                onCategoryDrop={handleCategoryDrop}
               />
             ) : activeSubTab === 'upload' ? (
-              <div className="flex items-center justify-center flex-1 text-white/30 text-lg">
-                Upload sub-tab — drag photos here or click to upload
+              <div className="flex items-center justify-center flex-1">
+                <UploadZone projectId={project.id} />
               </div>
             ) : activeSubTab === 'preferences' ? (
               <AISortPreferences />
@@ -228,6 +338,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
                       selectedIds={selectedIds}
                       onSelect={handleSelect}
                       onDoubleClick={handleDoubleClick}
+                      onDrop={handleCategoryDrop}
                     />
                   ))}
                 </div>
@@ -277,7 +388,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         />
       )}
 
-      {/* Selection Toolbar (floating at bottom) */}
+      {/* Selection Toolbar */}
       <WorkspaceSelectionToolbar
         selectedCount={selectedIds.size}
         onStar={handleStar}
