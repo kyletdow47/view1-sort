@@ -34,7 +34,6 @@ import type {
 import { DEFAULT_CATEGORIES } from '@/types/ai-workspace'
 
 function mediaToItem(m: Media): MediaItem {
-  const ext = m as unknown as Record<string, unknown>
   return {
     id: m.id,
     filename: m.filename,
@@ -43,13 +42,13 @@ function mediaToItem(m: Media): MediaItem {
     ai_category: m.ai_category,
     ai_confidence: m.ai_confidence,
     orientation: m.orientation,
-    is_blurry: ext.is_blurry as boolean | null | undefined,
-    is_duplicate: ext.is_duplicate as boolean | null | undefined,
-    is_overexposed: ext.is_overexposed as boolean | null | undefined,
-    is_underexposed: ext.is_underexposed as boolean | null | undefined,
-    culling_confidence: ext.culling_confidence as number | null | undefined,
-    is_starred: ext.is_starred as boolean | null | undefined,
-    review_flag: ext.review_flag as 'keep' | 'reject' | null | undefined,
+    is_blurry: m.is_blurry,
+    is_duplicate: m.is_duplicate,
+    is_overexposed: m.is_overexposed,
+    is_underexposed: m.is_underexposed,
+    culling_confidence: m.culling_confidence,
+    is_starred: m.is_starred,
+    review_flag: m.review_flag,
   }
 }
 
@@ -299,10 +298,10 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     // Check if all are starred → toggle off, else star all
     const allStarred = ids.every((id) => {
       const m = allRawMedia.find((media) => media.id === id)
-      return (m as unknown as { is_starred?: boolean })?.is_starred === true
+      return m?.is_starred === true
     })
     await Promise.all(
-      ids.map((id) => editMedia(id, { is_starred: !allStarred } as Parameters<typeof editMedia>[1])),
+      ids.map((id) => editMedia(id, { is_starred: !allStarred })),
     )
   }, [selectedIds, allRawMedia, editMedia])
 
@@ -316,7 +315,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         if (m?.ai_category) {
           recordStyleFeedback('default', m.ai_category, false)
         }
-        return editMedia(id, { review_flag: 'reject' } as Parameters<typeof editMedia>[1])
+        return editMedia(id, { review_flag: 'reject' })
       }),
     )
   }, [selectedIds, allRawMedia, editMedia, recordStyleFeedback])
@@ -331,7 +330,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         if (m?.ai_category) {
           recordStyleFeedback('default', m.ai_category, true)
         }
-        return editMedia(id, { review_flag: 'keep' } as Parameters<typeof editMedia>[1])
+        return editMedia(id, { review_flag: 'keep' })
       }),
     )
   }, [selectedIds, allRawMedia, editMedia, recordStyleFeedback])
@@ -378,6 +377,13 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     setActiveTab('review')
   }, [])
 
+  // Approve all — set review_flag = 'keep' for every photo that hasn't been flagged yet
+  const handleApproveAll = useCallback(async () => {
+    const unflagged = allRawMedia.filter((m) => !m.review_flag)
+    if (unflagged.length === 0) return
+    await Promise.all(unflagged.map((m) => editMedia(m.id, { review_flag: 'keep' })))
+  }, [allRawMedia, editMedia])
+
   const projectStatus = (project.status ?? 'processing') as ProjectStatus
 
   // Derive Run AI button label from classifier status
@@ -414,7 +420,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
             <SubTabRow
               activeSubTab={activeSubTab}
               onSubTabChange={setActiveSubTab}
-              onApproveAll={() => {/* TODO: approve all */}}
+              onApproveAll={handleApproveAll}
               onReSort={handleRunAI}
             />
 
@@ -427,13 +433,14 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
                 onDoubleClick={handleDoubleClick}
                 onReviewFlags={handleReviewFlags}
                 onCategoryDrop={handleCategoryDrop}
+                onBatchReclassify={handleRunAI}
               />
             ) : activeSubTab === 'upload' ? (
               <div className="flex items-center justify-center flex-1">
                 <UploadZone projectId={project.id} onFilesQueued={handleFilesQueued} />
               </div>
             ) : activeSubTab === 'preferences' ? (
-              <AISortPreferences />
+              <AISortPreferences projectId={project.id} />
             ) : activeSubTab === 'vibe-presets' ? (
               <VibePresetsTab projectId={project.id} />
             ) : (

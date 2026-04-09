@@ -12,6 +12,7 @@ const demoProject = (id: string, name: string, preset: string, status: 'active' 
   cover_image_url: null, gallery_public: false, gallery_theme: 'dark',
   pricing_model: 'free', flat_fee_cents: null, per_photo_cents: null, currency: 'usd',
   created_at: '2023-09-14', updated_at: '2023-09-14',
+  metadata: null,
 })
 
 const DEMO_PROJECTS: Project[] = [

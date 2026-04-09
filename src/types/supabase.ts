@@ -67,6 +67,9 @@ export interface Project {
   currency: string
   created_at: string
   updated_at: string
+  // Flexible project metadata (migration 20260409000003)
+  // Stores: { ai_preferences?: AIPreferences, ... }
+  metadata: Record<string, unknown> | null
 }
 
 export interface Media {
@@ -88,6 +91,15 @@ export interface Media {
   ai_labels: Record<string, unknown> | null
   sort_order: number
   created_at: string
+  // Culling analysis columns (migration 20260409000000)
+  is_blurry: boolean | null
+  is_duplicate: boolean | null
+  is_overexposed: boolean | null
+  is_underexposed: boolean | null
+  culling_confidence: number | null
+  // Star & review flag columns (migration 20260409000001)
+  is_starred: boolean | null
+  review_flag: 'keep' | 'reject' | null
 }
 
 export interface Category {
@@ -254,7 +266,9 @@ export interface GalleryComment {
 export type ProfileInsert = Omit<Profile, 'created_at' | 'updated_at'>
 export type WorkspaceInsert = Omit<Workspace, 'id' | 'created_at'>
 export type WorkspaceMemberInsert = Omit<WorkspaceMember, 'joined_at'>
-export type ProjectInsert = Omit<Project, 'id' | 'created_at' | 'updated_at'>
+export type ProjectInsert = Omit<Project, 'id' | 'created_at' | 'updated_at' | 'metadata'> & {
+  metadata?: Record<string, unknown> | null
+}
 export type MediaInsert = Omit<Media, 'id' | 'created_at'>
 export type CategoryInsert = Omit<Category, 'id'>
 export type GalleryAccessInsert = Omit<GalleryAccess, 'id' | 'token' | 'granted_at'>

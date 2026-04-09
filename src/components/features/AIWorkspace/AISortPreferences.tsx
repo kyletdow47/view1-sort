@@ -9,6 +9,7 @@ import {
   ChevronsUpDown,
 } from 'lucide-react'
 
+import { createClient } from '@/lib/supabase/client'
 import type {
   AIPreferences,
   ShootingStyle,
@@ -246,19 +247,55 @@ function NumberInput({
 }
 
 /* ─── Main Preferences Component ─── */
-export function AISortPreferences() {
+export function AISortPreferences({ projectId }: { projectId?: string }) {
   const [prefs, setPrefs] = useState<AIPreferences>({ ...DEFAULT_AI_PREFERENCES })
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  const supabase = createClient()
 
-  // Auto-save with debounce
+  // Load preferences from project metadata on mount
+  useEffect(() => {
+    if (!projectId) return
+    void (async () => {
+      try {
+        const { data } = await supabase
+          .from('projects')
+          .select('metadata')
+          .eq('id', projectId)
+          .single()
+        const saved = (data?.metadata as Record<string, unknown> | null)?.ai_preferences
+        if (saved && typeof saved === 'object') {
+          setPrefs({ ...DEFAULT_AI_PREFERENCES, ...(saved as AIPreferences) })
+        }
+      } catch {
+        // Silently fall back to defaults if fetch fails
+      }
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId])
+
+  // Auto-save with debounce — persists to projects.metadata.ai_preferences
   const savePrefs = useCallback((updated: AIPreferences) => {
     setPrefs(updated)
+    if (!projectId) return
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      // TODO: Save to project metadata via Supabase — projects.metadata.ai_preferences JSONB field
-      console.log('[AISortPreferences] Auto-saving preferences:', updated)
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const { data: existing } = await supabase
+          .from('projects')
+          .select('metadata')
+          .eq('id', projectId)
+          .single()
+        const currentMeta = (existing?.metadata ?? {}) as Record<string, unknown>
+        await supabase
+          .from('projects')
+          .update({ metadata: { ...currentMeta, ai_preferences: updated } })
+          .eq('id', projectId)
+      } catch (err) {
+        console.error('[AISortPreferences] Failed to save preferences:', err)
+      }
     }, 800)
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId])
 
   // Shooting style toggle
   const toggleStyle = useCallback(
@@ -501,7 +538,14 @@ export function AISortPreferences() {
             className="flex items-center gap-2 rounded-[10px] bg-white/[0.08] border border-white/[0.19]
               px-3.5 py-[9px] w-full"
           >
-            <Plus className="w-3.5 h-3.5 text-white/[0.38] shrink-0" />
+            <button
+              type="button"
+              onClick={addKeyword}
+              className="shrink-0 p-0.5 rounded hover:bg-white/10 transition-colors"
+              aria-label="Add keyword"
+            >
+              <Plus className="w-3.5 h-3.5 text-white/[0.38]" />
+            </button>
             <input
               type="text"
               value={newKeyword}
