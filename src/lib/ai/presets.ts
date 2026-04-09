@@ -1,8 +1,409 @@
+// ─── MobileNet preset system ─────────────────────────────────────────────────
+// Maps MobileNet ImageNet predictions to photographer-specific categories.
+// Each category has a `keywords` array of lowercase ImageNet class name
+// fragments. matchPredictionToCategory sums probabilities for keyword matches.
+
+export type PresetType = 'real_estate' | 'wedding' | 'travel' | 'general'
+
+export interface Category {
+  id: string
+  label: string
+  keywords: string[]
+  icon: string
+}
+
+export interface CategoryPreset {
+  name: string
+  categories: Category[]
+}
+
+export type MatchResult = {
+  category: string
+  confidence: number
+  allScores: Record<string, number>
+}
+
+export const PRESETS: Record<PresetType, CategoryPreset> = {
+  real_estate: {
+    name: 'Real Estate',
+    categories: [
+      {
+        id: 'exterior',
+        label: 'Exterior',
+        icon: 'home',
+        keywords: [
+          'house', 'villa', 'cottage', 'mansion', 'bungalow', 'barn',
+          'porch', 'balcony', 'boathouse', 'garage', 'farmhouse',
+          'lakehouse', 'greenhouse', 'carport', 'picket fence',
+        ],
+      },
+      {
+        id: 'interior',
+        label: 'Interior',
+        icon: 'sofa',
+        keywords: [
+          'couch', 'sofa', 'rocking chair', 'studio couch', 'chiffonier',
+          'bookcase', 'wardrobe', 'chest', 'desk', 'recliner', 'loveseat',
+          'entertainment center', 'fireplace screen', 'radiator',
+        ],
+      },
+      {
+        id: 'kitchen',
+        label: 'Kitchen',
+        icon: 'chef-hat',
+        keywords: [
+          'kitchen', 'refrigerator', 'stove', 'microwave', 'dishwasher',
+          'dining table', 'toaster', 'oven', 'sink', 'coffeepot', 'pot',
+          'frying pan', 'spatula', 'ladle', 'kitchen sink',
+        ],
+      },
+      {
+        id: 'bathroom',
+        label: 'Bathroom',
+        icon: 'bath',
+        keywords: [
+          'bathtub', 'shower', 'toilet seat', 'toilet tissue',
+          'soap dispenser', 'washbasin', 'plunger', 'toilet', 'medicine chest',
+        ],
+      },
+      {
+        id: 'drone_aerial',
+        label: 'Drone / Aerial',
+        icon: 'plane',
+        keywords: [
+          'golf course', 'dam', 'fountain', 'flagpole', 'runway',
+          'solar dish', 'amphitheater', 'baseball field', 'soccer field',
+          'tennis court', 'swimming pool',
+        ],
+      },
+      {
+        id: 'pool_outdoor',
+        label: 'Pool / Outdoor',
+        icon: 'waves',
+        keywords: [
+          'patio', 'umbrella', 'lounge chair', 'lawn mower', 'barbecue',
+          'garden hose', 'swing', 'hammock', 'gazebo', 'deck',
+          'hot tub', 'outdoor furniture', 'park bench',
+        ],
+      },
+      {
+        id: 'landscape',
+        label: 'Landscape',
+        icon: 'mountain',
+        keywords: [
+          'lawn', 'garden', 'valley', 'lakeside', 'alp', 'cliff',
+          'seashore', 'corn field', 'stone wall', 'tree', 'flower garden',
+          'promontory', 'sandbar',
+        ],
+      },
+      {
+        id: 'twilight',
+        label: 'Twilight',
+        icon: 'moon',
+        keywords: [
+          'street sign', 'traffic light', 'lantern', 'beacon', 'candle',
+          'torch', 'spotlight', 'lamp', 'streetlight', 'neon sign',
+        ],
+      },
+      { id: 'video', label: 'Video', icon: 'video', keywords: [] },
+      { id: 'other', label: 'Other', icon: 'more-horizontal', keywords: [] },
+    ],
+  },
+
+  wedding: {
+    name: 'Wedding',
+    categories: [
+      {
+        id: 'ceremony',
+        label: 'Ceremony',
+        icon: 'heart',
+        keywords: [
+          'church', 'altar', 'mosque', 'monastery', 'palace',
+          'stage', 'throne', 'pew', 'chapel', 'cathedral',
+        ],
+      },
+      {
+        id: 'reception',
+        label: 'Reception',
+        icon: 'glass-cheers',
+        keywords: [
+          'banquet', 'ballroom', 'reception hall', 'dining room',
+          'candelabrum', 'wine glass', 'champagne', 'goblet',
+          'table lamp', 'centerpiece',
+        ],
+      },
+      {
+        id: 'portraits',
+        label: 'Portraits',
+        icon: 'camera',
+        keywords: [
+          'suit', 'bow tie', 'gown', 'veil', 'tuxedo',
+          'dress', 'bouquet', 'corsage', 'wedding dress', 'bridal',
+        ],
+      },
+      {
+        id: 'getting_ready',
+        label: 'Getting Ready',
+        icon: 'sparkles',
+        keywords: [
+          'mirror', 'lipstick', 'comb', 'curling iron', 'hair spray',
+          'makeup brush', 'perfume bottle', 'nail polish', 'hand mirror',
+        ],
+      },
+      {
+        id: 'details',
+        label: 'Details',
+        icon: 'gem',
+        keywords: [
+          'ring', 'necklace', 'bracelet', 'earring', 'shoe',
+          'high heel', 'sandal', 'flower arrangement', 'ribbon',
+        ],
+      },
+      {
+        id: 'dance',
+        label: 'Dance',
+        icon: 'music',
+        keywords: [
+          'dance', 'dancing', 'disco', 'spotlight', 'microphone',
+          'accordion', 'band', 'stage', 'loudspeaker',
+        ],
+      },
+      {
+        id: 'family',
+        label: 'Family',
+        icon: 'users',
+        keywords: [
+          'toddler', 'baby', 'child', 'stroller', 'pram',
+          'playpen', 'diaper', 'bonnet',
+        ],
+      },
+      {
+        id: 'venue',
+        label: 'Venue',
+        icon: 'building',
+        keywords: [
+          'barn', 'castle', 'garden', 'vineyard', 'beach',
+          'cliff', 'lakeside', 'park bench', 'pergola', 'archway',
+        ],
+      },
+      { id: 'video', label: 'Video', icon: 'video', keywords: [] },
+      { id: 'other', label: 'Other', icon: 'more-horizontal', keywords: [] },
+    ],
+  },
+
+  travel: {
+    name: 'Travel',
+    categories: [
+      {
+        id: 'landmarks',
+        label: 'Landmarks',
+        icon: 'map-pin',
+        keywords: [
+          'pyramid', 'triumphal arch', 'obelisk', 'monument',
+          'statue', 'tower', 'lighthouse', 'castle', 'palace', 'temple',
+        ],
+      },
+      {
+        id: 'street',
+        label: 'Street',
+        icon: 'map',
+        keywords: [
+          'street sign', 'traffic light', 'crosswalk', 'bus stop',
+          'tram', 'bicycle', 'market', 'alley', 'plaza', 'sidewalk cafe',
+        ],
+      },
+      {
+        id: 'food',
+        label: 'Food',
+        icon: 'utensils',
+        keywords: [
+          'restaurant', 'plate', 'pizza', 'sushi', 'soup', 'burrito',
+          'ice cream', 'bakery', 'coffee', 'espresso', 'cup',
+        ],
+      },
+      {
+        id: 'accommodation',
+        label: 'Accommodation',
+        icon: 'bed',
+        keywords: [
+          'hotel', 'resort', 'bed', 'pillow', 'duvet', 'hammock',
+          'tent', 'bunk bed', 'hostel', 'villa',
+        ],
+      },
+      {
+        id: 'nature',
+        label: 'Nature',
+        icon: 'tree',
+        keywords: [
+          'mountain', 'glacier', 'valley', 'waterfall', 'ocean',
+          'coral reef', 'jungle', 'rainforest', 'volcano', 'geyser',
+        ],
+      },
+      {
+        id: 'people',
+        label: 'People',
+        icon: 'users',
+        keywords: [
+          'monk', 'cowboy hat', 'sombrero', 'kimono', 'sari',
+          'tribal', 'turban', 'cloak', 'uniform',
+        ],
+      },
+      {
+        id: 'transport',
+        label: 'Transport',
+        icon: 'plane',
+        keywords: [
+          'airplane', 'airport terminal', 'train', 'locomotive',
+          'ferry', 'cruise ship', 'gondola', 'rickshaw', 'tuk-tuk',
+        ],
+      },
+      {
+        id: 'nightlife',
+        label: 'Nightlife',
+        icon: 'moon',
+        keywords: [
+          'neon sign', 'bar', 'cocktail shaker', 'night club',
+          'lantern', 'candle', 'illuminated', 'fireworks',
+        ],
+      },
+      { id: 'video', label: 'Video', icon: 'video', keywords: [] },
+      { id: 'other', label: 'Other', icon: 'more-horizontal', keywords: [] },
+    ],
+  },
+
+  general: {
+    name: 'General',
+    categories: [
+      {
+        id: 'people',
+        label: 'People',
+        icon: 'users',
+        keywords: [
+          'suit', 'lab coat', 'jersey', 'sweatshirt', 'cardigan',
+          'kimono', 'sombrero', 'mortarboard', 'military uniform', 'apron',
+        ],
+      },
+      {
+        id: 'places',
+        label: 'Places',
+        icon: 'map-pin',
+        keywords: [
+          'church', 'library', 'shopping mall', 'airport terminal',
+          'stadium', 'gymnasium', 'hospital', 'theater curtain',
+        ],
+      },
+      {
+        id: 'objects',
+        label: 'Objects',
+        icon: 'box',
+        keywords: [
+          'laptop', 'keyboard', 'mouse', 'remote control', 'telephone',
+          'television', 'clock', 'vase', 'trophy', 'suitcase',
+        ],
+      },
+      {
+        id: 'nature',
+        label: 'Nature',
+        icon: 'tree',
+        keywords: [
+          'mountain', 'ocean', 'lake', 'forest', 'flower',
+          'mushroom', 'coral reef', 'glacier', 'valley', 'tree',
+        ],
+      },
+      {
+        id: 'architecture',
+        label: 'Architecture',
+        icon: 'building',
+        keywords: [
+          'arch', 'dome', 'steeple', 'bridge', 'skyscraper',
+          'viaduct', 'column', 'bell tower', 'amphitheater', 'monument',
+        ],
+      },
+      {
+        id: 'action',
+        label: 'Action',
+        icon: 'zap',
+        keywords: [
+          'skateboard', 'surfboard', 'snowboard', 'parachute',
+          'bicycle', 'motorcycle', 'racing car', 'canoe', 'dumbbell',
+        ],
+      },
+      {
+        id: 'detail',
+        label: 'Detail',
+        icon: 'zoom-in',
+        keywords: [
+          'macro', 'feather', 'seashell', 'crystal', 'fabric',
+          'honeycomb', 'web spider', 'caterpillar', 'dragonfly', 'butterfly',
+        ],
+      },
+      { id: 'video', label: 'Video', icon: 'video', keywords: [] },
+      { id: 'other', label: 'Other', icon: 'more-horizontal', keywords: [] },
+    ],
+  },
+}
+
+// ─── Core functions ───────────────────────────────────────────────────────────
+
+/**
+ * Match MobileNet predictions to the best preset category.
+ * Sums probabilities of predictions whose className contains (or is contained
+ * by) a category keyword. Highest-scoring non-other/video category wins.
+ * Falls back to 'other' if the best score is below `threshold`.
+ */
+export function matchPredictionToCategory(
+  predictions: Array<{ className: string; probability: number }>,
+  preset: PresetType,
+  threshold = 0.1,
+): MatchResult {
+  if (predictions.length === 0) {
+    return { category: 'other', confidence: 0, allScores: {} }
+  }
+
+  const categories = PRESETS[preset].categories
+  const allScores: Record<string, number> = {}
+
+  for (const cat of categories) {
+    let score = 0
+    if (cat.keywords.length > 0) {
+      for (const pred of predictions) {
+        const name = pred.className.toLowerCase()
+        if (cat.keywords.some((kw) => name.includes(kw) || kw.includes(name))) {
+          score += pred.probability
+        }
+      }
+    }
+    allScores[cat.id] = score
+  }
+
+  let bestCategory = 'other'
+  let bestScore = 0
+  for (const cat of categories) {
+    const score = allScores[cat.id] ?? 0
+    if (cat.id !== 'other' && cat.id !== 'video' && score > bestScore) {
+      bestScore = score
+      bestCategory = cat.id
+    }
+  }
+
+  if (bestScore < threshold) {
+    return { category: 'other', confidence: bestScore, allScores }
+  }
+  return { category: bestCategory, confidence: bestScore, allScores }
+}
+
+/** Returns the ordered list of category ids for a preset. */
+export function getPresetCategories(preset: PresetType): string[] {
+  return PRESETS[preset].categories.map((c) => c.id)
+}
+
+// ─── Backward-compat shims (used by existing pages) ──────────────────────────
+
 export interface SortCategory {
   name: string
   description?: string
-  labels: string[] // Zero-shot labels fed to the classifier
-  priority: number // Lower = sorted first in gallery
+  labels: string[]
+  priority: number
 }
 
 export interface SortPreset {
@@ -16,119 +417,30 @@ export interface SortPreset {
   icon: string
 }
 
-/* ── 6 built-in presets ─────────────────────────────────────────────── */
+function presetTypeToSortPreset(type: PresetType): SortPreset {
+  const preset = PRESETS[type]
+  return {
+    id: type,
+    name: preset.name,
+    niche: type,
+    description: `${preset.name} photography preset`,
+    icon: '📷',
+    builtIn: true,
+    rejectCriteria: ['blurry', 'duplicate'],
+    categories: preset.categories.map((c, i) => ({
+      name: c.label,
+      labels: c.keywords,
+      priority: i + 1,
+    })),
+  }
+}
 
-export const BUILT_IN_PRESETS: SortPreset[] = [
-  {
-    id: 'wedding',
-    name: 'Wedding',
-    niche: 'wedding',
-    description: 'Full wedding day coverage from getting ready to reception.',
-    icon: '💍',
-    builtIn: true,
-    rejectCriteria: ['blurry', 'closed eyes', 'duplicate', 'accidental'],
-    categories: [
-      { name: 'Getting Ready', labels: ['bride getting ready', 'groom getting ready', 'wedding preparations', 'bridal suite', 'dressing for wedding'], priority: 1 },
-      { name: 'Ceremony', labels: ['wedding ceremony', 'bride walking down aisle', 'vows exchange', 'wedding rings ceremony', 'church wedding'], priority: 2 },
-      { name: 'First Look', labels: ['first look wedding', 'bride and groom first reveal', 'emotional wedding moment'], priority: 3 },
-      { name: 'Portraits', labels: ['wedding couple portrait', 'bride and groom portrait', 'formal wedding portrait', 'wedding photography'], priority: 4 },
-      { name: 'Family', labels: ['family wedding photo', 'group wedding portrait', 'wedding family formals'], priority: 5 },
-      { name: 'Reception', labels: ['wedding reception', 'first dance wedding', 'wedding dinner', 'cutting the cake', 'wedding dance floor'], priority: 6 },
-      { name: 'Details', labels: ['wedding ring detail', 'wedding dress detail', 'bouquet flowers', 'wedding decoration', 'wedding cake'], priority: 7 },
-      { name: 'Candids', labels: ['candid wedding moment', 'emotional wedding', 'laughter wedding', 'spontaneous wedding photo'], priority: 8 },
-    ],
-  },
-  {
-    id: 'real-estate',
-    name: 'Real Estate',
-    niche: 'real_estate',
-    description: 'Property photography organized by space and angle.',
-    icon: '🏠',
-    builtIn: true,
-    rejectCriteria: ['blurry', 'duplicate', 'incorrect exposure'],
-    categories: [
-      { name: 'Exterior Hero', labels: ['house exterior front', 'property facade', 'curb appeal photo', 'home front view'], priority: 1 },
-      { name: 'Aerial / Drone', labels: ['aerial property photo', 'drone real estate', 'bird eye view house'], priority: 2 },
-      { name: 'Living Areas', labels: ['living room interior', 'family room', 'open plan living space', 'great room'], priority: 3 },
-      { name: 'Kitchen', labels: ['kitchen interior', 'modern kitchen', 'kitchen countertop', 'kitchen appliances'], priority: 4 },
-      { name: 'Bedrooms', labels: ['bedroom interior', 'master bedroom', 'guest bedroom'], priority: 5 },
-      { name: 'Bathrooms', labels: ['bathroom interior', 'master bathroom', 'modern bathroom'], priority: 6 },
-      { name: 'Backyard / Outdoor', labels: ['backyard patio', 'pool area', 'garden', 'outdoor living space'], priority: 7 },
-      { name: 'Twilight / Dusk', labels: ['twilight real estate photo', 'dusk property photo', 'golden hour house'], priority: 8 },
-      { name: 'Detail Textures', labels: ['architectural detail', 'material texture', 'interior detail closeup'], priority: 9 },
-    ],
-  },
-  {
-    id: 'commercial',
-    name: 'Commercial',
-    niche: 'commercial',
-    description: 'Brand and product photography for commercial clients.',
-    icon: '📦',
-    builtIn: true,
-    rejectCriteria: ['blurry', 'incorrect color', 'duplicate', 'test shot'],
-    categories: [
-      { name: 'Hero Shots', labels: ['product hero shot', 'main campaign photo', 'key visual commercial', 'brand hero image'], priority: 1 },
-      { name: 'Lifestyle', labels: ['lifestyle product photo', 'product in use', 'brand lifestyle photography', 'commercial lifestyle'], priority: 2 },
-      { name: 'Product Detail', labels: ['product detail closeup', 'product texture', 'product packaging detail', 'macro product shot'], priority: 3 },
-      { name: 'Behind the Scenes', labels: ['behind the scenes photography', 'production making of', 'bts photo'], priority: 4 },
-      { name: 'Team / People', labels: ['brand ambassador photo', 'people with product', 'model with product'], priority: 5 },
-    ],
-  },
-  {
-    id: 'fashion',
-    name: 'Fashion & Portrait',
-    niche: 'fashion',
-    description: 'Editorial fashion, portrait, and beauty photography.',
-    icon: '👗',
-    builtIn: true,
-    rejectCriteria: ['blurry', 'closed eyes', 'blink', 'unflattering expression'],
-    categories: [
-      { name: 'Editorial', labels: ['fashion editorial', 'high fashion photo', 'editorial portrait', 'vogue style photo'], priority: 1 },
-      { name: 'Portraits', labels: ['portrait photography', 'headshot', 'face portrait', 'close-up portrait'], priority: 2 },
-      { name: 'Full Length', labels: ['full body fashion photo', 'full length portrait', 'outfit flat lay standing'], priority: 3 },
-      { name: 'Detail', labels: ['clothing detail', 'accessory detail', 'fabric texture closeup', 'jewelry closeup'], priority: 4 },
-      { name: 'Movement', labels: ['movement fashion photo', 'dynamic pose', 'action fashion', 'flowing dress movement'], priority: 5 },
-    ],
-  },
-  {
-    id: 'travel',
-    name: 'Travel & Lifestyle',
-    niche: 'travel',
-    description: 'Travel, lifestyle, and influencer content creation.',
-    icon: '✈️',
-    builtIn: true,
-    rejectCriteria: ['blurry', 'duplicate', 'overexposed sky'],
-    categories: [
-      { name: 'Landscape', labels: ['travel landscape', 'scenic nature photo', 'mountain landscape', 'ocean landscape', 'destination landscape'], priority: 1 },
-      { name: 'Architecture', labels: ['travel architecture', 'building exterior travel', 'city architecture', 'iconic landmark'], priority: 2 },
-      { name: 'Street', labels: ['street photography travel', 'market scene', 'city street photo', 'local culture photo'], priority: 3 },
-      { name: 'People & Culture', labels: ['local people portrait', 'cultural portrait', 'travel portrait', 'community photo'], priority: 4 },
-      { name: 'Food', labels: ['food photography travel', 'restaurant food photo', 'local cuisine', 'street food'], priority: 5 },
-      { name: 'Adventure', labels: ['adventure travel photo', 'hiking photo', 'outdoor adventure', 'extreme sport travel'], priority: 6 },
-      { name: 'Accommodation', labels: ['hotel room photo', 'resort accommodation', 'travel accommodation'], priority: 7 },
-    ],
-  },
-  {
-    id: 'event',
-    name: 'Event',
-    niche: 'event',
-    description: 'Corporate events, conferences, concerts, and gatherings.',
-    icon: '🎤',
-    builtIn: true,
-    rejectCriteria: ['blurry', 'closed eyes', 'duplicate', 'empty stage'],
-    categories: [
-      { name: 'Keynote / Stage', labels: ['keynote speaker photo', 'stage presentation', 'conference speaker', 'event stage'], priority: 1 },
-      { name: 'Audience', labels: ['conference audience', 'crowd at event', 'people watching presentation', 'audience engagement'], priority: 2 },
-      { name: 'Networking', labels: ['networking event photo', 'business conversation', 'people talking event', 'event networking'], priority: 3 },
-      { name: 'Awards', labels: ['award ceremony', 'trophy presentation', 'award winner photo', 'recognition ceremony'], priority: 4 },
-      { name: 'Venue', labels: ['event venue photo', 'conference room setup', 'event space decoration', 'venue details'], priority: 5 },
-      { name: 'Exhibition / Booths', labels: ['trade show booth', 'exhibition stand', 'product demonstration event'], priority: 6 },
-    ],
-  },
-]
+export const BUILT_IN_PRESETS: SortPreset[] = (
+  ['real_estate', 'wedding', 'travel', 'general'] as PresetType[]
+).map(presetTypeToSortPreset)
 
 export function getPreset(id: string): SortPreset | undefined {
-  return BUILT_IN_PRESETS.find((p) => p.id === id)
+  return [...BUILT_IN_PRESETS, ...getCustomPresets()].find((p) => p.id === id)
 }
 
 export function getAllLabels(preset: SortPreset): string[] {
@@ -137,14 +449,19 @@ export function getAllLabels(preset: SortPreset): string[] {
 
 export function getCategoryForLabel(preset: SortPreset, label: string): string | undefined {
   for (const cat of preset.categories) {
-    if (cat.labels.some((l) => label.toLowerCase().includes(l.toLowerCase()) || l.toLowerCase().includes(label.toLowerCase()))) {
+    if (
+      cat.labels.some(
+        (l) =>
+          label.toLowerCase().includes(l.toLowerCase()) ||
+          l.toLowerCase().includes(label.toLowerCase()),
+      )
+    ) {
       return cat.name
     }
   }
   return undefined
 }
 
-/** Persist custom presets to localStorage */
 export function saveCustomPreset(preset: SortPreset): void {
   if (typeof window === 'undefined') return
   const stored = getCustomPresets()
