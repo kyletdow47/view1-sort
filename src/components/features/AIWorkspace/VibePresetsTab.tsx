@@ -444,6 +444,8 @@ export function VibePresetsTab({ projectId, categoryDistribution = [] }: VibePre
   const [parsedResult, setParsedResult] = useState<ParseVibeResponse | null>(null)
   const [presetName, setPresetName] = useState('')
   const [applyingPreset, setApplyingPreset] = useState<VibePreset | null>(null)
+  const [parseError, setParseError] = useState<string | null>(null)
+  const [parseSource, setParseSource] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleExamplePrompt = useCallback(
@@ -458,22 +460,32 @@ export function VibePresetsTab({ projectId, categoryDistribution = [] }: VibePre
   const handleParseVibe = useCallback(async () => {
     if (!description.trim()) return
     setIsProcessing(true)
+    setParseError(null)
+    setParseSource(null)
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30_000)
+
     try {
-      // TODO: Supabase Edge Function (parse-vibe) calls Claude API to extract style params.
-      // Edge Function path: supabase/functions/parse-vibe/index.ts
-      // Until then, /api/ai/parse-vibe returns a heuristic mock.
       const res = await fetch('/api/ai/parse-vibe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description, projectId }),
+        signal: controller.signal,
       })
       if (!res.ok) throw new Error('Failed to parse vibe description')
       const data = (await res.json()) as ParseVibeResponse
       setParsedResult(data)
       setPresetName(data.presetName)
+      setParseSource(data.source ?? 'claude')
     } catch (err) {
+      const msg = err instanceof Error && err.name === 'AbortError'
+        ? 'Request timed out. Please try again.'
+        : 'Could not analyze style. Please try again.'
+      setParseError(msg)
       console.error('[VibePresetsTab] parse error:', err)
     } finally {
+      clearTimeout(timeout)
       setIsProcessing(false)
     }
   }, [description, projectId])
@@ -599,6 +611,28 @@ export function VibePresetsTab({ projectId, categoryDistribution = [] }: VibePre
               </p>
             </div>
           </div>
+
+          {/* Error banner */}
+          {parseError && (
+            <div className="flex items-center gap-2 rounded-xl px-3 py-2 text-[11px] text-amber-300/80"
+              style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.15)' }}>
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              {parseError}
+              <button
+                onClick={() => void handleParseVibe()}
+                className="ml-auto text-amber-300/60 underline transition-colors hover:text-amber-300"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {/* Powered by Claude attribution */}
+          {parseSource === 'claude' && parsedResult && (
+            <p className="text-[10px] text-indigo-400/50 text-center">
+              Powered by Claude
+            </p>
+          )}
 
           {!parsedResult ? (
             <>
