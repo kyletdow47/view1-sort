@@ -25,7 +25,7 @@ const mockSetClassifying = vi.fn()
 const mockSetClassified = vi.fn()
 const mockSetFailed = vi.fn()
 const mockGetProgress = vi.fn(() => ({ total: 0, classified: 0, pending: 0, failed: 0 }))
-const mockRetryFailed = vi.fn(() => [])
+const mockRetryFailed = vi.fn((): string[] => [])
 const mockEditMedia = vi.fn().mockResolvedValue(undefined)
 
 vi.mock('@/stores/mediaStore', () => ({
