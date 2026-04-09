@@ -70,12 +70,12 @@ function CollapsibleGroup({
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] overflow-hidden">
       {/* Group Header */}
-      <button
-        type="button"
-        onClick={() => setIsOpen((v) => !v)}
-        className="flex items-center justify-between w-full px-4 py-3 hover:bg-white/[0.04] transition-colors"
-      >
-        <div className="flex items-center gap-2.5">
+      <div className="flex items-center justify-between w-full px-4 py-3 hover:bg-white/[0.04] transition-colors">
+        <button
+          type="button"
+          onClick={() => setIsOpen((v) => !v)}
+          className="flex items-center gap-2.5"
+        >
           {isOpen ? (
             <ChevronDown className="w-4 h-4 text-white/40" />
           ) : (
@@ -86,10 +86,10 @@ function CollapsibleGroup({
           <span className={`px-2 py-0.5 rounded-lg text-[11px] font-mono font-medium ${group.badgeBg} ${group.color}`}>
             {group.photos.length}
           </span>
-        </div>
+        </button>
 
         {/* Batch actions */}
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => onKeepAll(ids)}
@@ -109,7 +109,7 @@ function CollapsibleGroup({
             Reject All
           </button>
         </div>
-      </button>
+      </div>
 
       {/* Photo Cards */}
       {isOpen && (

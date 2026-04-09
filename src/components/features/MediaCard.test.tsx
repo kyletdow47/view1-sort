@@ -109,4 +109,74 @@ describe('MediaCard', () => {
     expect(screen.queryByText('portrait')).not.toBeInTheDocument()
     expect(screen.queryByText('92%')).not.toBeInTheDocument()
   })
+
+  it('shows Blurry badge when is_blurry is true', () => {
+    render(
+      <MediaCard
+        media={{ ...baseMedia, is_blurry: true }}
+        onSelect={vi.fn()}
+        onDoubleClick={vi.fn()}
+      />
+    )
+    expect(screen.getByText('Blurry')).toBeInTheDocument()
+  })
+
+  it('shows Duplicate badge when is_duplicate is true', () => {
+    render(
+      <MediaCard
+        media={{ ...baseMedia, is_duplicate: true }}
+        onSelect={vi.fn()}
+        onDoubleClick={vi.fn()}
+      />
+    )
+    expect(screen.getByText('Duplicate')).toBeInTheDocument()
+  })
+
+  it('shows Overexposed badge when is_overexposed is true', () => {
+    render(
+      <MediaCard
+        media={{ ...baseMedia, is_overexposed: true }}
+        onSelect={vi.fn()}
+        onDoubleClick={vi.fn()}
+      />
+    )
+    expect(screen.getByText('Overexposed')).toBeInTheDocument()
+  })
+
+  it('shows Underexposed badge when is_underexposed is true', () => {
+    render(
+      <MediaCard
+        media={{ ...baseMedia, is_underexposed: true }}
+        onSelect={vi.fn()}
+        onDoubleClick={vi.fn()}
+      />
+    )
+    expect(screen.getByText('Underexposed')).toBeInTheDocument()
+  })
+
+  it('dims rejected photos with opacity', () => {
+    render(
+      <MediaCard
+        media={{ ...baseMedia, review_flag: 'reject' }}
+        onSelect={vi.fn()}
+        onDoubleClick={vi.fn()}
+      />
+    )
+    const card = screen.getByRole('checkbox')
+    expect(card).toHaveClass('opacity-40')
+  })
+
+  it('does not show culling badges when no flags are set', () => {
+    render(
+      <MediaCard
+        media={baseMedia}
+        onSelect={vi.fn()}
+        onDoubleClick={vi.fn()}
+      />
+    )
+    expect(screen.queryByText('Blurry')).not.toBeInTheDocument()
+    expect(screen.queryByText('Duplicate')).not.toBeInTheDocument()
+    expect(screen.queryByText('Overexposed')).not.toBeInTheDocument()
+    expect(screen.queryByText('Underexposed')).not.toBeInTheDocument()
+  })
 })
