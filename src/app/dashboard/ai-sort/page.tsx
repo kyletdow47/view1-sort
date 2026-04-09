@@ -188,7 +188,7 @@ function SortSettingsPanel({
 
   return (
     <div
-      className="flex w-full md:w-[320px] shrink-0 flex-col gap-5 rounded-3xl p-5"
+      className="flex w-full md:w-[320px] shrink-0 flex-col gap-5 overflow-y-auto rounded-3xl p-5"
       style={{
         background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)',
         backdropFilter: 'blur(32px)',
@@ -494,7 +494,7 @@ function ProgressStepper({ stage }: { stage: StepperStage }) {
   )
 }
 
-/* ─── Cull Phase (restyled) ─────────────────────────────────────────────── */
+/* ─── Cull Phase ────────────────────────────────────────────────────────── */
 
 function CullPhase({
   files,
@@ -506,6 +506,8 @@ function CullPhase({
   const [items, setItems] = useState<SortableFile[]>(files)
   const [analysing, setAnalysing] = useState(true)
   const [progress, setProgress] = useState(0)
+  const [lightboxItem, setLightboxItem] = useState<SortableFile | null>(null)
+  const initialCount = useRef(files.length)
 
   useEffect(() => {
     let cancelled = false
@@ -533,51 +535,67 @@ function CullPhase({
   }, [])
 
   const flagged = items.filter((f) => f.cullResult && f.cullResult.flags.length > 0)
-  const kept = items.filter((f) => f.keep)
+  const removed = initialCount.current - items.length
 
-  const toggle = (id: string) => setItems((prev) => prev.map((f) => f.id === id ? { ...f, keep: !f.keep } : f))
-  const rejectAll = () => setItems((prev) => prev.map((f) => f.cullResult && f.cullResult.flags.length > 0 ? { ...f, keep: false } : f))
+  // X button: permanently removes photo from the batch
+  const removeItem = (id: string) =>
+    setItems((prev) => prev.filter((f) => f.id !== id))
+
+  // Remove all AI-flagged photos at once
+  const removeAllFlagged = () =>
+    setItems((prev) => prev.filter((f) => !f.cullResult || f.cullResult.flags.length === 0))
 
   return (
     <div className="flex-1 space-y-6 overflow-auto px-10 py-6">
+      {/* Header */}
       <div className="flex items-end justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">Smart Cull</h2>
           <p className="mt-1 text-sm text-white/60">
-            {analysing ? `Analysing quality… ${progress}%` : `${flagged.length} issues found across ${items.length} photos`}
+            {analysing
+              ? `Analysing quality… ${progress}%`
+              : `${flagged.length} issues found across ${items.length} photos`}
           </p>
         </div>
         <div className="flex gap-3">
           {!analysing && flagged.length > 0 && (
-            <button onClick={rejectAll} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur-sm hover:bg-white/15 transition-colors">
-              Reject All Flagged
+            <button
+              onClick={removeAllFlagged}
+              className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur-sm transition-colors hover:bg-white/15"
+            >
+              Remove All Flagged
             </button>
           )}
           <button
-            onClick={() => onContinue(items)}
+            onClick={() => onContinue(items.map((f) => ({ ...f, keep: true })))}
             disabled={analysing}
-            className="flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
+            className="flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
             style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
           >
-            Continue with {kept.length} photos
+            Continue with {items.length} photos
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>
 
+      {/* Progress bar */}
       {analysing && (
         <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full bg-indigo-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+          <div
+            className="h-full rounded-full bg-indigo-500 transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       )}
 
+      {/* Stats */}
       {!analysing && (
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label: 'Total', value: items.length, color: 'text-white' },
+            { label: 'Total', value: initialCount.current, color: 'text-white' },
             { label: 'Flagged', value: flagged.length, color: 'text-amber-300' },
-            { label: 'Keeping', value: kept.length, color: 'text-emerald-300' },
-            { label: 'Rejecting', value: items.length - kept.length, color: 'text-red-300' },
+            { label: 'Keeping', value: items.length, color: 'text-emerald-300' },
+            { label: 'Removed', value: removed, color: 'text-red-300' },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-center backdrop-blur-sm">
               <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
@@ -587,6 +605,7 @@ function CullPhase({
         </div>
       )}
 
+      {/* Photo grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {items.map((item) => {
           const flags = item.cullResult?.flags ?? []
@@ -595,8 +614,11 @@ function CullPhase({
           return (
             <div
               key={item.id}
-              className={`group relative overflow-hidden rounded-2xl border-2 transition-all ${item.keep ? flags.length > 0 ? 'border-amber-400/40' : 'border-emerald-400/20' : 'border-red-400/40 opacity-50'}`}
+              className={`group relative overflow-hidden rounded-2xl border-2 transition-all ${
+                flags.length > 0 ? 'border-amber-400/40' : 'border-white/10 hover:border-white/20'
+              }`}
             >
+              {/* Thumbnail */}
               <div className="flex aspect-square items-center justify-center overflow-hidden bg-white/[0.06]">
                 {preview ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -605,20 +627,36 @@ function CullPhase({
                   <ImageIcon className="h-8 w-8 text-white/20" />
                 )}
               </div>
+
+              {/* Hover overlay with filename */}
               <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 via-transparent to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
                 <p className="truncate text-[9px] text-white/70">{item.file.name}</p>
               </div>
+
+              {/* Eye button → lightbox */}
               <button
-                onClick={() => toggle(item.id)}
-                className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 backdrop-blur-sm transition-transform hover:scale-110"
+                onClick={() => setLightboxItem(item)}
+                className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:scale-110"
               >
-                {item.keep ? <Eye className="h-3.5 w-3.5 text-emerald-300" /> : <EyeOff className="h-3.5 w-3.5 text-red-300" />}
+                <Eye className="h-3.5 w-3.5 text-white/80" />
               </button>
-              {flags.length > 0 && item.keep && (
+
+              {/* X button → remove from batch */}
+              <button
+                onClick={() => removeItem(item.id)}
+                className="absolute right-2 bottom-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-[11px] font-bold text-white/60 opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-red-500/80 hover:text-white hover:scale-110"
+              >
+                ✕
+              </button>
+
+              {/* Quality flag badge */}
+              {flags.length > 0 && (
                 <div className="absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400/80">
                   <AlertTriangle className="h-3 w-3 text-black" />
                 </div>
               )}
+
+              {/* Duplicate badge */}
               {flags.some((f) => f.type === 'duplicate') && (
                 <div className="absolute bottom-2 left-2 flex h-5 w-5 items-center justify-center rounded-full bg-violet-400/80">
                   <Copy className="h-3 w-3 text-white" />
@@ -628,6 +666,57 @@ function CullPhase({
           )
         })}
       </div>
+
+      {/* Lightbox */}
+      {lightboxItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-6"
+          onClick={() => setLightboxItem(null)}
+        >
+          <div className="relative max-h-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <PhotoThumbnail
+              file={lightboxItem.file}
+              alt={lightboxItem.file.name}
+              className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl"
+            />
+            {/* Flag info */}
+            {(lightboxItem.cullResult?.flags ?? []).length > 0 && (
+              <div className="mt-2 flex flex-wrap justify-center gap-2">
+                {lightboxItem.cullResult!.flags.map((f) => (
+                  <span
+                    key={f.type}
+                    className="rounded-full bg-amber-400/20 border border-amber-400/30 px-3 py-0.5 text-[11px] font-medium text-amber-200"
+                  >
+                    {f.type}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="mt-1.5 text-center text-[12px] text-white/50">{lightboxItem.file.name}</div>
+            {/* Close + remove buttons */}
+            <div className="mt-3 flex justify-center gap-3">
+              <button
+                onClick={() => setLightboxItem(null)}
+                className="rounded-xl border border-white/20 bg-white/10 px-5 py-2 text-[13px] font-semibold text-white/80 hover:bg-white/15 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => { removeItem(lightboxItem.id); setLightboxItem(null) }}
+                className="rounded-xl border border-red-400/30 bg-red-500/20 px-5 py-2 text-[13px] font-semibold text-red-200 hover:bg-red-500/30 transition-colors"
+              >
+                Remove Photo
+              </button>
+            </div>
+            <button
+              className="absolute -right-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-colors"
+              onClick={() => setLightboxItem(null)}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
