@@ -59,11 +59,12 @@ describe('loadModel', () => {
     const { pipeline } = await import('@xenova/transformers')
     const onProgress = vi.fn()
 
-    vi.mocked(pipeline).mockImplementationOnce(async (_task, _model, opts) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(pipeline).mockImplementationOnce((async (_task: unknown, _model: unknown, opts: unknown) => {
       const cb = (opts as { progress_callback?: (info: unknown) => void }).progress_callback
       cb?.({ status: 'downloading', progress: 42 })
       return mockPipelineFn
-    })
+    }) as any)
 
     await loadModel(onProgress)
     expect(onProgress).toHaveBeenCalledWith(42)
