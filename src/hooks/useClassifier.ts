@@ -11,7 +11,12 @@ export interface UseClassifierReturn {
   status: ClassifierStatus
   loadProgress: number
   error: string | null
-  classify: (file: File, photoId: string, topK?: number) => Promise<ClassificationResult[]>
+  /**
+   * Classify an image.
+   * Pass a File/Blob (converted to base64) or a URL string — the CLIP pipeline
+   * accepts both. Passing a URL avoids a CORS fetch round-trip.
+   */
+  classify: (fileOrUrl: File | string, photoId: string, topK?: number) => Promise<ClassificationResult[]>
 }
 
 export function useClassifier(): UseClassifierReturn {
@@ -82,11 +87,14 @@ export function useClassifier(): UseClassifierReturn {
   }, [])
 
   const classify = useCallback(
-    async (file: File, photoId: string, topK = 5): Promise<ClassificationResult[]> => {
+    async (fileOrUrl: File | string, photoId: string, topK = 5): Promise<ClassificationResult[]> => {
       if (!workerRef.current) throw new Error('Worker not initialised')
       if (status === 'loading') throw new Error('Model is still loading')
 
-      const imageData = await fileToBase64(file)
+      // Accept either a URL string (no CORS fetch needed) or a File/Blob
+      const imageData = typeof fileOrUrl === 'string'
+        ? fileOrUrl
+        : await fileToBase64(fileOrUrl)
 
       return new Promise<ClassificationResult[]>((resolve, reject) => {
         pendingRef.current.set(photoId, { resolve, reject })

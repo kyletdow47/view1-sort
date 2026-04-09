@@ -15,6 +15,15 @@ vi.mock('@/lib/supabase/server', () => ({
   }),
 }))
 
+vi.mock('@/lib/rate-limit', () => ({
+  rateLimit: vi.fn(() => ({ success: true, resetAt: 0 })),
+  getIp: vi.fn(() => '127.0.0.1'),
+}))
+
+vi.mock('@/lib/email', () => ({
+  sendWaitlistConfirmationEmail: vi.fn().mockResolvedValue(undefined),
+}))
+
 import { POST, GET } from './route'
 
 function makePostRequest(body: unknown): NextRequest {

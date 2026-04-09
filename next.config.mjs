@@ -16,6 +16,12 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   turbopack: {},
+
+  // Prevent Next.js from trying to bundle native Node modules used by
+  // @xenova/transformers (onnxruntime-node, sharp). The CLIP model runs
+  // entirely in the browser via ONNX Runtime WebAssembly inside a Web Worker.
+  serverExternalPackages: ['sharp', 'onnxruntime-node'],
+
   images: {
     remotePatterns: [
       {
@@ -24,6 +30,22 @@ const nextConfig = {
       },
     ],
     formats: ['image/avif', 'image/webp'],
+  },
+
+  // Webpack config — used for production builds (Turbopack handles dev).
+  // Ensures the Web Worker bundle can use @xenova/transformers without
+  // Node.js-only modules being pulled in.
+  webpack(config, { isServer }) {
+    if (!isServer) {
+      config.resolve = config.resolve ?? {}
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+      }
+    }
+    return config
   },
 }
 

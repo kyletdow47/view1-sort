@@ -34,6 +34,62 @@ export async function deleteMedia(supabase: SupabaseClient, ids: string[]): Prom
   if (error) throw new Error(`Failed to delete media: ${error.message}`)
 }
 
+export interface AIResultUpdate {
+  id: string
+  ai_category: string
+  ai_confidence: number
+}
+
+export interface CullingResultUpdate {
+  id: string
+  is_blurry?: boolean
+  is_duplicate?: boolean
+  is_overexposed?: boolean
+  is_underexposed?: boolean
+  culling_confidence?: number
+}
+
+/**
+ * Batch-update AI classification results for multiple media items.
+ * Uses individual updates (Supabase JS doesn't support bulk upsert with
+ * per-row values without raw SQL).
+ */
+export async function updateMediaAIResults(
+  supabase: SupabaseClient,
+  updates: AIResultUpdate[],
+): Promise<void> {
+  const batchSize = 50
+  for (let i = 0; i < updates.length; i += batchSize) {
+    const batch = updates.slice(i, i + batchSize)
+    await Promise.all(
+      batch.map(({ id, ai_category, ai_confidence }) =>
+        supabase
+          .from('media')
+          .update({ ai_category, ai_confidence })
+          .eq('id', id),
+      ),
+    )
+  }
+}
+
+/**
+ * Batch-update culling analysis flags for multiple media items.
+ */
+export async function updateMediaCullingResults(
+  supabase: SupabaseClient,
+  updates: CullingResultUpdate[],
+): Promise<void> {
+  const batchSize = 50
+  for (let i = 0; i < updates.length; i += batchSize) {
+    const batch = updates.slice(i, i + batchSize)
+    await Promise.all(
+      batch.map(({ id, ...flags }) =>
+        supabase.from('media').update(flags).eq('id', id),
+      ),
+    )
+  }
+}
+
 export async function getCategories(
   supabase: SupabaseClient,
   projectId: string,

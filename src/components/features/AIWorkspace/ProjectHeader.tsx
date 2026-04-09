@@ -17,6 +17,7 @@ interface ProjectHeaderProps {
   onRunAI: () => void
   onPublish: () => void
   isAIRunning?: boolean
+  runAILabel?: string
 }
 
 export function ProjectHeader({
@@ -26,6 +27,7 @@ export function ProjectHeader({
   onRunAI,
   onPublish,
   isAIRunning = false,
+  runAILabel,
 }: ProjectHeaderProps) {
   const router = useRouter()
   const statusConfig = STATUS_CONFIG[status] ?? STATUS_CONFIG.processing
@@ -78,7 +80,7 @@ export function ProjectHeader({
             transition-all"
         >
           <Sparkles className="w-4 h-4" />
-          {isAIRunning ? 'Running...' : 'Run AI Sort'}
+          {runAILabel ?? (isAIRunning ? 'Running...' : 'Run AI Sort')}
         </button>
         <button
           onClick={onPublish}

@@ -39,13 +39,13 @@ describe('generateShareLink', () => {
 
   it('URL starts with NEXT_PUBLIC_APP_URL', async () => {
     const result = await generateShareLink('proj-abc', 'client@example.com', 'preview')
-    expect(result.url).toStartWith('https://app.example.com/gallery/proj-abc')
+    expect(result.url).toMatch(/^https:\/\/app\.example\.com\/gallery\/proj-abc/)
   })
 
   it('falls back to localhost when APP_URL is not set', async () => {
     delete process.env.NEXT_PUBLIC_APP_URL
     const result = await generateShareLink('proj-abc', 'client@example.com', 'full')
-    expect(result.url).toStartWith('http://localhost:3000/gallery/proj-abc')
+    expect(result.url).toMatch(/^http:\/\/localhost:3000\/gallery\/proj-abc/)
   })
 
   it('sets expiry ~30 days in the future by default', async () => {

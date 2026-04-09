@@ -18,21 +18,13 @@ interface AISortWorkspaceProps {
   onSelect: (id: string, shiftKey: boolean) => void
   onDoubleClick: (id: string) => void
   onReviewFlags: () => void
+  onCategoryDrop?: (mediaId: string, targetCategory: string) => void
 }
 
 /**
  * AISortWorkspace — The core AI sorting workspace tab content.
  *
  * Layout: Sort Controls (left) | Category Columns (center) | AI Analysis (right)
- *
- * Features:
- * - AI confidence threshold slider that determines which photos go to "Needs Review"
- * - Sort algorithm selector (category→quality, quality→category, chronological)
- * - Duplicate and blur detection toggles
- * - Editable category mappings
- * - Batch re-classify action
- * - Quality distribution visualization
- * - Flagged issues summary
  */
 export function AISortWorkspace({
   categoryColumns,
@@ -41,6 +33,7 @@ export function AISortWorkspace({
   onSelect,
   onDoubleClick,
   onReviewFlags,
+  onCategoryDrop,
 }: AISortWorkspaceProps) {
   const [settings, setSettings] = useState<AISortSettings>(DEFAULT_AI_SORT_SETTINGS)
   const [isReclassifying, setIsReclassifying] = useState(false)
@@ -71,38 +64,42 @@ export function AISortWorkspace({
     return { high, medium, low }
   }, [allMedia])
 
-  // Count photos below the confidence threshold ("Needs Review")
-  const needsReviewCount = useMemo(() => {
+  // Photos below the confidence threshold go to "Needs Review"
+  const { filteredColumns, needsReviewPhotos } = useMemo(() => {
     const threshold = settings.confidenceThreshold / 100
-    return allMedia.filter(
-      (m) => m.ai_confidence == null || m.ai_confidence < threshold,
-    ).length
-  }, [allMedia, settings.confidenceThreshold])
-
-  // Mock flagged counts — in production, derived from AI classifier results
-  // TODO: Replace with real AI classifier output when SigLIP Web Worker is ready
-  const duplicateCount = 12
-  const blurryCount = 5
-
-  const totalPhotos = allMedia.length || 847 // fallback for mock display
-
-  // Filter category columns based on enabled mappings
-  const filteredColumns = useMemo(() => {
     const enabledCategories = new Set(
       settings.categoryMappings.filter((m) => m.enabled).map((m) => m.displayCategory),
     )
-    return categoryColumns.filter((col) => enabledCategories.has(col.name))
-  }, [categoryColumns, settings.categoryMappings])
+
+    // Partition each column: photos above threshold stay, below → Needs Review
+    const filtered = categoryColumns
+      .filter((col) => enabledCategories.has(col.name))
+      .map((col) => ({
+        ...col,
+        photos: col.photos.filter(
+          (p) => p.ai_confidence == null || p.ai_confidence >= threshold,
+        ),
+      }))
+
+    const needsReview = categoryColumns
+      .filter((col) => enabledCategories.has(col.name))
+      .flatMap((col) =>
+        col.photos.filter(
+          (p) => p.ai_confidence != null && p.ai_confidence < threshold,
+        ),
+      )
+
+    return { filteredColumns: filtered, needsReviewPhotos: needsReview }
+  }, [categoryColumns, settings.confidenceThreshold, settings.categoryMappings])
+
+  const needsReviewCount = needsReviewPhotos.length
+  const totalPhotos = allMedia.length || 847
 
   // Batch reclassify handler
   const handleBatchReclassify = useCallback(() => {
     setIsReclassifying(true)
-
-    // TODO: Wire up actual AI classification via Web Worker
-    // This would call the SigLIP classifier with updated settings
-    if (reclassifyTimerRef.current) {
-      clearTimeout(reclassifyTimerRef.current)
-    }
+    if (reclassifyTimerRef.current) clearTimeout(reclassifyTimerRef.current)
+    // TODO: call onBatchReclassify prop when parent wires useAIClassifier
     reclassifyTimerRef.current = setTimeout(() => {
       setIsReclassifying(false)
       reclassifyTimerRef.current = null
@@ -121,8 +118,8 @@ export function AISortWorkspace({
         needsReviewCount={needsReviewCount}
       />
 
-      {/* Center: Category Columns */}
-      <div className="flex gap-3 flex-1 min-h-0">
+      {/* Center: Category Columns + Needs Review */}
+      <div className="flex gap-3 flex-1 min-h-0 overflow-x-auto">
         {filteredColumns.map((col) => (
           <CategoryColumn
             key={col.id}
@@ -132,16 +129,30 @@ export function AISortWorkspace({
             selectedIds={selectedIds}
             onSelect={onSelect}
             onDoubleClick={onDoubleClick}
+            onDrop={onCategoryDrop}
           />
         ))}
+
+        {/* Needs Review column — only shown when threshold > 0 and items exist */}
+        {needsReviewCount > 0 && (
+          <CategoryColumn
+            key="needs-review"
+            name="Needs Review"
+            color="#f59e0b"
+            photos={needsReviewPhotos}
+            selectedIds={selectedIds}
+            onSelect={onSelect}
+            onDoubleClick={onDoubleClick}
+          />
+        )}
       </div>
 
       {/* Right: AI Analysis Panel */}
       <AIAnalysisPanel
         totalPhotos={totalPhotos}
         qualityDistribution={qualityDistribution}
-        duplicateCount={duplicateCount}
-        blurryCount={blurryCount}
+        duplicateCount={12}
+        blurryCount={5}
         onReviewFlags={onReviewFlags}
       />
     </div>

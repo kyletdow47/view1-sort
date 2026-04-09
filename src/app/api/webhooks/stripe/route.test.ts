@@ -17,6 +17,16 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(),
 }))
 
+vi.mock('@/lib/email', () => ({
+  sendPaymentConfirmationEmail: vi.fn().mockResolvedValue(undefined),
+  sendPaymentReceivedEmail: vi.fn().mockResolvedValue(undefined),
+  sendPaymentFailedEmail: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('@/lib/notifications', () => ({
+  notifyPaymentReceived: vi.fn().mockResolvedValue(undefined),
+}))
+
 // Import after mocks
 import { POST } from './route'
 import { stripe } from '@/lib/stripe'
@@ -24,24 +34,57 @@ import { createClient } from '@supabase/supabase-js'
 
 // Supabase mock helpers
 function makeSupabaseMock(overrides: {
-  maybeSingleData?: unknown
+  maybySingleData?: unknown
   updateError?: unknown
   insertError?: unknown
 } = {}) {
-  const maybySingle = vi.fn().mockResolvedValue({ data: overrides.maybySingleData ?? null })
-  const from = vi.fn().mockReturnValue({
-    select: vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({ maybeSingle: maybySingle }),
+  const maybySingle = vi.fn().mockResolvedValue({ data: overrides.maybySingleData ?? null, error: null })
+  const single = vi.fn().mockResolvedValue({ data: null, error: null })
+
+  // Recursively chainable query builder for selects
+  const makeSelectChain = (): Record<string, unknown> => ({
+    eq: vi.fn().mockImplementation(() => makeSelectChain()),
+    maybeSingle: maybySingle,
+    single,
+  })
+
+  // Recursively chainable query builder for updates — last .eq() must be awaitable
+  const makeUpdateChain = (): Record<string, unknown> => {
+    const resolved = Promise.resolve({ error: overrides.updateError ?? null })
+    const chain: Record<string, unknown> = {
+      eq: vi.fn().mockImplementation(() => {
+        const inner = makeUpdateChain()
+        return Object.assign(Object.create(null), inner, {
+          then: resolved.then.bind(resolved),
+          catch: resolved.catch.bind(resolved),
+          finally: resolved.finally.bind(resolved),
+        })
       }),
-    }),
-    update: vi.fn().mockReturnValue({
-      eq: vi.fn().mockResolvedValue({ error: overrides.updateError ?? null }),
-    }),
+    }
+    return Object.assign(Object.create(null), chain, {
+      then: resolved.then.bind(resolved),
+      catch: resolved.catch.bind(resolved),
+      finally: resolved.finally.bind(resolved),
+    })
+  }
+
+  const auth = {
+    admin: {
+      getUserById: vi.fn().mockResolvedValue({
+        data: { user: { email: 'owner@example.com' } },
+        error: null,
+      }),
+    },
+  }
+
+  const from = vi.fn().mockImplementation(() => ({
+    select: vi.fn().mockImplementation(() => makeSelectChain()),
+    update: vi.fn().mockImplementation(() => makeUpdateChain()),
     insert: vi.fn().mockResolvedValue({ error: overrides.insertError ?? null }),
     upsert: vi.fn().mockResolvedValue({ error: null }),
-  })
-  return { from, maybySingle }
+  }))
+
+  return { from, maybySingle, single, auth }
 }
 
 beforeEach(() => {
@@ -52,8 +95,8 @@ beforeEach(() => {
   process.env.STRIPE_PRICE_PRO = 'price_pro_test'
   process.env.STRIPE_PRICE_BUSINESS = 'price_business_test'
 
-  const { from } = makeSupabaseMock()
-  ;(createClient as Mock).mockReturnValue({ from })
+  const { from, auth } = makeSupabaseMock()
+  ;(createClient as Mock).mockReturnValue({ from, auth })
 })
 
 function makeRequest(body: string, signature = 'valid-sig'): NextRequest {
@@ -112,9 +155,9 @@ describe('POST /api/webhooks/stripe', () => {
       })
       ;(stripe.webhooks.constructEvent as Mock).mockReturnValue(event)
 
-      const { from, maybySingle } = makeSupabaseMock()
-      maybySingle.mockResolvedValue({ data: { id: 1 } })
-      ;(createClient as Mock).mockReturnValue({ from })
+      const { from, maybySingle, auth } = makeSupabaseMock()
+      maybySingle.mockResolvedValue({ data: { id: 1 }, error: null })
+      ;(createClient as Mock).mockReturnValue({ from, auth })
 
       const response = await POST(makeRequest('{}'))
       expect(response.status).toBe(200)

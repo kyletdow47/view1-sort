@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle, RefreshCw } from 'lucide-react'
+import { CheckCircle, RefreshCw, ArrowLeft } from 'lucide-react'
 import type { AISortSubTab } from '@/types/ai-workspace'
 import { AI_SORT_SUB_TABS } from '@/types/ai-workspace'
 
@@ -18,7 +18,22 @@ export function SubTabRow({
   onReSort,
 }: SubTabRowProps) {
   return (
-    <div className="flex items-center justify-between w-full">
+    <div className="flex items-center justify-between w-full gap-3">
+      {/* Back to Upload — shown when not already on upload tab */}
+      {activeSubTab !== 'upload' && (
+        <button
+          type="button"
+          onClick={() => onSubTabChange('upload')}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium
+            text-white/40 hover:text-white/80 hover:bg-white/[0.06]
+            transition-all duration-150 flex-shrink-0"
+          title="Back to upload"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Upload
+        </button>
+      )}
+
       {/* Sub-Tab Bar */}
       <div className="flex items-center gap-1 p-1 rounded-xl bg-white/[0.07]">
         {AI_SORT_SUB_TABS.map((tab) => {
