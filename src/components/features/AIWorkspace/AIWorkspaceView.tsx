@@ -205,6 +205,12 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       .flatMap(([, photos]) => photos.map(mediaToItem))
   }, [groups])
 
+  // Whether AI sort has run — true if any media has an ai_category assigned
+  const hasAICategories = useMemo(
+    () => allMedia.some((m) => m.ai_category != null),
+    [allMedia],
+  )
+
   void uncategorizedPhotos // used by child components when needed
 
   // ─── Upload handlers ────────────────────────────────────────────────────────
@@ -388,10 +394,13 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
 
   // Derive Run AI button label from classifier status
   const runAILabel = useMemo(() => {
-    if (classifierStatus === 'loading') return `Loading model (${loadProgress}%)…`
-    if (isAIRunning) return `Sorting… ${runProgress}%`
+    if (classifierStatus === 'loading') return `Downloading AI model (${loadProgress}%)…`
+    if (isAIRunning) {
+      const done = Math.round(runProgress * totalPhotos / 100)
+      return `Sorting… ${runProgress}% (${done}/${totalPhotos})`
+    }
     return 'Run AI Sort'
-  }, [classifierStatus, loadProgress, isAIRunning, runProgress])
+  }, [classifierStatus, loadProgress, isAIRunning, runProgress, totalPhotos])
 
   return (
     <div className="flex flex-col h-full w-full min-h-0 overflow-hidden">
@@ -413,6 +422,19 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         photoCount={totalPhotos}
       />
 
+      {/* AI Model Download Notice — shown while model is downloading (first use only) */}
+      {classifierStatus === 'loading' && (
+        <div className="mx-6 mt-3 flex items-start gap-3 rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-sm text-violet-200">
+          <svg className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
+          </svg>
+          <span>
+            <strong className="font-semibold text-violet-100">Downloading AI model (~330MB)</strong>
+            {' '}— this only happens once and is cached in your browser. It may take 1–2 minutes on first use.
+          </span>
+        </div>
+      )}
+
       {/* Content Area */}
       <div className="flex flex-col flex-1 min-h-0 gap-4 px-6">
         {activeTab === 'ai-sort' && (
@@ -425,16 +447,43 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
             />
 
             {activeSubTab === 'workspace' ? (
-              <AISortWorkspace
-                categoryColumns={categoryColumns}
-                allMedia={allMedia}
-                selectedIds={selectedIds}
-                onSelect={handleSelect}
-                onDoubleClick={handleDoubleClick}
-                onReviewFlags={handleReviewFlags}
-                onCategoryDrop={handleCategoryDrop}
-                onBatchReclassify={handleRunAI}
-              />
+              !hasAICategories && totalPhotos > 0 ? (
+                /* Empty state: photos uploaded but AI sort hasn't run yet */
+                <div className="flex flex-col items-center justify-center flex-1 gap-5 text-center px-8">
+                  <div className="rounded-2xl border border-white/[0.08] bg-white/[0.04] p-8 max-w-sm">
+                    <div className="text-4xl mb-4">✨</div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Run AI Sort first</h3>
+                    <p className="text-sm text-white/50 mb-5">
+                      Your {totalPhotos} photo{totalPhotos !== 1 ? 's' : ''} will be automatically categorized and analyzed for quality issues.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleRunAI}
+                      disabled={isAIRunning || classifierStatus === 'loading'}
+                      className="w-full rounded-xl bg-[#5749F4] px-4 py-2.5 text-sm font-semibold text-white
+                        hover:bg-[#4a3de0] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {runAILabel}
+                    </button>
+                  </div>
+                </div>
+              ) : totalPhotos === 0 ? (
+                /* Empty state: no photos yet */
+                <div className="flex flex-col items-center justify-center flex-1 gap-4 text-white/30">
+                  <p className="text-sm">No photos yet — upload some on the Upload tab.</p>
+                </div>
+              ) : (
+                <AISortWorkspace
+                  categoryColumns={categoryColumns}
+                  allMedia={allMedia}
+                  selectedIds={selectedIds}
+                  onSelect={handleSelect}
+                  onDoubleClick={handleDoubleClick}
+                  onReviewFlags={handleReviewFlags}
+                  onCategoryDrop={handleCategoryDrop}
+                  onBatchReclassify={handleRunAI}
+                />
+              )
             ) : activeSubTab === 'upload' ? (
               <div className="flex items-center justify-center flex-1">
                 <UploadZone projectId={project.id} onFilesQueued={handleFilesQueued} />
