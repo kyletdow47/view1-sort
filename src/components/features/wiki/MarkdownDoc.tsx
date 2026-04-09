@@ -98,7 +98,7 @@ const components: Components = {
 }
 
 export function MarkdownDoc({ filePath, className = '' }: MarkdownDocProps) {
-  const absolutePath = path.join(process.cwd(), filePath)
+  const absolutePath = path.join(/*turbopackIgnore: true*/ process.cwd(), filePath)
 
   let content = ''
   let error = ''

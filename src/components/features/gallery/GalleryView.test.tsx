@@ -31,6 +31,7 @@ const makeMedia = (overrides: Partial<Media> = {}): Media => ({
   project_id: 'proj-1',
   storage_path: '/photos/test.jpg',
   filename: 'test.jpg',
+  display_name: null,
   mime_type: 'image/jpeg',
   size_bytes: 100000,
   width: 1920,
