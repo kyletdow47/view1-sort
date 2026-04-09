@@ -6,9 +6,11 @@ import { useUploadStore } from '@/stores/uploadStore'
 const ACCEPTED_EXTENSIONS = [
   '.jpg', '.jpeg', '.png', '.webp', '.tiff',
   '.raw', '.cr2', '.nef', '.arw', '.dng',
+  '.heic', '.heif',
 ]
 const ACCEPTED_MIME_TYPES = [
   'image/jpeg', 'image/png', 'image/webp', 'image/tiff',
+  'image/heic', 'image/heif',
 ]
 const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB
 
@@ -124,7 +126,7 @@ export function UploadZone({ projectId, className = '', onFilesQueued }: UploadZ
             {isDragging ? 'Drop photos here' : 'Drag & drop photos, or click to browse'}
           </p>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            JPG, PNG, WEBP, TIFF, RAW, CR2, NEF, ARW, DNG — up to 500 MB each
+            JPG, PNG, WEBP, TIFF, HEIC, RAW, CR2, NEF, ARW, DNG — up to 500 MB each
           </p>
         </div>
       </div>
