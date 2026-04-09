@@ -5,6 +5,17 @@ import { createClient } from '@/lib/supabase/client'
 import { deleteMedia, getCategories, getMedia, updateMedia } from '@/lib/queries/media'
 import type { Category, Media, MediaUpdate } from '@/types/supabase'
 import type { ViewMode } from '@/components/features/PhotoGrid'
+import type { ClassificationResult } from '@/lib/ai/classifier-v2'
+
+// ─── Classification State Types ───────────────────────────────────────────────
+export type ClassificationStatus = 'pending' | 'classifying' | 'classified' | 'failed'
+
+export interface ClassificationProgress {
+  total: number
+  classified: number
+  pending: number
+  failed: number
+}
 
 interface MediaFilters {
   category: string | null
@@ -20,6 +31,12 @@ interface MediaState {
   viewMode: ViewMode
   loading: boolean
   error: string | null
+
+  // ── Classification state ──────────────────────────────────────────────────
+  classificationStatus: Record<string, ClassificationStatus>
+  classificationResults: Record<string, ClassificationResult>
+  classificationErrors: Record<string, string>
+
   fetchMedia: (projectId: string) => Promise<void>
   fetchCategories: (projectId: string) => Promise<void>
   setMedia: (media: Media[]) => void
@@ -33,6 +50,14 @@ interface MediaState {
   deselectAll: () => void
   filteredMedia: () => Media[]
   groupedByCategory: () => Record<string, Media[]>
+
+  // ── Classification actions ────────────────────────────────────────────────
+  setClassificationPending: (mediaId: string) => void
+  setClassifying: (mediaId: string) => void
+  setClassified: (mediaId: string, result: ClassificationResult) => void
+  setClassificationFailed: (mediaId: string, error: string) => void
+  getClassificationProgress: () => ClassificationProgress
+  retryFailedClassifications: () => string[]
 }
 
 export const useMediaStore = create<MediaState>((set, get) => ({
@@ -44,6 +69,11 @@ export const useMediaStore = create<MediaState>((set, get) => ({
   viewMode: 'grid',
   loading: false,
   error: null,
+
+  // ── Classification initial state ─────────────────────────────────────────
+  classificationStatus: {},
+  classificationResults: {},
+  classificationErrors: {},
 
   async fetchMedia(projectId: string) {
     set({ loading: true, error: null })
@@ -161,5 +191,69 @@ export const useMediaStore = create<MediaState>((set, get) => ({
     }
 
     return groups
+  },
+
+  // ── Classification actions ─────────────────────────────────────────────────
+
+  setClassificationPending(mediaId: string) {
+    set((state) => ({
+      classificationStatus: { ...state.classificationStatus, [mediaId]: 'pending' },
+    }))
+  },
+
+  setClassifying(mediaId: string) {
+    set((state) => ({
+      classificationStatus: { ...state.classificationStatus, [mediaId]: 'classifying' },
+    }))
+  },
+
+  setClassified(mediaId: string, result: ClassificationResult) {
+    set((state) => ({
+      classificationStatus: { ...state.classificationStatus, [mediaId]: 'classified' },
+      classificationResults: { ...state.classificationResults, [mediaId]: result },
+      // Optimistically update the media item's ai_category + ai_confidence
+      media: state.media.map((m) =>
+        m.id === mediaId
+          ? { ...m, ai_category: result.category, ai_confidence: result.confidence }
+          : m,
+      ),
+    }))
+  },
+
+  setClassificationFailed(mediaId: string, error: string) {
+    set((state) => ({
+      classificationStatus: { ...state.classificationStatus, [mediaId]: 'failed' },
+      classificationErrors: { ...state.classificationErrors, [mediaId]: error },
+    }))
+  },
+
+  getClassificationProgress(): ClassificationProgress {
+    const { classificationStatus } = get()
+    const entries = Object.values(classificationStatus)
+    return {
+      total: entries.length,
+      classified: entries.filter((s) => s === 'classified').length,
+      pending: entries.filter((s) => s === 'pending').length,
+      failed: entries.filter((s) => s === 'failed').length,
+    }
+  },
+
+  retryFailedClassifications(): string[] {
+    const { classificationStatus } = get()
+    const failedIds = Object.entries(classificationStatus)
+      .filter(([, status]) => status === 'failed')
+      .map(([id]) => id)
+
+    if (failedIds.length === 0) return []
+
+    set((state) => {
+      const updated = { ...state.classificationStatus }
+      for (const id of failedIds) {
+        updated[id] = 'pending'
+      }
+      return { classificationStatus: updated }
+    })
+
+    return failedIds
   },
 }))
