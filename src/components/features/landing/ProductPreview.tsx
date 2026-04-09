@@ -365,7 +365,7 @@ export function ProductPreview() {
   const activeCard = FEATURE_CARDS.find(c => c.id === active)!
 
   return (
-    <section id="features" className="py-24 px-6 relative z-10">
+    <section id="features" className="py-24 px-6 relative z-10 bg-[#07070f]">
       <div className="mx-auto max-w-6xl">
         <AnimatedSection className="text-center mb-14">
           <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-violet-400">
