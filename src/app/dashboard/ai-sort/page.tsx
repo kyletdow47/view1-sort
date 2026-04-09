@@ -791,17 +791,17 @@ function SortPhase({
       )
     }
 
-    // Safety timeout: if the model hasn't sent loadProgress within 30s, the
-    // worker likely silently crashed (e.g. WASM failed to load). Surface it.
+    // Safety timeout: if no loadProgress fires within 90 s the worker silently
+    // crashed before it could start the model download.
     const modelLoadTimeout = setTimeout(() => {
       if (!hasDoneRef.current) {
         setStage('error')
         setErrorMsg(
-          'AI model timed out. This can happen on a slow connection or if your browser blocks WebAssembly. Try refreshing — the model downloads once (~330 MB) and is then cached.'
+          'AI model is taking too long to start. Make sure you have a stable internet connection — the model downloads once (~330 MB) and is cached after that. Chrome works best.'
         )
         worker.terminate()
       }
-    }, 30_000)
+    }, 90_000)
 
     // Resolve preset labels once before classification starts so the CLIP model
     // scores against niche-specific vocabulary (travel, wedding, etc.) rather
