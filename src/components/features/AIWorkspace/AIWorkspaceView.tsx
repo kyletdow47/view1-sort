@@ -9,6 +9,7 @@ import { useBatchSelect } from '@/hooks/useBatchSelect'
 import { useAIClassifier } from '@/hooks/useAIClassifier'
 import { useAuth } from '@/hooks/useAuth'
 import { useStyleProfile } from '@/hooks/useStyleProfile'
+import { applyPersonalization } from '@/lib/ai/style-profile'
 import type { CullResult } from '@/lib/ai/culling'
 import { Lightbox } from '@/components/features/Lightbox'
 import { UploadZone } from '@/components/features/UploadZone'
@@ -24,6 +25,7 @@ import { VibePresetsTab } from './VibePresetsTab'
 import { CullingReviewPanel } from './CullingReviewPanel'
 import { CullSliderBar } from './CullSliderBar'
 import { WorkspaceSelectionToolbar } from './WorkspaceSelectionToolbar'
+import { PersonalizationProgress } from './PersonalizationProgress'
 import { UploadPhotoGrid } from './UploadPhotoGrid'
 
 import { getPreset } from '@/lib/ai/presets'
@@ -103,7 +105,13 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
   } = useAIClassifier()
 
   // Style profile learning
-  const { feedback: recordStyleFeedback } = useStyleProfile(user?.id)
+  const {
+    feedback: recordStyleFeedback,
+    progress: personalizationProgress,
+    unlocked: personalizationUnlocked,
+    profile: styleProfile,
+  } = useStyleProfile(user?.id)
+  const [personalizationEnabled, setPersonalizationEnabled] = useState(true)
 
   // UI state
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('ai-sort')
@@ -320,10 +328,20 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     if (itemsToClassify.length === 0) return
 
     try {
-      const results = await classifyBatch(itemsToClassify, {
+      let results = await classifyBatch(itemsToClassify, {
         projectId: project.id,
         presetId: activePresetId,
       })
+
+      // Apply personalized re-ranking if enabled and unlocked
+      if (personalizationEnabled && styleProfile?.personalizedModeUnlocked && styleProfile) {
+        const reranked = applyPersonalization(
+          results.map((r) => ({ category: r.category, score: r.confidence, id: r.id })),
+          styleProfile,
+          activePresetId,
+        )
+        results = reranked.map((r) => ({ id: r.id, category: r.category, confidence: r.score }))
+      }
 
       // Update the local media store with AI results
       await Promise.all(
@@ -334,7 +352,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     } catch (err) {
       console.error('AI Sort failed:', err)
     }
-  }, [classifierStatus, isAIRunning, allRawMedia, classifyBatch, project.id, activePresetId, editMedia])
+  }, [classifierStatus, isAIRunning, allRawMedia, classifyBatch, project.id, activePresetId, editMedia, personalizationEnabled, styleProfile])
 
   const handlePublish = useCallback(() => {
     router.push(`/dashboard/project/${project.id}/publish`)
@@ -366,10 +384,18 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       const m = allRawMedia.find((media) => media.id === id)
       return m?.is_starred === true
     })
+    const starring = !allStarred
     await Promise.all(
-      ids.map((id) => editMedia(id, { is_starred: !allStarred })),
+      ids.map((id) => {
+        const m = allRawMedia.find((media) => media.id === id)
+        // Starring = positive feedback for the category assignment
+        if (starring && m?.ai_category) {
+          recordStyleFeedback(activePresetId, m.ai_category, true)
+        }
+        return editMedia(id, { is_starred: starring })
+      }),
     )
-  }, [selectedIds, allRawMedia, editMedia])
+  }, [selectedIds, allRawMedia, editMedia, recordStyleFeedback, activePresetId])
 
   // Flag red = reject
   const handleFlagRed = useCallback(async () => {
@@ -379,7 +405,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       ids.map((id) => {
         const m = allRawMedia.find((media) => media.id === id)
         if (m?.ai_category) {
-          recordStyleFeedback('default', m.ai_category, false)
+          recordStyleFeedback(activePresetId, m.ai_category, false)
         }
         return editMedia(id, { review_flag: 'reject' })
       }),
@@ -394,7 +420,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       ids.map((id) => {
         const m = allRawMedia.find((media) => media.id === id)
         if (m?.ai_category) {
-          recordStyleFeedback('default', m.ai_category, true)
+          recordStyleFeedback(activePresetId, m.ai_category, true)
         }
         return editMedia(id, { review_flag: 'keep' })
       }),
@@ -409,8 +435,8 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       ids.map((id) => {
         const m = allRawMedia.find((media) => media.id === id)
         if (m?.ai_category) {
-          recordStyleFeedback('default', m.ai_category, false)
-          recordStyleFeedback('default', targetCategory, true)
+          recordStyleFeedback(activePresetId, m.ai_category, false)
+          recordStyleFeedback(activePresetId, targetCategory, true)
         }
         return editMedia(id, { ai_category: targetCategory })
       }),
@@ -424,9 +450,9 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       const m = allRawMedia.find((media) => media.id === mediaId)
       if (m?.ai_category === targetCategory) return
       if (m?.ai_category) {
-        recordStyleFeedback('default', m.ai_category, false)
+        recordStyleFeedback(activePresetId, m.ai_category, false)
       }
-      recordStyleFeedback('default', targetCategory, true)
+      recordStyleFeedback(activePresetId, targetCategory, true)
       await editMedia(mediaId, { ai_category: targetCategory })
     },
     [allRawMedia, editMedia, recordStyleFeedback],
@@ -523,6 +549,15 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       <div className="flex flex-col flex-1 min-h-0 gap-4 px-6">
         {activeTab === 'ai-sort' && (
           <>
+            {/* Personalization Progress */}
+            <PersonalizationProgress
+              feedbackCount={styleProfile?.feedbackCount ?? 0}
+              unlocked={personalizationUnlocked}
+              progress={personalizationProgress}
+              enabled={personalizationEnabled}
+              onToggle={setPersonalizationEnabled}
+            />
+
             <SubTabRow
               activeSubTab={activeSubTab}
               onSubTabChange={setActiveSubTab}
@@ -584,7 +619,13 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
             ) : activeSubTab === 'preferences' ? (
               <AISortPreferences projectId={project.id} />
             ) : activeSubTab === 'vibe-presets' ? (
-              <VibePresetsTab projectId={project.id} />
+              <VibePresetsTab
+                projectId={project.id}
+                categoryDistribution={categoryColumns.map((col) => ({
+                  name: col.name,
+                  count: col.photoCount,
+                }))}
+              />
             ) : (
               <div className="flex gap-4 flex-1 min-h-0">
                 <div className="flex gap-3 flex-1 min-h-0">

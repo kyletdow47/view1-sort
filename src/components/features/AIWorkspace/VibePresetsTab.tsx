@@ -14,7 +14,8 @@ import {
 } from 'lucide-react'
 
 import type { ParseVibeResponse, VibePreset, VibeStyleParams } from '@/types/vibe-presets'
-import { EXAMPLE_PROMPTS, MOCK_PRESETS } from '@/types/vibe-presets'
+import { EXAMPLE_PROMPTS } from '@/types/vibe-presets'
+import { useVibePresets } from '@/hooks/useVibePresets'
 
 /* ─────────────────────────────────────────────
    Internal UI primitives (scoped to this file)
@@ -274,14 +275,75 @@ function StyleParamsPreview({
    ApplyPresetModal — before/after comparison
    ───────────────────────────────────────────── */
 
+interface CategoryDistribution {
+  name: string
+  count: number
+}
+
 interface ApplyPresetModalProps {
   preset: VibePreset
+  currentDistribution: CategoryDistribution[]
   onConfirm: () => void
   onCancel: () => void
 }
 
-function ApplyPresetModal({ preset, onConfirm, onCancel }: ApplyPresetModalProps) {
-  const panels = ['Standard Sort', `${preset.name} Sort`] as const
+/** Predict how preset style params would shift category distribution */
+function predictDistribution(
+  current: CategoryDistribution[],
+  preset: VibePreset,
+): CategoryDistribution[] {
+  // Heuristic: subjects in the preset get a boost, avoidPatterns get demoted
+  const subjects = new Set(preset.styleParams.subjects.map((s) => s.toLowerCase()))
+  const avoids = new Set(preset.styleParams.avoidPatterns.map((p) => p.toLowerCase()))
+
+  return current.map((cat) => {
+    const lower = cat.name.toLowerCase()
+    const subjectMatch = subjects.has(lower) || [...subjects].some((s) => lower.includes(s))
+    const avoidMatch = avoids.has(lower) || [...avoids].some((a) => lower.includes(a))
+
+    let multiplier = 1.0
+    if (subjectMatch) multiplier = 1.3
+    if (avoidMatch) multiplier = 0.5
+
+    return { name: cat.name, count: Math.round(cat.count * multiplier) }
+  })
+}
+
+const BAR_COLORS = [
+  'bg-violet-500', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500',
+  'bg-pink-500', 'bg-cyan-500', 'bg-orange-500', 'bg-indigo-500',
+]
+
+function DistributionBars({ items, maxCount }: { items: CategoryDistribution[]; maxCount: number }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      {items.slice(0, 6).map((item, i) => (
+        <div key={item.name} className="flex items-center gap-2">
+          <span className="text-[10px] text-white/40 w-16 truncate text-right font-[Geist,sans-serif]">
+            {item.name}
+          </span>
+          <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
+            <div
+              className={`h-full rounded-full ${BAR_COLORS[i % BAR_COLORS.length]} transition-all duration-500`}
+              style={{ width: maxCount > 0 ? `${(item.count / maxCount) * 100}%` : '0%' }}
+            />
+          </div>
+          <span className="text-[10px] text-white/30 w-6 font-[Geist_Mono,monospace]">
+            {item.count}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ApplyPresetModal({ preset, currentDistribution, onConfirm, onCancel }: ApplyPresetModalProps) {
+  const predicted = predictDistribution(currentDistribution, preset)
+  const maxCount = Math.max(
+    ...currentDistribution.map((d) => d.count),
+    ...predicted.map((d) => d.count),
+    1,
+  )
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -309,26 +371,24 @@ function ApplyPresetModal({ preset, onConfirm, onCancel }: ApplyPresetModalProps
           </button>
         </div>
 
-        {/* Before / After Preview */}
-        <div className="grid grid-cols-2 gap-3">
-          {panels.map((label, i) => (
-            <div key={label} className="flex flex-col gap-2">
-              <p className="text-white/40 text-xs font-medium font-[Geist,sans-serif] text-center">
-                {label}
-              </p>
-              <div className="h-32 rounded-xl bg-white/5 border border-white/10 p-3">
-                <div className="grid grid-cols-3 gap-1 w-full h-full">
-                  {Array.from({ length: 6 }).map((_, j) => (
-                    <div
-                      key={j}
-                      className={`rounded-md ${i === 0 ? 'bg-white/10' : 'bg-[#5749F4]/20'}`}
-                      style={{ opacity: i === 1 ? 0.4 + j * 0.1 : 1 - j * 0.08 }}
-                    />
-                  ))}
-                </div>
-              </div>
+        {/* Before / After Distribution */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-2">
+            <p className="text-white/40 text-xs font-medium font-[Geist,sans-serif] text-center">
+              Current Distribution
+            </p>
+            <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+              <DistributionBars items={currentDistribution} maxCount={maxCount} />
             </div>
-          ))}
+          </div>
+          <div className="flex flex-col gap-2">
+            <p className="text-white/40 text-xs font-medium font-[Geist,sans-serif] text-center">
+              {preset.name} Predicted
+            </p>
+            <div className="rounded-xl bg-[#5749F4]/5 border border-[#5749F4]/20 p-3">
+              <DistributionBars items={predicted} maxCount={maxCount} />
+            </div>
+          </div>
         </div>
 
         <p className="text-white/40 text-xs font-[Geist,sans-serif] text-center">
@@ -368,18 +428,22 @@ function ApplyPresetModal({ preset, onConfirm, onCancel }: ApplyPresetModalProps
 
 export interface VibePresetsTabProps {
   projectId?: string
+  categoryDistribution?: CategoryDistribution[]
 }
 
-export function VibePresetsTab({ projectId }: VibePresetsTabProps) {
-  const [presets, setPresets] = useState<VibePreset[]>(MOCK_PRESETS)
+export function VibePresetsTab({ projectId, categoryDistribution = [] }: VibePresetsTabProps) {
+  const {
+    presets,
+    activePresetId,
+    savePreset: savePresetToCloud,
+    deletePreset: deletePresetFromCloud,
+    applyPreset: applyPresetToCloud,
+  } = useVibePresets(projectId)
   const [description, setDescription] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [parsedResult, setParsedResult] = useState<ParseVibeResponse | null>(null)
   const [presetName, setPresetName] = useState('')
   const [applyingPreset, setApplyingPreset] = useState<VibePreset | null>(null)
-  const [activePresetId, setActivePresetId] = useState<string | null>(
-    MOCK_PRESETS.find((p) => p.isActive)?.id ?? null,
-  )
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleExamplePrompt = useCallback(
@@ -414,22 +478,18 @@ export function VibePresetsTab({ projectId }: VibePresetsTabProps) {
     }
   }, [description, projectId])
 
-  const handleSavePreset = useCallback(() => {
+  const handleSavePreset = useCallback(async () => {
     if (!parsedResult || !presetName.trim()) return
-    const newPreset: VibePreset = {
-      id: `preset-${Date.now()}`,
+    await savePresetToCloud({
       name: presetName.trim(),
       description: description.trim(),
       styleParams: parsedResult.styleParams,
-      createdAt: new Date().toISOString(),
-    }
-    setPresets((prev) => [newPreset, ...prev])
+      source: 'ai_parsed',
+    })
     setParsedResult(null)
     setDescription('')
     setPresetName('')
-    // TODO: Persist to profiles.preferences.vibe_presets JSONB array via Supabase
-    // await supabase.from('profiles').update({ 'preferences->vibe_presets': [...] })
-  }, [parsedResult, presetName, description])
+  }, [parsedResult, presetName, description, savePresetToCloud])
 
   const handleDiscard = useCallback(() => {
     setParsedResult(null)
@@ -439,11 +499,9 @@ export function VibePresetsTab({ projectId }: VibePresetsTabProps) {
 
   const handleDelete = useCallback(
     (id: string) => {
-      setPresets((prev) => prev.filter((p) => p.id !== id))
-      if (activePresetId === id) setActivePresetId(null)
-      // TODO: Persist deletion to profiles.preferences.vibe_presets
+      void deletePresetFromCloud(id)
     },
-    [activePresetId],
+    [deletePresetFromCloud],
   )
 
   const handleEdit = useCallback((preset: VibePreset) => {
@@ -455,11 +513,10 @@ export function VibePresetsTab({ projectId }: VibePresetsTabProps) {
 
   const handleConfirmApply = useCallback(() => {
     if (!applyingPreset) return
-    setActivePresetId(applyingPreset.id)
+    void applyPresetToCloud(applyingPreset.id)
     setApplyingPreset(null)
-    // TODO: Trigger photo reranking via AI service with applyingPreset.styleParams
     console.info('[VibePresetsTab] Applying preset:', applyingPreset.id)
-  }, [applyingPreset])
+  }, [applyingPreset, applyPresetToCloud])
 
   return (
     <div className="flex gap-4 flex-1 min-h-0 py-3">
@@ -638,7 +695,7 @@ export function VibePresetsTab({ projectId }: VibePresetsTabProps) {
               params={parsedResult.styleParams}
               presetName={presetName}
               onNameChange={setPresetName}
-              onSave={handleSavePreset}
+              onSave={() => void handleSavePreset()}
               onDiscard={handleDiscard}
             />
           )}
@@ -649,6 +706,7 @@ export function VibePresetsTab({ projectId }: VibePresetsTabProps) {
       {applyingPreset !== null && (
         <ApplyPresetModal
           preset={applyingPreset}
+          currentDistribution={categoryDistribution}
           onConfirm={handleConfirmApply}
           onCancel={() => setApplyingPreset(null)}
         />

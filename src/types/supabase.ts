@@ -297,6 +297,40 @@ export type CategoryUpdate = Partial<Omit<Category, 'id' | 'project_id'>>
 export type BookingUpdate = Partial<Omit<Booking, 'id' | 'workspace_id' | 'created_at'>>
 export type NotificationUpdate = Partial<Pick<Notification, 'read'>>
 
+// Vibe Presets (migration 20260409100000)
+export type VibePresetSource = 'builtin' | 'custom' | 'ai_parsed'
+
+export interface VibePresetRow {
+  id: string
+  user_id: string
+  project_id: string | null
+  name: string
+  description: string | null
+  style_params: Record<string, unknown>
+  is_active: boolean
+  source: VibePresetSource
+  created_at: string
+  updated_at: string
+}
+
+export type VibePresetInsert = Omit<VibePresetRow, 'id' | 'created_at' | 'updated_at'>
+export type VibePresetUpdate = Partial<Omit<VibePresetRow, 'id' | 'user_id' | 'created_at'>>
+
+// Style Profiles (migration 20260409100001)
+export interface StyleProfileRow {
+  id: string
+  user_id: string
+  preset_id: string | null
+  feedback_count: number
+  personalized_mode_unlocked: boolean
+  category_weights: Record<string, number>
+  created_at: string
+  updated_at: string
+}
+
+export type StyleProfileInsert = Omit<StyleProfileRow, 'id' | 'created_at' | 'updated_at'>
+export type StyleProfileUpdate = Partial<Omit<StyleProfileRow, 'id' | 'user_id' | 'created_at'>>
+
 // ---------------------------------------------------------------------------
 // Database type (for Supabase client generic)
 // ---------------------------------------------------------------------------
@@ -383,6 +417,16 @@ export type Database = {
         Row: StripeEvent
         Insert: StripeEventInsert
         Update: Partial<Omit<StripeEvent, 'id' | 'created_at'>>
+      }
+      vibe_presets: {
+        Row: VibePresetRow
+        Insert: VibePresetInsert
+        Update: VibePresetUpdate
+      }
+      style_profiles: {
+        Row: StyleProfileRow
+        Insert: StyleProfileInsert
+        Update: StyleProfileUpdate
       }
     }
     Enums: {
