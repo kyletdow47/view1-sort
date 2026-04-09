@@ -96,6 +96,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     loadProgress,
     runProgress,
     isRunning: isAIRunning,
+    cullingProgress,
     classifyBatch,
     runCullingOnFiles,
   } = useAIClassifier()
@@ -473,6 +474,20 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
           <span>
             <strong className="font-semibold text-violet-100">Downloading AI model (~330MB)</strong>
             {' '}— this only happens once and is cached in your browser. It may take 1–2 minutes on first use.
+          </span>
+        </div>
+      )}
+
+      {/* Culling Analysis Progress */}
+      {cullingProgress.isRunning && (
+        <div className="mx-6 mt-3 flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          <svg className="h-4 w-4 shrink-0 text-amber-400 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span>
+            <strong className="font-semibold text-amber-100">Analyzing quality…</strong>
+            {' '}{cullingProgress.current}/{cullingProgress.total}
           </span>
         </div>
       )}

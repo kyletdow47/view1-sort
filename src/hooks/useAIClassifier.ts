@@ -35,6 +35,12 @@ export interface CullInput {
   file: File
 }
 
+export interface CullingProgress {
+  current: number
+  total: number
+  isRunning: boolean
+}
+
 export interface UseAIClassifierReturn {
   /** Worker model status (loading / ready / classifying / error) */
   status: ReturnType<typeof useClassifier>['status']
@@ -44,6 +50,8 @@ export interface UseAIClassifierReturn {
   runProgress: number
   /** True while a batch run is in progress */
   isRunning: boolean
+  /** Culling analysis progress (current file / total files) */
+  cullingProgress: CullingProgress
   /** Error message if something went wrong */
   error: string | null
   /**
@@ -77,6 +85,11 @@ export function useAIClassifier(): UseAIClassifierReturn {
   const [runProgress, setRunProgress] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [cullingProgress, setCullingProgress] = useState<CullingProgress>({
+    current: 0,
+    total: 0,
+    isRunning: false,
+  })
 
   const classifyBatch = useCallback(
     async (
@@ -177,7 +190,10 @@ export function useAIClassifier(): UseAIClassifierReturn {
     const resultMap = new Map<string, CullResult>()
     const hashMap = new Map<string, string>()
 
-    for (const { id, file } of files) {
+    setCullingProgress({ current: 0, total: files.length, isRunning: true })
+
+    for (let i = 0; i < files.length; i++) {
+      const { id, file } = files[i]
       try {
         const { result, hash } = await analyzeFile(file, id, hashMap)
         resultMap.set(id, result)
@@ -185,8 +201,10 @@ export function useAIClassifier(): UseAIClassifierReturn {
       } catch {
         // Non-fatal — skip this file
       }
+      setCullingProgress({ current: i + 1, total: files.length, isRunning: true })
     }
 
+    setCullingProgress({ current: files.length, total: files.length, isRunning: false })
     return resultMap
   }, [])
 
@@ -194,7 +212,10 @@ export function useAIClassifier(): UseAIClassifierReturn {
     const resultMap = new Map<string, CullResult>()
     const hashMap = new Map<string, string>()
 
-    for (const file of files) {
+    setCullingProgress({ current: 0, total: files.length, isRunning: true })
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
       try {
         // Use filename as key — reconciled with media ID after upload completes
         const { result, hash } = await analyzeFile(file, file.name, hashMap)
@@ -203,8 +224,10 @@ export function useAIClassifier(): UseAIClassifierReturn {
       } catch {
         // Non-fatal — skip this file
       }
+      setCullingProgress({ current: i + 1, total: files.length, isRunning: true })
     }
 
+    setCullingProgress({ current: files.length, total: files.length, isRunning: false })
     return resultMap
   }, [])
 
@@ -213,6 +236,7 @@ export function useAIClassifier(): UseAIClassifierReturn {
     loadProgress,
     runProgress,
     isRunning,
+    cullingProgress,
     error: error ?? workerError,
     classifyBatch,
     runCulling,
