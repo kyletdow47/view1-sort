@@ -60,6 +60,11 @@ export interface UseAIClassifierReturn {
    * Returns a map of mediaId → CullResult.
    */
   runCulling: (files: CullInput[]) => Promise<Map<string, CullResult>>
+  /**
+   * Run canvas-based culling on raw File objects during upload.
+   * Returns a map of filename → CullResult for later reconciliation with media IDs.
+   */
+  runCullingOnFiles: (files: File[]) => Promise<Map<string, CullResult>>
 }
 
 const BATCH_SIZE = 10
@@ -175,6 +180,24 @@ export function useAIClassifier(): UseAIClassifierReturn {
     return resultMap
   }, [])
 
+  const runCullingOnFiles = useCallback(async (files: File[]): Promise<Map<string, CullResult>> => {
+    const resultMap = new Map<string, CullResult>()
+    const hashMap = new Map<string, string>()
+
+    for (const file of files) {
+      try {
+        // Use filename as key — reconciled with media ID after upload completes
+        const { result, hash } = await analyzeFile(file, file.name, hashMap)
+        resultMap.set(file.name, result)
+        if (hash) hashMap.set(file.name, hash)
+      } catch {
+        // Non-fatal — skip this file
+      }
+    }
+
+    return resultMap
+  }, [])
+
   return {
     status,
     loadProgress,
@@ -183,5 +206,6 @@ export function useAIClassifier(): UseAIClassifierReturn {
     error: error ?? workerError,
     classifyBatch,
     runCulling,
+    runCullingOnFiles,
   }
 }

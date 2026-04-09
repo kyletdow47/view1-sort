@@ -4,10 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { useMediaStore } from '@/stores/mediaStore'
+import { useUploadStore } from '@/stores/uploadStore'
 import { useBatchSelect } from '@/hooks/useBatchSelect'
 import { useAIClassifier } from '@/hooks/useAIClassifier'
 import { useAuth } from '@/hooks/useAuth'
 import { useStyleProfile } from '@/hooks/useStyleProfile'
+import type { CullResult } from '@/lib/ai/culling'
 import { Lightbox } from '@/components/features/Lightbox'
 import { UploadZone } from '@/components/features/UploadZone'
 
@@ -55,12 +57,15 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
   // Store & selection
   const {
     setMedia,
+    fetchMedia,
     groupedByCategory,
     filteredMedia,
     removeMedia,
     editMedia,
     media: allRawMedia,
   } = useMediaStore()
+
+  const uploadItems = useUploadStore((s) => s.items)
   const { selectedIds, toggle, selectRange, selectAll, deselectAll } = useBatchSelect()
 
   // AI classifier
@@ -70,6 +75,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     runProgress,
     isRunning: isAIRunning,
     classifyBatch,
+    runCullingOnFiles,
   } = useAIClassifier()
 
   // Style profile learning
@@ -81,12 +87,93 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [showUpload, setShowUpload] = useState(false)
   const [keepCount, setKeepCount] = useState(340)
+  const [autoSortEnabled] = useState(true)
   const lastSelectedRef = useRef<string | null>(null)
+
+  // Culling results from upload flow — keyed by filename, reconciled after upload
+  const pendingCullResultsRef = useRef<Map<string, CullResult>>(new Map())
+  // Track whether we had active uploads this session to detect batch completion
+  const hadActiveUploadsRef = useRef(false)
 
   // Seed store on mount
   useEffect(() => {
     setMedia(initialMedia)
   }, [initialMedia, setMedia])
+
+  // Watch upload store — when a batch transitions from active → all-complete, auto-sort
+  useEffect(() => {
+    const items = Object.values(uploadItems)
+    const projectItems = items.filter((i) => i.projectId === project.id)
+    if (projectItems.length === 0) return
+
+    const hasActive = projectItems.some((i) => i.status === 'uploading' || i.status === 'pending')
+    if (hasActive) {
+      hadActiveUploadsRef.current = true
+      return
+    }
+
+    // All items for this project are complete/error — check if we just finished a batch
+    if (!hadActiveUploadsRef.current) return
+    hadActiveUploadsRef.current = false
+
+    if (!autoSortEnabled || classifierStatus !== 'ready' || isAIRunning) return
+
+    // Refresh media from DB, then classify new items
+    void (async () => {
+      try {
+        await fetchMedia(project.id)
+        // fetchMedia updates the store; read latest media via the store state directly
+        // Small delay to let Zustand re-render propagate
+        await new Promise((r) => setTimeout(r, 200))
+
+        const latestMedia = useMediaStore.getState().media
+        const itemsToClassify = latestMedia
+          .filter((m) => m.thumbnail_url && !m.ai_category)
+          .map((m) => ({ id: m.id, thumbnail_url: m.thumbnail_url }))
+
+        if (itemsToClassify.length === 0) return
+
+        const results = await classifyBatch(itemsToClassify, { projectId: project.id })
+
+        // Update local store + apply any culling results we have
+        await Promise.all(
+          results.map(async ({ id, category, confidence }) => {
+            const mediaRow = latestMedia.find((m) => m.id === id)
+            const cullResult = mediaRow
+              ? pendingCullResultsRef.current.get(mediaRow.filename)
+              : undefined
+
+            const cullFlags = cullResult?.flags ?? []
+            const isBlurry = cullFlags.some((f) => f.type === 'blurry')
+            const isDuplicate = cullFlags.some((f) => f.type === 'duplicate')
+            const isOverexposed = cullFlags.some((f) => f.type === 'overexposed')
+            const isUnderexposed = cullFlags.some((f) => f.type === 'underexposed')
+            const cullingConfidence = cullFlags.length > 0
+              ? Math.max(...cullFlags.map((f) => f.confidence))
+              : undefined
+
+            await editMedia(id, {
+              ai_category: category,
+              ai_confidence: confidence,
+              ...(cullResult ? {
+                is_blurry: isBlurry,
+                is_duplicate: isDuplicate,
+                is_overexposed: isOverexposed,
+                is_underexposed: isUnderexposed,
+                culling_confidence: cullingConfidence,
+              } : {}),
+            } as Parameters<typeof editMedia>[1])
+          }),
+        )
+
+        // Clear processed cull results
+        pendingCullResultsRef.current.clear()
+      } catch (err) {
+        console.error('[auto-sort] Failed:', err)
+      }
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadItems])
 
   // Derived data
   const groups = useMemo(() => groupedByCategory(), [groupedByCategory])
@@ -112,6 +199,21 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
   }, [groups])
 
   void uncategorizedPhotos // used by child components when needed
+
+  // ─── Upload handlers ────────────────────────────────────────────────────────
+
+  // Called by UploadZone as soon as valid files are queued (before upload begins).
+  // Runs culling while we still have the raw File objects in memory.
+  const handleFilesQueued = useCallback(
+    (files: File[]) => {
+      void runCullingOnFiles(files).then((results) => {
+        results.forEach((result, filename) => {
+          pendingCullResultsRef.current.set(filename, result)
+        })
+      })
+    },
+    [runCullingOnFiles],
+  )
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
 
@@ -320,7 +422,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
               />
             ) : activeSubTab === 'upload' ? (
               <div className="flex items-center justify-center flex-1">
-                <UploadZone projectId={project.id} />
+                <UploadZone projectId={project.id} onFilesQueued={handleFilesQueued} />
               </div>
             ) : activeSubTab === 'preferences' ? (
               <AISortPreferences />
@@ -410,7 +512,7 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
             >
               &times;
             </button>
-            <UploadZone projectId={project.id} />
+            <UploadZone projectId={project.id} onFilesQueued={handleFilesQueued} />
           </div>
         </div>
       )}

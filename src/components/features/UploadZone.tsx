@@ -15,6 +15,8 @@ const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500MB
 interface UploadZoneProps {
   projectId: string
   className?: string
+  /** Called immediately after files are validated, before upload begins. */
+  onFilesQueued?: (files: File[]) => void
 }
 
 function isAcceptedFile(file: File): boolean {
@@ -25,7 +27,7 @@ function isAcceptedFile(file: File): boolean {
   return hasAcceptedExt || hasAcceptedMime
 }
 
-export function UploadZone({ projectId, className = '' }: UploadZoneProps) {
+export function UploadZone({ projectId, className = '', onFilesQueued }: UploadZoneProps) {
   const addFiles = useUploadStore((s) => s.addFiles)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -52,6 +54,7 @@ export function UploadZone({ projectId, className = '' }: UploadZoneProps) {
       setErrors(newErrors)
 
       if (valid.length > 0) {
+        onFilesQueued?.(valid)
         await addFiles(valid, projectId)
       }
     },
