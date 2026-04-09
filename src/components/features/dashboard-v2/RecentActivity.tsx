@@ -47,7 +47,7 @@ export function RecentActivity({ activities }: RecentActivityProps) {
           </span>
         </div>
       ) : (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto">
           {items.map((item, i) => (
             <div
               key={i}
