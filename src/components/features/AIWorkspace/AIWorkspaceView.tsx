@@ -21,6 +21,7 @@ import { AIAnalysisPanel } from './AIAnalysisPanel'
 import { AISortWorkspace } from './AISortWorkspace'
 import { AISortPreferences } from './AISortPreferences'
 import { VibePresetsTab } from './VibePresetsTab'
+import { CullingReviewPanel } from './CullingReviewPanel'
 import { CullSliderBar } from './CullSliderBar'
 import { WorkspaceSelectionToolbar } from './WorkspaceSelectionToolbar'
 import { UploadPhotoGrid } from './UploadPhotoGrid'
@@ -426,6 +427,23 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     setActiveTab('review')
   }, [])
 
+  // Keep/Reject handlers for the Culling Review Panel
+  const handleKeepSingle = useCallback(async (id: string) => {
+    await editMedia(id, { review_flag: 'keep' })
+  }, [editMedia])
+
+  const handleRejectSingle = useCallback(async (id: string) => {
+    await editMedia(id, { review_flag: 'reject' })
+  }, [editMedia])
+
+  const handleKeepBatch = useCallback(async (ids: string[]) => {
+    await Promise.all(ids.map((id) => editMedia(id, { review_flag: 'keep' })))
+  }, [editMedia])
+
+  const handleRejectBatch = useCallback(async (ids: string[]) => {
+    await Promise.all(ids.map((id) => editMedia(id, { review_flag: 'reject' })))
+  }, [editMedia])
+
   // Approve all — set review_flag = 'keep' for every photo that hasn't been flagged yet
   const handleApproveAll = useCallback(async () => {
     const unflagged = allRawMedia.filter((m) => !m.review_flag)
@@ -580,9 +598,13 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         )}
 
         {activeTab === 'review' && (
-          <div className="flex items-center justify-center flex-1 text-white/30 text-lg">
-            Review tab — coming soon
-          </div>
+          <CullingReviewPanel
+            media={flatMediaItems}
+            onKeep={handleKeepSingle}
+            onReject={handleRejectSingle}
+            onKeepAll={handleKeepBatch}
+            onRejectAll={handleRejectBatch}
+          />
         )}
 
         {activeTab === 'shot-list' && (
