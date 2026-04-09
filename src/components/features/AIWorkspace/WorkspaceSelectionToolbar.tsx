@@ -1,32 +1,51 @@
 'use client'
 
+import { useState, useRef, useEffect } from 'react'
 import {
   Star,
   Flag,
   FolderInput,
   Trash2,
   X,
+  ChevronUp,
 } from 'lucide-react'
 
 interface WorkspaceSelectionToolbarProps {
   selectedCount: number
+  categories: Array<{ name: string }>
   onStar: () => void
   onFlagRed: () => void
   onFlagGreen: () => void
-  onMove: () => void
+  onMoveTo: (category: string) => void
   onDelete: () => void
   onDeselect: () => void
 }
 
 export function WorkspaceSelectionToolbar({
   selectedCount,
+  categories,
   onStar,
   onFlagRed,
   onFlagGreen,
-  onMove,
+  onMoveTo,
   onDelete,
   onDeselect,
 }: WorkspaceSelectionToolbarProps) {
+  const [showMoveMenu, setShowMoveMenu] = useState(false)
+  const moveRef = useRef<HTMLDivElement>(null)
+
+  // Close move menu on outside click
+  useEffect(() => {
+    if (!showMoveMenu) return
+    function handler(e: MouseEvent) {
+      if (moveRef.current && !moveRef.current.contains(e.target as Node)) {
+        setShowMoveMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showMoveMenu])
+
   if (selectedCount === 0) return null
 
   return (
@@ -82,16 +101,47 @@ export function WorkspaceSelectionToolbar({
           <span className="text-xs text-green-400/80">Keep</span>
         </button>
 
-        {/* Move */}
-        <button
-          onClick={onMove}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm
-            text-white/60 hover:text-white hover:bg-white/[0.08] transition-all"
-          aria-label="Move selected"
-        >
-          <FolderInput className="w-4 h-4" />
-          <span className="text-xs">Move</span>
-        </button>
+        {/* Move — category popover */}
+        <div className="relative" ref={moveRef}>
+          <button
+            onClick={() => setShowMoveMenu((v) => !v)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm
+              text-white/60 hover:text-white hover:bg-white/[0.08] transition-all"
+            aria-label="Move selected"
+            aria-expanded={showMoveMenu}
+          >
+            <FolderInput className="w-4 h-4" />
+            <span className="text-xs">Move</span>
+            <ChevronUp
+              className={`w-3 h-3 transition-transform ${showMoveMenu ? 'rotate-0' : 'rotate-180'}`}
+            />
+          </button>
+
+          {showMoveMenu && (
+            <div
+              className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50
+                min-w-[160px] rounded-xl border border-white/[0.12] bg-[#1a1a2e]/95
+                backdrop-blur-xl shadow-2xl overflow-hidden py-1"
+            >
+              <p className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/30">
+                Move to category
+              </p>
+              {categories.map((cat) => (
+                <button
+                  key={cat.name}
+                  onClick={() => {
+                    onMoveTo(cat.name)
+                    setShowMoveMenu(false)
+                  }}
+                  className="w-full text-left px-3 py-2 text-[13px] text-white/70
+                    hover:text-white hover:bg-white/[0.08] transition-colors"
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="w-px h-6 bg-white/20" />
 

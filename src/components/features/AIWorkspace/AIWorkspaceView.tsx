@@ -23,6 +23,7 @@ import { AISortPreferences } from './AISortPreferences'
 import { VibePresetsTab } from './VibePresetsTab'
 import { CullSliderBar } from './CullSliderBar'
 import { WorkspaceSelectionToolbar } from './WorkspaceSelectionToolbar'
+import { UploadPhotoGrid } from './UploadPhotoGrid'
 
 import type { Media, Project } from '@/types/supabase'
 import type { MediaItem } from '@/types/media'
@@ -341,25 +342,18 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     )
   }, [selectedIds, allRawMedia, editMedia, recordStyleFeedback])
 
-  // Move selected photos to a category (opens prompt for now; replaced by drag-drop)
-  const handleMove = useCallback(async () => {
+  // Move selected photos to a specific category (called by the category dropdown in toolbar)
+  const handleMoveTo = useCallback(async (targetCategory: string) => {
     const ids = Array.from(selectedIds)
     if (ids.length === 0) return
-    const categoryNames = DEFAULT_CATEGORIES.map((c) => c.name).join(', ')
-    const target = window.prompt(`Move ${ids.length} photo(s) to category:\n${categoryNames}`)
-    if (!target) return
-    const matched = DEFAULT_CATEGORIES.find(
-      (c) => c.name.toLowerCase() === target.toLowerCase().trim(),
-    )
-    if (!matched) return
     await Promise.all(
       ids.map((id) => {
         const m = allRawMedia.find((media) => media.id === id)
         if (m?.ai_category) {
           recordStyleFeedback('default', m.ai_category, false)
-          recordStyleFeedback('default', matched.name, true)
+          recordStyleFeedback('default', targetCategory, true)
         }
-        return editMedia(id, { ai_category: matched.name })
+        return editMedia(id, { ai_category: targetCategory })
       }),
     )
     deselectAll()
@@ -485,8 +479,17 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
                 />
               )
             ) : activeSubTab === 'upload' ? (
-              <div className="flex items-center justify-center flex-1">
+              <div className="flex flex-col flex-1 min-h-0 gap-4">
                 <UploadZone projectId={project.id} onFilesQueued={handleFilesQueued} />
+                <UploadPhotoGrid
+                  projectId={project.id}
+                  uploadItems={uploadItems}
+                  completedMedia={allRawMedia}
+                  classifierReady={classifierStatus === 'ready'}
+                  isAIRunning={isAIRunning}
+                  runAILabel={runAILabel}
+                  onStartAISort={handleRunAI}
+                />
               </div>
             ) : activeSubTab === 'preferences' ? (
               <AISortPreferences projectId={project.id} />
@@ -557,10 +560,11 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       {/* Selection Toolbar */}
       <WorkspaceSelectionToolbar
         selectedCount={selectedIds.size}
+        categories={DEFAULT_CATEGORIES}
         onStar={handleStar}
         onFlagRed={handleFlagRed}
         onFlagGreen={handleFlagGreen}
-        onMove={handleMove}
+        onMoveTo={handleMoveTo}
         onDelete={handleDeleteSelected}
         onDeselect={deselectAll}
       />
