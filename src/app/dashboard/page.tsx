@@ -36,6 +36,7 @@ export default async function DashboardPage() {
         upcomingShoots={3}
         revenueThisMonth={320000}
         pendingActions={5}
+        demoMode
       />
     )
   }

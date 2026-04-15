@@ -1,0 +1,540 @@
+{
+  "generatedAt": "2026-04-15T12:42:05.368Z",
+  "model": "Xenova/clip-vit-base-patch32 (CLIP only, no vision escalation)",
+  "totalPhotos": 600,
+  "overallAccuracy": 0.71,
+  "perCategory": [
+    {
+      "correct": 0,
+      "total": 15,
+      "preset": "wedding",
+      "category": "Candids",
+      "accuracy": 0
+    },
+    {
+      "correct": 0,
+      "total": 15,
+      "preset": "commercial",
+      "category": "Hero Shots",
+      "accuracy": 0
+    },
+    {
+      "correct": 1,
+      "total": 15,
+      "preset": "wedding",
+      "category": "First Look",
+      "accuracy": 0.06666666666666667
+    },
+    {
+      "correct": 1,
+      "total": 15,
+      "preset": "commercial",
+      "category": "Lifestyle",
+      "accuracy": 0.06666666666666667
+    },
+    {
+      "correct": 2,
+      "total": 15,
+      "preset": "fashion",
+      "category": "Full Length",
+      "accuracy": 0.13333333333333333
+    },
+    {
+      "correct": 3,
+      "total": 15,
+      "preset": "wedding",
+      "category": "Reception",
+      "accuracy": 0.2
+    },
+    {
+      "correct": 5,
+      "total": 15,
+      "preset": "commercial",
+      "category": "Team / People",
+      "accuracy": 0.3333333333333333
+    },
+    {
+      "correct": 6,
+      "total": 15,
+      "preset": "wedding",
+      "category": "Ceremony",
+      "accuracy": 0.4
+    },
+    {
+      "correct": 7,
+      "total": 15,
+      "preset": "real-estate",
+      "category": "Twilight / Dusk",
+      "accuracy": 0.4666666666666667
+    },
+    {
+      "correct": 8,
+      "total": 15,
+      "preset": "event",
+      "category": "Networking",
+      "accuracy": 0.5333333333333333
+    },
+    {
+      "correct": 9,
+      "total": 15,
+      "preset": "wedding",
+      "category": "Getting Ready",
+      "accuracy": 0.6
+    },
+    {
+      "correct": 9,
+      "total": 15,
+      "preset": "fashion",
+      "category": "Portraits",
+      "accuracy": 0.6
+    },
+    {
+      "correct": 9,
+      "total": 15,
+      "preset": "travel",
+      "category": "Adventure",
+      "accuracy": 0.6
+    },
+    {
+      "correct": 10,
+      "total": 15,
+      "preset": "fashion",
+      "category": "Movement",
+      "accuracy": 0.6666666666666666
+    },
+    {
+      "correct": 10,
+      "total": 15,
+      "preset": "event",
+      "category": "Keynote / Stage",
+      "accuracy": 0.6666666666666666
+    },
+    {
+      "correct": 10,
+      "total": 15,
+      "preset": "event",
+      "category": "Exhibition / Booths",
+      "accuracy": 0.6666666666666666
+    },
+    {
+      "correct": 12,
+      "total": 15,
+      "preset": "wedding",
+      "category": "Portraits",
+      "accuracy": 0.8
+    },
+    {
+      "correct": 12,
+      "total": 15,
+      "preset": "wedding",
+      "category": "Details",
+      "accuracy": 0.8
+    },
+    {
+      "correct": 12,
+      "total": 15,
+      "preset": "real-estate",
+      "category": "Backyard / Outdoor",
+      "accuracy": 0.8
+    },
+    {
+      "correct": 12,
+      "total": 15,
+      "preset": "travel",
+      "category": "Street",
+      "accuracy": 0.8
+    },
+    {
+      "correct": 13,
+      "total": 15,
+      "preset": "real-estate",
+      "category": "Exterior Hero",
+      "accuracy": 0.8666666666666667
+    },
+    {
+      "correct": 13,
+      "total": 15,
+      "preset": "real-estate",
+      "category": "Living Areas",
+      "accuracy": 0.8666666666666667
+    },
+    {
+      "correct": 13,
+      "total": 15,
+      "preset": "real-estate",
+      "category": "Bathrooms",
+      "accuracy": 0.8666666666666667
+    },
+    {
+      "correct": 13,
+      "total": 15,
+      "preset": "travel",
+      "category": "Food",
+      "accuracy": 0.8666666666666667
+    },
+    {
+      "correct": 14,
+      "total": 15,
+      "preset": "real-estate",
+      "category": "Kitchen",
+      "accuracy": 0.9333333333333333
+    },
+    {
+      "correct": 14,
+      "total": 15,
+      "preset": "commercial",
+      "category": "Behind the Scenes",
+      "accuracy": 0.9333333333333333
+    },
+    {
+      "correct": 14,
+      "total": 15,
+      "preset": "event",
+      "category": "Awards",
+      "accuracy": 0.9333333333333333
+    },
+    {
+      "correct": 14,
+      "total": 15,
+      "preset": "event",
+      "category": "Venue",
+      "accuracy": 0.9333333333333333
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "wedding",
+      "category": "Family",
+      "accuracy": 1
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "real-estate",
+      "category": "Aerial / Drone",
+      "accuracy": 1
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "real-estate",
+      "category": "Bedrooms",
+      "accuracy": 1
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "real-estate",
+      "category": "Detail Textures",
+      "accuracy": 1
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "commercial",
+      "category": "Product Detail",
+      "accuracy": 1
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "fashion",
+      "category": "Editorial",
+      "accuracy": 1
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "fashion",
+      "category": "Detail",
+      "accuracy": 1
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "travel",
+      "category": "Landscape",
+      "accuracy": 1
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "travel",
+      "category": "Architecture",
+      "accuracy": 1
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "travel",
+      "category": "People & Culture",
+      "accuracy": 1
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "travel",
+      "category": "Accommodation",
+      "accuracy": 1
+    },
+    {
+      "correct": 15,
+      "total": 15,
+      "preset": "event",
+      "category": "Audience",
+      "accuracy": 1
+    }
+  ],
+  "perPresetAccuracy": [
+    {
+      "preset": "wedding",
+      "total": 120,
+      "accuracy": 0.48333333333333334
+    },
+    {
+      "preset": "real-estate",
+      "total": 135,
+      "accuracy": 0.8666666666666667
+    },
+    {
+      "preset": "commercial",
+      "total": 75,
+      "accuracy": 0.4666666666666667
+    },
+    {
+      "preset": "fashion",
+      "total": 75,
+      "accuracy": 0.68
+    },
+    {
+      "preset": "travel",
+      "total": 105,
+      "accuracy": 0.8952380952380953
+    },
+    {
+      "preset": "event",
+      "total": 90,
+      "accuracy": 0.7888888888888889
+    }
+  ],
+  "confusionMatrix": {
+    "wedding/Getting Ready": {
+      "wedding/Getting Ready": 9,
+      "wedding/Ceremony": 2,
+      "wedding/Details": 4
+    },
+    "wedding/Ceremony": {
+      "wedding/Portraits": 1,
+      "wedding/Ceremony": 6,
+      "wedding/Details": 2,
+      "wedding/Reception": 3,
+      "wedding/Family": 2,
+      "wedding/First Look": 1
+    },
+    "wedding/First Look": {
+      "wedding/Portraits": 6,
+      "wedding/Details": 1,
+      "wedding/First Look": 1,
+      "wedding/Ceremony": 2,
+      "wedding/Reception": 1,
+      "wedding/Candids": 3,
+      "wedding/Getting Ready": 1
+    },
+    "wedding/Portraits": {
+      "wedding/Portraits": 12,
+      "wedding/Candids": 2,
+      "wedding/First Look": 1
+    },
+    "wedding/Family": {
+      "wedding/Family": 15
+    },
+    "wedding/Reception": {
+      "wedding/Details": 9,
+      "wedding/Ceremony": 1,
+      "wedding/First Look": 2,
+      "wedding/Reception": 3
+    },
+    "wedding/Details": {
+      "wedding/Details": 12,
+      "wedding/Ceremony": 3
+    },
+    "wedding/Candids": {
+      "wedding/Getting Ready": 3,
+      "wedding/Portraits": 8,
+      "wedding/Ceremony": 2,
+      "wedding/First Look": 1,
+      "wedding/Reception": 1
+    },
+    "real-estate/Exterior Hero": {
+      "real-estate/Exterior Hero": 13,
+      "real-estate/Twilight / Dusk": 1,
+      "real-estate/Aerial / Drone": 1
+    },
+    "real-estate/Aerial / Drone": {
+      "real-estate/Aerial / Drone": 15
+    },
+    "real-estate/Living Areas": {
+      "real-estate/Kitchen": 1,
+      "real-estate/Bathrooms": 1,
+      "real-estate/Living Areas": 13
+    },
+    "real-estate/Kitchen": {
+      "real-estate/Kitchen": 14,
+      "real-estate/Bathrooms": 1
+    },
+    "real-estate/Bedrooms": {
+      "real-estate/Bedrooms": 15
+    },
+    "real-estate/Bathrooms": {
+      "real-estate/Bathrooms": 13,
+      "real-estate/Kitchen": 2
+    },
+    "real-estate/Backyard / Outdoor": {
+      "real-estate/Backyard / Outdoor": 12,
+      "real-estate/Exterior Hero": 2,
+      "real-estate/Kitchen": 1
+    },
+    "real-estate/Twilight / Dusk": {
+      "real-estate/Exterior Hero": 6,
+      "real-estate/Backyard / Outdoor": 2,
+      "real-estate/Twilight / Dusk": 7
+    },
+    "real-estate/Detail Textures": {
+      "real-estate/Detail Textures": 15
+    },
+    "commercial/Hero Shots": {
+      "commercial/Product Detail": 14,
+      "commercial/Lifestyle": 1
+    },
+    "commercial/Lifestyle": {
+      "commercial/Lifestyle": 1,
+      "commercial/Product Detail": 14
+    },
+    "commercial/Product Detail": {
+      "commercial/Product Detail": 15
+    },
+    "commercial/Behind the Scenes": {
+      "commercial/Behind the Scenes": 14,
+      "commercial/Product Detail": 1
+    },
+    "commercial/Team / People": {
+      "commercial/Team / People": 5,
+      "commercial/Lifestyle": 8,
+      "commercial/Hero Shots": 2
+    },
+    "fashion/Editorial": {
+      "fashion/Editorial": 15
+    },
+    "fashion/Portraits": {
+      "fashion/Portraits": 9,
+      "fashion/Editorial": 6
+    },
+    "fashion/Full Length": {
+      "fashion/Editorial": 9,
+      "fashion/Movement": 3,
+      "fashion/Portraits": 1,
+      "fashion/Full Length": 2
+    },
+    "fashion/Detail": {
+      "fashion/Detail": 15
+    },
+    "fashion/Movement": {
+      "fashion/Editorial": 3,
+      "fashion/Movement": 10,
+      "fashion/Detail": 2
+    },
+    "travel/Landscape": {
+      "travel/Landscape": 15
+    },
+    "travel/Architecture": {
+      "travel/Architecture": 15
+    },
+    "travel/Street": {
+      "travel/People & Culture": 2,
+      "travel/Street": 12,
+      "travel/Food": 1
+    },
+    "travel/People & Culture": {
+      "travel/People & Culture": 15
+    },
+    "travel/Food": {
+      "travel/Food": 13,
+      "travel/Street": 2
+    },
+    "travel/Adventure": {
+      "travel/Adventure": 9,
+      "travel/Landscape": 4,
+      "travel/Street": 1,
+      "travel/People & Culture": 1
+    },
+    "travel/Accommodation": {
+      "travel/Accommodation": 15
+    },
+    "event/Keynote / Stage": {
+      "event/Keynote / Stage": 10,
+      "event/Audience": 5
+    },
+    "event/Audience": {
+      "event/Audience": 15
+    },
+    "event/Networking": {
+      "event/Venue": 3,
+      "event/Exhibition / Booths": 2,
+      "event/Networking": 8,
+      "event/Keynote / Stage": 1,
+      "event/Awards": 1
+    },
+    "event/Awards": {
+      "event/Awards": 14,
+      "event/Exhibition / Booths": 1
+    },
+    "event/Venue": {
+      "event/Venue": 14,
+      "event/Keynote / Stage": 1
+    },
+    "event/Exhibition / Booths": {
+      "event/Exhibition / Booths": 10,
+      "event/Networking": 1,
+      "event/Venue": 3,
+      "event/Keynote / Stage": 1
+    }
+  },
+  "worstCategories": [
+    {
+      "correct": 0,
+      "total": 15,
+      "preset": "wedding",
+      "category": "Candids",
+      "accuracy": 0
+    },
+    {
+      "correct": 0,
+      "total": 15,
+      "preset": "commercial",
+      "category": "Hero Shots",
+      "accuracy": 0
+    },
+    {
+      "correct": 1,
+      "total": 15,
+      "preset": "wedding",
+      "category": "First Look",
+      "accuracy": 0.06666666666666667
+    },
+    {
+      "correct": 1,
+      "total": 15,
+      "preset": "commercial",
+      "category": "Lifestyle",
+      "accuracy": 0.06666666666666667
+    },
+    {
+      "correct": 2,
+      "total": 15,
+      "preset": "fashion",
+      "category": "Full Length",
+      "accuracy": 0.13333333333333333
+    }
+  ],
+  "durationMs": 425136
+}

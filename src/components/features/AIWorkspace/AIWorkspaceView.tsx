@@ -102,7 +102,9 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     cullingProgress,
     classifyBatch,
     runCullingOnFiles,
+    embed: embedImage,
   } = useAIClassifier()
+
 
   // Style profile learning
   const {
@@ -240,6 +242,38 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
   }, [project.metadata])
 
   const activePreset = useMemo(() => getPreset(activePresetId), [activePresetId])
+
+  // ─── Style embedding capture ─────────────────────────────────────────────
+  // Persists a user's manual re-categorisation into the style_embeddings
+  // library. Fires whenever a photo moves between category columns — whether
+  // via drag/drop, the Move-to dropdown, or a bulk operation. Fails silently
+  // so a blip in the learning layer never interrupts the workspace.
+  const captureStyleCorrection = useCallback(
+    async (mediaId: string, newCategory: string, confidence?: number) => {
+      if (classifierStatus !== 'ready') return
+      const m = allRawMedia.find((media) => media.id === mediaId)
+      if (!m?.thumbnail_url) return
+
+      try {
+        const embedding = await embedImage(m.thumbnail_url, mediaId)
+        await fetch('/api/style/capture-correction', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mediaId,
+            presetId: activePresetId,
+            category: newCategory,
+            embedding,
+            source: 'correction',
+            confidence,
+          }),
+        })
+      } catch (err) {
+        console.warn('[style-capture] Failed:', err)
+      }
+    },
+    [classifierStatus, allRawMedia, embedImage, activePresetId],
+  )
 
   // Category columns with photo counts.
   // When an active preset is resolved its SortCategory list drives the columns
@@ -432,17 +466,19 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     const ids = Array.from(selectedIds)
     if (ids.length === 0) return
     await Promise.all(
-      ids.map((id) => {
+      ids.map(async (id) => {
         const m = allRawMedia.find((media) => media.id === id)
         if (m?.ai_category) {
           recordStyleFeedback(activePresetId, m.ai_category, false)
           recordStyleFeedback(activePresetId, targetCategory, true)
         }
-        return editMedia(id, { ai_category: targetCategory })
+        await editMedia(id, { ai_category: targetCategory })
+        // Persist the correction as a CLIP embedding in the user's style library.
+        void captureStyleCorrection(id, targetCategory, m?.ai_confidence ?? undefined)
       }),
     )
     deselectAll()
-  }, [selectedIds, allRawMedia, editMedia, recordStyleFeedback, deselectAll])
+  }, [selectedIds, allRawMedia, editMedia, recordStyleFeedback, deselectAll, captureStyleCorrection, activePresetId])
 
   // Handle drag-drop between category columns
   const handleCategoryDrop = useCallback(
@@ -454,8 +490,10 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
       }
       recordStyleFeedback(activePresetId, targetCategory, true)
       await editMedia(mediaId, { ai_category: targetCategory })
+      // Persist the correction as a CLIP embedding in the user's style library.
+      void captureStyleCorrection(mediaId, targetCategory, m?.ai_confidence ?? undefined)
     },
-    [allRawMedia, editMedia, recordStyleFeedback],
+    [allRawMedia, editMedia, recordStyleFeedback, captureStyleCorrection, activePresetId],
   )
 
   const handleReviewFlags = useCallback(() => {
