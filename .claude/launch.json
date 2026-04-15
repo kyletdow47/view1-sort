@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "next-dev",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["-c", "source ~/.zshrc && PORT=3100 npm run dev"],
+      "port": 3100,
+      "autoPort": false
+    }
+  ]
+}

@@ -469,14 +469,16 @@ function CullPhase({
 function SortPhase({
   files,
   presetId,
+  vibeKeywords,
   onDone,
 }: {
   files: SortableFile[]
   presetId: string
+  vibeKeywords: string
   onDone: (sorted: SortableFile[]) => void
 }) {
   const [progress, setProgress] = useState(0)
-  const [stage, setStage] = useState<'loading' | 'classifying' | 'done'>('loading')
+  const [stage, setStage] = useState<'loading' | 'scanning' | 'planning' | 'done'>('loading')
   const [modelProgress, setModelProgress] = useState(0)
   const workerRef = useRef<Worker | null>(null)
   const hasDoneRef = useRef(false)
@@ -485,54 +487,137 @@ function SortPhase({
     const kept = files.filter((f) => f.keep)
     if (kept.length === 0) { onDone(files); return }
 
-    const results = new Map<string, string>()
-    let classified = 0
-
     const worker = new Worker(new URL('@/lib/ai/worker.ts', import.meta.url))
     workerRef.current = worker
 
-    worker.onmessage = async (e: MessageEvent<WorkerResponse>) => {
-      const msg = e.data
-      if (msg.type === 'loadProgress') { setModelProgress(msg.progress); return }
-      if (msg.type === 'modelLoaded') {
-        setStage('classifying')
-        for (const item of kept) {
-          try {
-            const dataUrl = await readAsDataURL(item.file)
-            worker.postMessage({ type: 'classify', photoId: item.id, imageData: dataUrl, topK: 3 })
-          } catch { classified++ }
+    // Finalize with category map → files
+    const finalize = (results: Map<string, string>) => {
+      if (hasDoneRef.current) return
+      hasDoneRef.current = true
+      setStage('done')
+      const updated = files.map((f) => ({ ...f, category: results.get(f.id) ?? f.category ?? 'Uncategorized' }))
+      setTimeout(() => onDone(updated), 600)
+    }
+
+    // Fallback path: classify each photo individually, map via preset (old behavior)
+    const runFallback = async () => {
+      const results = new Map<string, string>()
+      let classified = 0
+      setStage('scanning')
+
+      const onMsg = async (e: MessageEvent<WorkerResponse>) => {
+        const msg = e.data
+        if (msg.type === 'result') {
+          const top = msg.results[0]
+          if (top) {
+            const { getCategoryForLabel: getPresetCat, getPreset } = await import('@/lib/ai/presets')
+            const preset = getPreset(presetId)
+            let category = top.category as string
+            if (preset) { const mapped = getPresetCat(preset, top.label); if (mapped) category = mapped }
+            results.set(msg.photoId, category)
+          }
+          classified++
+          setProgress(Math.round((classified / kept.length) * 100))
+          if (classified >= kept.length) finalize(results)
+        } else if (msg.type === 'error') {
+          classified++
+          setProgress(Math.round((classified / kept.length) * 100))
+          if (classified >= kept.length) finalize(results)
         }
-        return
       }
-      if (msg.type === 'result') {
-        const top = msg.results[0]
-        if (top) {
-          const { getCategoryForLabel: getPresetCat, getPreset } = await import('@/lib/ai/presets')
-          const preset = getPreset(presetId)
-          let category = top.category as string
-          if (preset) { const mapped = getPresetCat(preset, top.label); if (mapped) category = mapped }
-          results.set(msg.photoId, category)
-        }
-        classified++
-        setProgress(Math.round((classified / kept.length) * 100))
-        if (classified >= kept.length && !hasDoneRef.current) {
-          hasDoneRef.current = true
-          setStage('done')
-          const updated = files.map((f) => ({ ...f, category: results.get(f.id) ?? f.category }))
-          setTimeout(() => onDone(updated), 800)
-        }
-      }
-      if (msg.type === 'error') {
-        classified++
-        setProgress(Math.round((classified / kept.length) * 100))
-        if (classified >= kept.length && !hasDoneRef.current) {
-          hasDoneRef.current = true
-          setStage('done')
-          setTimeout(() => onDone(files.map((f) => ({ ...f, category: results.get(f.id) ?? 'Uncategorized' }))), 800)
-        }
+      worker.removeEventListener('message', mainHandler)
+      worker.addEventListener('message', onMsg)
+
+      for (const item of kept) {
+        try {
+          const dataUrl = await readAsDataURL(item.file)
+          worker.postMessage({ type: 'classify', photoId: item.id, imageData: dataUrl, topK: 3 })
+        } catch { classified++ }
       }
     }
 
+    // New path: scanBatch → sort-conversation → sort-executor
+    const runBatchFlow = async () => {
+      setStage('scanning')
+      try {
+        const scanInputs = await Promise.all(
+          kept.map(async (item) => {
+            const [dataUrl, buffer] = await Promise.all([
+              readAsDataURL(item.file),
+              item.file.arrayBuffer(),
+            ])
+            return { photoId: item.id, imageData: dataUrl, fileBuffer: buffer }
+          })
+        )
+        worker.postMessage({ type: 'scanBatch', files: scanInputs, topK: 3 })
+      } catch (err) {
+        console.warn('[ai-sort] scanBatch setup failed, falling back:', err)
+        await runFallback()
+      }
+    }
+
+    const mainHandler = async (e: MessageEvent<WorkerResponse>) => {
+      const msg = e.data
+      if (msg.type === 'loadProgress') { setModelProgress(msg.progress); return }
+      if (msg.type === 'modelLoaded') {
+        await runBatchFlow()
+        return
+      }
+      if (msg.type === 'scanProgress') {
+        setProgress(Math.round((msg.completed / msg.total) * 100))
+        return
+      }
+      if (msg.type === 'scanComplete') {
+        setStage('planning')
+        setProgress(100)
+        try {
+          const brief = vibeKeywords.trim() || `${presetId} shoot`
+          const res = await fetch('/api/ai/sort-conversation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              mode: 'plan',
+              projectId: 'ai-sort-demo',
+              message: brief,
+              batchSummary: msg.summary.summaryText,
+            }),
+          })
+          if (!res.ok) throw new Error(`sort-conversation ${res.status}`)
+          const payload = (await res.json()) as { type: string; plan?: unknown }
+          if (payload.type !== 'plan' || !payload.plan) throw new Error('Unexpected response shape')
+
+          const { executeSortPlan } = await import('@/lib/ai/sort-executor')
+          const sorted = executeSortPlan(
+            payload.plan as Parameters<typeof executeSortPlan>[0],
+            msg.scans,
+          )
+          const results = new Map<string, string>()
+          for (const row of sorted) results.set(row.photoId, row.category)
+          finalize(results)
+        } catch (err) {
+          console.warn('[ai-sort] sort-conversation failed, using preset mapping:', err)
+          // Fallback: use top label per photo from the scans we already have
+          const { getCategoryForLabel: getPresetCat, getPreset } = await import('@/lib/ai/presets')
+          const preset = getPreset(presetId)
+          const results = new Map<string, string>()
+          for (const scan of msg.scans) {
+            const top = scan.topLabels[0]
+            if (!top) continue
+            let category = top.category as string
+            if (preset) { const mapped = getPresetCat(preset, top.label); if (mapped) category = mapped }
+            results.set(scan.photoId, category)
+          }
+          finalize(results)
+        }
+        return
+      }
+      if (msg.type === 'error' && !hasDoneRef.current) {
+        console.warn('[ai-sort] worker error:', msg.message)
+        await runFallback()
+      }
+    }
+
+    worker.addEventListener('message', mainHandler)
     worker.postMessage({ type: 'loadModel' })
     return () => { worker.terminate() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -545,7 +630,7 @@ function SortPhase({
       <div className="text-center">
         <h2 className="text-2xl font-bold text-white">AI Sorting</h2>
         <p className="mt-1 text-sm text-white/60">
-          {stage === 'loading' ? `Loading AI model… ${modelProgress}%` : stage === 'classifying' ? `Classifying photos… ${progress}%` : 'Complete!'}
+          {stage === 'loading' ? `Loading AI model… ${modelProgress}%` : stage === 'scanning' ? `Scanning photos… ${progress}%` : stage === 'planning' ? 'Planning categories…' : 'Complete!'}
         </p>
       </div>
 
@@ -738,7 +823,7 @@ export default function AISortPage() {
       )}
 
       {showPhaseContent && phase === 'sort' && (
-        <SortPhase files={files} presetId={presetId} onDone={handleSortDone} />
+        <SortPhase files={files} presetId={presetId} vibeKeywords={vibeKeywords} onDone={handleSortDone} />
       )}
 
       {showPhaseContent && phase === 'results' && (
