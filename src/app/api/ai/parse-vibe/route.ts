@@ -1,27 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 import type { ParseVibeRequest, ParseVibeResponse, VibeStyleParams } from '@/types/vibe-presets'
 
 /**
  * POST /api/ai/parse-vibe
  *
- * Accepts a natural-language style description from the photographer and
- * returns structured style parameters.
+ * Thin wrapper around the sort-conversation Edge Function (Brain 2).
  *
- * TODO: Replace the mock implementation below with a real Supabase Edge Function.
+ * The vibe preset system is now a view on top of the conversation engine:
+ * the photographer's style description becomes a "brief", Claude interprets
+ * it, and we derive a preset name from its reasoning plus style params
+ * from keyword analysis of the original description.
  *
- * Edge Function path:   supabase/functions/parse-vibe/index.ts
- * Claude model:         claude-haiku-4-5-20251001  (fast + cheap for structured extraction)
- * Prompt pattern:
- *   System: "You are a photography style AI. Extract style parameters from the
- *            description and return valid JSON matching the VibeStyleParams schema."
- *   User:   <photographer's description>
- *
- * Invocation from this route:
- *   const { data } = await supabase.functions.invoke('parse-vibe', {
- *     body: { description, projectId },
- *   })
+ * If the Edge Function call fails or ANTHROPIC_API_KEY is missing, we fall
+ * back to pure heuristic extraction so the vibe preset UI never breaks.
  */
+
+interface BriefResponse {
+  type: 'brief'
+  proposedCategories: Array<{
+    name: string
+    description: string
+    matchLabels: string[]
+    priority: number
+  }>
+  followUpQuestions: string[]
+  confidence: number
+  reasoning: string
+}
+
+function getServiceSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    throw new Error('Missing Supabase service role credentials')
+  }
+  return createClient(url, key)
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const body = (await req.json()) as ParseVibeRequest
@@ -31,21 +48,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'description is required' }, { status: 400 })
     }
 
-    // TODO: Remove mock and call Supabase Edge Function
-    // const supabase = createServiceClient()
-    // const { data, error } = await supabase.functions.invoke('parse-vibe', {
-    //   body: { description, projectId },
-    // })
-    // if (error) throw error
-    // return NextResponse.json(data)
+    const styleParams = extractStyleParams(description)
+    let presetName = derivePresetName(description)
 
-    // Heuristic mock — simulates Claude API structured extraction
-    const mockResponse: ParseVibeResponse = extractStyleParams(description)
+    // Try to enrich with Claude via the sort-conversation Edge Function.
+    // If it fails, we still have heuristic results — no user-facing error.
+    try {
+      const supabase = getServiceSupabase()
+      const { data, error } = await supabase.functions.invoke('sort-conversation', {
+        body: {
+          mode: 'brief',
+          projectId: projectId ?? 'vibe-preset',
+          message: description,
+        },
+      })
 
-    // Simulate edge function latency
-    await new Promise<void>((resolve) => setTimeout(resolve, 700))
+      if (!error && data && (data as BriefResponse).type === 'brief') {
+        const brief = data as BriefResponse
+        const claudeName = extractPresetNameFromReasoning(brief.reasoning, brief.proposedCategories)
+        if (claudeName) presetName = claudeName
+      }
+    } catch (edgeErr) {
+      const msg = edgeErr instanceof Error ? edgeErr.message : 'Unknown error'
+      console.warn('[parse-vibe] Edge Function unavailable, using heuristic:', msg)
+    }
 
-    return NextResponse.json(mockResponse)
+    const response: ParseVibeResponse = { presetName, styleParams }
+    return NextResponse.json(response)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('[POST /api/ai/parse-vibe]', message)
@@ -54,10 +83,40 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 }
 
 /**
- * Heuristic style-parameter extractor.
- * In production this logic lives inside the Claude prompt — not here.
+ * Pull a short, human-friendly preset name from Claude's reasoning.
+ * Falls back to the first proposed category name.
  */
-function extractStyleParams(description: string): ParseVibeResponse {
+function extractPresetNameFromReasoning(
+  reasoning: string,
+  categories: BriefResponse['proposedCategories']
+): string | null {
+  if (categories && categories.length > 0 && categories[0].name) {
+    return categories[0].name
+  }
+  // Grab the first 3-4 meaningful words of reasoning
+  const words = reasoning.split(/\s+/).filter((w) => w.length > 2).slice(0, 3)
+  if (words.length === 0) return null
+  return words.map(capitalize).join(' ')
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase().replace(/[^a-z]/g, '')
+}
+
+function derivePresetName(description: string): string {
+  const lower = description.toLowerCase()
+  if (lower.includes('moody') || lower.includes('dramatic')) return 'Moody & Dramatic'
+  if (lower.includes('bright') || lower.includes('airy')) return 'Bright & Airy'
+  if (lower.includes('editorial') || lower.includes('magazine')) return 'Editorial Tight'
+  return 'Custom Style'
+}
+
+/**
+ * Keyword-based style parameter extractor.
+ * Runs as a deterministic fallback and as the primary source of style params
+ * (the Edge Function returns categories, not mood/lighting/composition).
+ */
+function extractStyleParams(description: string): VibeStyleParams {
   const lower = description.toLowerCase()
 
   const isMoody =
@@ -95,15 +154,7 @@ function extractStyleParams(description: string): ParseVibeResponse {
 
   const colorTemp: VibeStyleParams['colorTemp'] = isWarm ? 'warm' : isCool ? 'cool' : 'neutral'
 
-  const presetName = isMoody
-    ? 'Moody & Dramatic'
-    : isBright
-      ? 'Bright & Airy'
-      : isEditorial
-        ? 'Editorial Tight'
-        : 'Custom Style'
-
-  const styleParams: VibeStyleParams = {
+  return {
     mood: isMoody ? 'dramatic' : isBright ? 'joyful' : isEditorial ? 'editorial' : 'natural',
     lighting: isMoody ? 'low-key' : isBright ? 'high-key' : 'natural',
     composition: isEditorial ? 'tight' : isBright ? 'wide' : 'balanced',
@@ -120,6 +171,4 @@ function extractStyleParams(description: string): ParseVibeResponse {
         ? ['harsh shadows', 'underexposed']
         : ['blurry', 'poor exposure'],
   }
-
-  return { presetName, styleParams }
 }
