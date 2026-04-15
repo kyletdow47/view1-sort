@@ -20,13 +20,33 @@ interface BatchQuery {
 }
 
 interface NearestMatch {
+  /** The category the user assigned to this neighbor */
   category: string
+  /** Raw cosine similarity in [0, 1]. Use this for "are they actually similar?" checks. */
   similarity: number
+  /**
+   * similarity × exp(-ln2 × age_days / 90).
+   * This is the weight the client should use when summing votes — it lets
+   * recent corrections outweigh months-old ones without the client needing
+   * to know the half-life constant.
+   */
+  weight: number
+  /** Age of the neighbor in days (for UI / debugging). */
+  ageDays: number
+  /** Source label: 'correction' | 'confirm' | 'import'. Corrections are stronger signal. */
+  source: 'correction' | 'confirm' | 'import'
+  /**
+   * Counts of rejections recorded on this neighbor's media_id, keyed by
+   * category. When a new photo is very similar to this neighbor and we're
+   * considering category C, {"C": 3} should down-weight that vote by
+   * ~log(1 + 3) ≈ 1.4× penalty.
+   */
+  rejections: Record<string, number>
   mediaId: string | null
 }
 
 export interface NearestMatchResponse {
-  /** photoId → top-K matches */
+  /** photoId → top-K matches (ordered by similarity desc) */
   matches: Record<string, NearestMatch[]>
   /** Total number of style embeddings in the caller's library for this preset */
   libraryTotal: number
@@ -72,12 +92,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Library size — used by the client to decide whether to trust the matches.
-    // With fewer than ~10 embeddings we prefer to skip the override.
+    // Library size — used by the client to decide how much to trust matches.
+    // Scoped to the caller (RLS already enforces this but being explicit
+    // avoids relying on that implicit filter) *and* to the active preset.
+    // The client ramps personalisation influence in linearly from N=3 → N=20.
     const { count: libraryTotal } = await supabase
       .from('style_embeddings')
       .select('id', { count: 'exact', head: true })
       .eq('preset_id', presetId)
+      .eq('user_id', user.id)
 
     // Run the nearest-match RPC once per query. pgvector handles the per-call
     // work efficiently; batching inside a single SQL statement would require
@@ -98,13 +121,24 @@ export async function POST(req: NextRequest) {
           return
         }
 
-        matches[photoId] = (data as Array<{ category: string; similarity: number; media_id: string | null }> | null)?.map(
-          (row) => ({
-            category: row.category,
-            similarity: row.similarity,
-            mediaId: row.media_id,
-          }),
-        ) ?? []
+        type Row = {
+          category: string
+          similarity: number
+          weight: number
+          age_days: number
+          media_id: string | null
+          source: string | null
+          rejections: Record<string, number> | null
+        }
+        matches[photoId] = (data as Row[] | null)?.map((row) => ({
+          category: row.category,
+          similarity: row.similarity,
+          weight: row.weight,
+          ageDays: row.age_days,
+          source: (row.source as NearestMatch['source']) ?? 'correction',
+          rejections: row.rejections ?? {},
+          mediaId: row.media_id,
+        })) ?? []
       }),
     )
 

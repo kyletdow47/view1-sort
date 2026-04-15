@@ -41,6 +41,8 @@ export interface AIClassifierOutput {
   description?: string
   /** Set when the category came from nearest-neighbor match in the user's style library */
   personalised?: boolean
+  /** Number of neighbors (out of top-K) that agreed on the personalised category */
+  personalMatchCount?: number
   /** 512-dim CLIP embedding — held on the output so callers can persist it on correction */
   embedding?: number[] | null
 }
@@ -109,6 +111,21 @@ export interface UseAIClassifierReturn {
    * Returns a map of filename → CullResult for later reconciliation with media IDs.
    */
   runCullingOnFiles: (files: File[]) => Promise<Map<string, CullResult>>
+  /**
+   * Batch-capture confirm signals into the user's style library.
+   *
+   * Called when the user has implicitly approved AI predictions (Approve All,
+   * Publish, etc.). Takes items that already have an in-memory embedding so we
+   * don't re-embed. Items missing an embedding are silently skipped — the
+   * caller can re-run classify() first if they want 100% coverage.
+   *
+   * Batches into chunks of 200 (the route's MAX_BATCH) and fires chunks in
+   * parallel. Returns the number of items the server reported as captured.
+   */
+  captureConfirms: (
+    items: Array<{ mediaId: string; category: string; embedding: number[]; confidence?: number }>,
+    presetId: string,
+  ) => Promise<number>
 }
 
 const BATCH_SIZE = 10
@@ -120,15 +137,40 @@ const DEFAULT_ESCALATION_THRESHOLD = 0.22
 const VISION_CONCURRENCY = 4
 
 /**
- * Nearest-neighbor tuning.
- * - Need ≥ MIN_LIBRARY_SIZE user corrections before we'll trust the style library over CLIP.
- * - Need ≥ MIN_AGREEMENT of the top-K neighbors to agree on a category before we override.
- * - Need the top neighbor's cosine similarity ≥ MIN_SIMILARITY (avoid confident-but-wrong matches).
+ * Nearest-neighbor scoring — Brain #2 Phase 1.
+ *
+ * Phase 0 was binary: 3-of-5 neighbors agree AND library ≥ 10 AND top
+ * similarity ≥ 0.72 → override. Otherwise do nothing. That misses a lot
+ * of signal and has a visible cliff at N=10.
+ *
+ * Phase 1 computes, per candidate category c:
+ *
+ *     positive[c] = Σ w_i · sourceBoost_i  where neighbor_i.category == c
+ *     penalty[c]  = Σ w_i · log(1 + rejections_i[c])  across all neighbors
+ *     score[c]    = positive[c] − REJECTION_LAMBDA · penalty[c]
+ *
+ *   w_i already bakes in time-decay (server, 90-day halflife) and raw cosine.
+ *   Rejections are soft evidence that accumulates with repetition — one "no"
+ *   is a gentle tilt; ten "no"s is a firm "not this category".
+ *
+ * The winner must (1) beat runner-up by ≥ MIN_LEAD_RATIO, (2) have the
+ * top neighbor's raw similarity above a trust-adjusted threshold (strict
+ * at low N, relaxed once the library is mature), and (3) clear an
+ * absolute score floor so a single weak neighbor can't override CLIP.
+ *
+ * `influence` ramps linearly from 0 at LIB_RAMP_START to 1 at LIB_RAMP_END.
+ * It (a) lowers the similarity threshold as the library matures and
+ * (b) scales how strongly we blend neighbor confidence into the output.
  */
 const NN_K = 5
-const MIN_LIBRARY_SIZE = 10
-const MIN_AGREEMENT = 3
-const MIN_SIMILARITY = 0.72
+const LIB_RAMP_START = 3               // below this, skip personalisation entirely
+const LIB_RAMP_END   = 20              // at or above, full influence
+const REJECTION_LAMBDA = 0.6           // penalty weight per rejection unit
+const MIN_LEAD_RATIO = 1.25            // best must exceed runner-up by 25%
+const SIM_THRESHOLD_HIGH_TRUST = 0.70  // relaxed minimum once library is mature
+const SIM_THRESHOLD_LOW_TRUST  = 0.85  // strict minimum when library is sparse
+const CONFIRM_WEIGHT_SCALE = 0.6       // confirms carry less signal than corrections
+const MIN_SCORE_FLOOR = 0.15           // a single weak neighbor shouldn't override CLIP
 
 interface VisionEscalationInput {
   id: string
@@ -214,9 +256,12 @@ async function escalateToVision(
 }
 
 /**
- * Query the user's style library and override CLIP categories when the
- * top-K neighbors agree. In-place mutation of `outputs`. Fails open: any
- * error (network, RLS, empty library) leaves the CLIP results intact.
+ * Query the user's style library and rescore predictions using weighted
+ * voting with soft-rejection penalties and graded trust. In-place mutation
+ * of `outputs`. Fails open: any error (network, RLS, empty library) leaves
+ * the CLIP results intact.
+ *
+ * See the scoring constants above for the formula and the tuning knobs.
  */
 async function applyPersonalisation(
   outputs: AIClassifierOutput[],
@@ -228,29 +273,46 @@ async function applyPersonalisation(
 
   if (queries.length === 0) return
 
-  // Batch up to 50 at a time (the route enforces this limit)
   const allMatches: Record<string, NearestMatchResponse['matches'][string]> = {}
   let libraryTotal = 0
 
-  for (let i = 0; i < queries.length; i += 50) {
-    const chunk = queries.slice(i, i + 50)
-    try {
-      const res = await fetch('/api/style/nearest-match', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ presetId, queries: chunk, k: NN_K }),
-      })
-      if (!res.ok) continue
-      const json = (await res.json()) as NearestMatchResponse
-      Object.assign(allMatches, json.matches)
-      libraryTotal = Math.max(libraryTotal, json.libraryTotal)
-    } catch {
-      // Silent — personalisation is a nice-to-have, not a blocker.
-    }
-  }
+  // Route enforces MAX_BATCH = 50. Fire chunks in parallel for throughput.
+  const chunks: Array<{ photoId: string; embedding: number[] }[]> = []
+  for (let i = 0; i < queries.length; i += 50) chunks.push(queries.slice(i, i + 50))
 
-  // Skip override entirely when the library isn't big enough to trust.
-  if (libraryTotal < MIN_LIBRARY_SIZE) return
+  await Promise.all(
+    chunks.map(async (chunk) => {
+      try {
+        const res = await fetch('/api/style/nearest-match', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ presetId, queries: chunk, k: NN_K }),
+        })
+        if (!res.ok) return
+        const json = (await res.json()) as NearestMatchResponse
+        Object.assign(allMatches, json.matches)
+        libraryTotal = Math.max(libraryTotal, json.libraryTotal)
+      } catch {
+        // Silent — personalisation is a nice-to-have, not a blocker.
+      }
+    }),
+  )
+
+  // Below the ramp start there's not enough data to trust — bail entirely
+  // rather than act on one or two noisy neighbors.
+  if (libraryTotal < LIB_RAMP_START) return
+
+  // Graded trust: 0 at LIB_RAMP_START → 1 at LIB_RAMP_END.
+  const influence = Math.min(
+    1,
+    Math.max(0, (libraryTotal - LIB_RAMP_START) / (LIB_RAMP_END - LIB_RAMP_START)),
+  )
+
+  // Similarity gate scales with trust. Sparse library ⇒ demand near-duplicates.
+  // Mature library ⇒ accept merely-similar shots since we have real evidence.
+  const simThreshold =
+    SIM_THRESHOLD_LOW_TRUST +
+    (SIM_THRESHOLD_HIGH_TRUST - SIM_THRESHOLD_LOW_TRUST) * influence
 
   const outputByIndex = new Map<string, { index: number; output: AIClassifierOutput }>()
   outputs.forEach((o, i) => outputByIndex.set(o.id, { index: i, output: o }))
@@ -258,35 +320,86 @@ async function applyPersonalisation(
   for (const [photoId, matches] of Object.entries(allMatches)) {
     if (!matches || matches.length === 0) continue
 
-    const top = matches[0]
-    // Require the top match to be genuinely similar. Cosine similarity in
-    // [0,1]; 0.72 is roughly "same shot from a different angle" territory.
-    if (top.similarity < MIN_SIMILARITY) continue
+    const top = matches[0] // RPC orders by raw similarity desc
+    if (top.similarity < simThreshold) continue
 
-    // Majority-vote the top-K. At least MIN_AGREEMENT of NN_K must agree.
-    const counts = new Map<string, number>()
-    for (const m of matches) counts.set(m.category, (counts.get(m.category) ?? 0) + 1)
+    // Build per-category scores. Consider *every* category any neighbor
+    // voted for, not just the top-1; a split 2/2/1 should still surface a
+    // winner when one category has the strongest neighbors behind it.
+    const positive = new Map<string, number>()
+    const penalty  = new Map<string, number>()
+    // Track how many neighbors voted positively for each category so we can
+    // surface `personalMatchCount` for the UI hint ("matches 3 of your photos").
+    const voteCount = new Map<string, number>()
 
-    let bestCat = ''
-    let bestCount = 0
-    for (const [cat, n] of counts) {
-      if (n > bestCount) { bestCount = n; bestCat = cat }
+    for (const n of matches) {
+      // Confirms carry less signal than explicit corrections. A confirm
+      // only says "CLIP was plausibly right"; a correction says "the user
+      // actively chose this". Scale confirm votes so they still contribute
+      // without drowning out stronger corrections.
+      const sourceBoost = n.source === 'correction' ? 1.0 : CONFIRM_WEIGHT_SCALE
+      const w = n.weight * sourceBoost
+
+      positive.set(n.category, (positive.get(n.category) ?? 0) + w)
+      voteCount.set(n.category, (voteCount.get(n.category) ?? 0) + 1)
+
+      // Soft penalty: for every category rejected on this neighbor, add a
+      // log-damped vote against that category.
+      // log(1+count) grows slowly: 1 → 0.69, 3 → 1.39, 10 → 2.40.
+      // First "no" nudges; tenth "no" is decisive.
+      for (const [cat, count] of Object.entries(n.rejections ?? {})) {
+        if (count <= 0) continue
+        penalty.set(
+          cat,
+          (penalty.get(cat) ?? 0) + n.weight * Math.log(1 + count),
+        )
+      }
     }
 
-    if (bestCount < MIN_AGREEMENT) continue
+    // Net scores. A category with zero positive support never wins —
+    // rejections can only take away.
+    const score = new Map<string, number>()
+    for (const [cat, pos] of positive) {
+      const pen = penalty.get(cat) ?? 0
+      score.set(cat, pos - REJECTION_LAMBDA * pen)
+    }
+
+    // Best + runner-up so we can enforce a meaningful lead.
+    let bestCat = ''
+    let bestScore = -Infinity
+    let secondScore = -Infinity
+    for (const [cat, s] of score) {
+      if (s > bestScore) {
+        secondScore = bestScore
+        bestScore = s
+        bestCat = cat
+      } else if (s > secondScore) {
+        secondScore = s
+      }
+    }
+
+    if (!bestCat) continue
+    if (bestScore < MIN_SCORE_FLOOR) continue
+    // When only one category got votes, secondScore stays -Infinity and the
+    // lead check is trivially satisfied. Otherwise require a clear lead.
+    if (secondScore > 0 && bestScore < secondScore * MIN_LEAD_RATIO) continue
 
     const slot = outputByIndex.get(photoId)
     if (!slot) continue
 
-    // Blend similarity into confidence so the UI can show we're confident
-    // not because CLIP said so, but because this photographer's own past
-    // corrections point here.
+    // Blend CLIP confidence with neighbor similarity scaled by influence.
+    // At low influence we nudge; at full influence we lean into the match.
+    const blendedConfidence =
+      slot.output.confidence * (1 - influence) +
+      Math.max(top.similarity, slot.output.confidence) * influence
+
     outputs[slot.index] = {
       ...slot.output,
       category: bestCat,
-      confidence: Math.max(slot.output.confidence, top.similarity),
+      confidence: blendedConfidence,
       personalised: true,
-      // Escalation no longer applies if we've overridden with a personal match.
+      personalMatchCount: voteCount.get(bestCat) ?? 0,
+      // A personal match is stronger evidence than the vision fallback.
       isAbnormal: false,
     }
   }
@@ -499,6 +612,54 @@ export function useAIClassifier(): UseAIClassifierReturn {
     return resultMap
   }, [])
 
+  const captureConfirms = useCallback(
+    async (
+      items: Array<{ mediaId: string; category: string; embedding: number[]; confidence?: number }>,
+      presetId: string,
+    ): Promise<number> => {
+      if (items.length === 0) return 0
+
+      // Dedup + filter: only items with a valid 512-d embedding. Missing
+      // embeddings are common when a user corrects a photo whose embedding
+      // wasn't cached this session; the separate /capture-correction route
+      // handles those with a fresh embed call.
+      const seen = new Set<string>()
+      const valid: typeof items = []
+      for (const it of items) {
+        if (seen.has(it.mediaId)) continue
+        if (!Array.isArray(it.embedding) || it.embedding.length !== 512) continue
+        if (!it.category) continue
+        seen.add(it.mediaId)
+        valid.push(it)
+      }
+      if (valid.length === 0) return 0
+
+      // Route MAX_BATCH is 200. Chunk and fire in parallel.
+      const chunks: typeof valid[] = []
+      for (let i = 0; i < valid.length; i += 200) chunks.push(valid.slice(i, i + 200))
+
+      const results = await Promise.all(
+        chunks.map(async (chunk) => {
+          try {
+            const res = await fetch('/api/style/capture-confirms', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ presetId, items: chunk }),
+            })
+            if (!res.ok) return 0
+            const json = (await res.json()) as { captured?: number }
+            return json.captured ?? 0
+          } catch {
+            return 0
+          }
+        }),
+      )
+
+      return results.reduce((a, b) => a + b, 0)
+    },
+    [],
+  )
+
   return {
     status,
     loadProgress,
@@ -510,5 +671,6 @@ export function useAIClassifier(): UseAIClassifierReturn {
     runCulling,
     runCullingOnFiles,
     embed,
+    captureConfirms,
   }
 }

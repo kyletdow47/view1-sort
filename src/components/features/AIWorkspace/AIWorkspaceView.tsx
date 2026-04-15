@@ -27,8 +27,10 @@ import { CullSliderBar } from './CullSliderBar'
 import { WorkspaceSelectionToolbar } from './WorkspaceSelectionToolbar'
 import { PersonalizationProgress } from './PersonalizationProgress'
 import { UploadPhotoGrid } from './UploadPhotoGrid'
+import { OnboardingTrainerModal } from './OnboardingTrainerModal'
 
 import { getPreset } from '@/lib/ai/presets'
+import { isTrainerDone } from '@/lib/ai/onboarding-trainer'
 
 import type { Media, Project } from '@/types/supabase'
 import type { MediaItem } from '@/types/media'
@@ -103,7 +105,23 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     classifyBatch,
     runCullingOnFiles,
     embed: embedImage,
+    captureConfirms,
   } = useAIClassifier()
+
+  // Per-session cache of CLIP embeddings, keyed by media id. Populated when
+  // classifyBatch returns embeddings and when we compute one on correction.
+  // Used by the confirm-capture flow so Approve All / Publish can bulk-send
+  // embeddings to the style library without re-embedding every thumbnail.
+  // Intentionally ephemeral — a page reload drops the cache and we simply
+  // miss confirm signals for that session. Corrections still flow via the
+  // live /api/style/capture-correction path.
+  const embeddingCacheRef = useRef<Map<string, number[]>>(new Map())
+
+  // Tracks which photos the user has actively touched this session —
+  // moved, bulk-assigned, flagged — so when we auto-fire confirm capture on
+  // Approve All / Publish we don't re-confirm a photo whose category was
+  // already written as a correction (with its own stronger signal).
+  const touchedMediaRef = useRef<Set<string>>(new Set())
 
 
   // Style profile learning
@@ -114,6 +132,11 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     profile: styleProfile,
   } = useStyleProfile(user?.id)
   const [personalizationEnabled, setPersonalizationEnabled] = useState(true)
+
+  // Per-photo personalisation signal from the most recent AI run. Map key is
+  // media id; value is the number of neighbors in the user's style library
+  // that voted for this category. Drives the "matches N photos" badge.
+  const [personalMatches, setPersonalMatches] = useState<Map<string, number>>(new Map())
 
   // UI state
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('ai-sort')
@@ -176,6 +199,25 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         )?.presetId ?? 'wedding'
 
         const results = await classifyBatch(itemsToClassify, { projectId: project.id, presetId: metaPresetId })
+
+        // Cache embeddings for this session — the confirm-capture flow on
+        // Approve All / Publish uses these to bulk-send style signals
+        // without re-embedding every thumbnail.
+        for (const r of results) {
+          if (Array.isArray(r.embedding) && r.embedding.length === 512) {
+            embeddingCacheRef.current.set(r.id, r.embedding)
+          }
+        }
+
+        // Record which photos came back as personalised matches so the UI can
+        // badge them ("matches N photos you sorted here").
+        setPersonalMatches((prev) => {
+          const next = new Map(prev)
+          for (const r of results) {
+            if (r.personalised && r.personalMatchCount) next.set(r.id, r.personalMatchCount)
+          }
+          return next
+        })
 
         // Update local store + apply any culling results we have
         await Promise.all(
@@ -243,19 +285,47 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
 
   const activePreset = useMemo(() => getPreset(activePresetId), [activePresetId])
 
+  // ─── Onboarding trainer (Phase 3) ────────────────────────────────────────
+  // First time a user picks a preset, run the 20-photo quick-sort trainer
+  // to seed their StyleProfile before the first real sort. Skips silently
+  // for anonymous users (no userId) or when already done for this preset.
+  const [trainerOpen, setTrainerOpen] = useState(false)
+  useEffect(() => {
+    if (!user?.id || !activePresetId) return
+    if (isTrainerDone(user.id, activePresetId)) return
+    setTrainerOpen(true)
+  }, [user?.id, activePresetId])
+
   // ─── Style embedding capture ─────────────────────────────────────────────
   // Persists a user's manual re-categorisation into the style_embeddings
   // library. Fires whenever a photo moves between category columns — whether
   // via drag/drop, the Move-to dropdown, or a bulk operation. Fails silently
   // so a blip in the learning layer never interrupts the workspace.
   const captureStyleCorrection = useCallback(
-    async (mediaId: string, newCategory: string, confidence?: number) => {
+    async (
+      mediaId: string,
+      newCategory: string,
+      confidence?: number,
+      previousCategory?: string,
+    ) => {
       if (classifierStatus !== 'ready') return
       const m = allRawMedia.find((media) => media.id === mediaId)
       if (!m?.thumbnail_url) return
 
+      // Mark as touched so the confirm-capture flow skips it — a correction
+      // is already a stronger signal than a confirm for the same photo.
+      touchedMediaRef.current.add(mediaId)
+
       try {
-        const embedding = await embedImage(m.thumbnail_url, mediaId)
+        // Reuse a cached embedding from this session's classify run when we
+        // have one — saves a full CLIP pass per correction. Otherwise embed
+        // fresh and cache it for any subsequent confirm flush.
+        let embedding = embeddingCacheRef.current.get(mediaId)
+        if (!embedding) {
+          embedding = await embedImage(m.thumbnail_url, mediaId)
+          embeddingCacheRef.current.set(mediaId, embedding)
+        }
+
         await fetch('/api/style/capture-correction', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -266,6 +336,13 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
             embedding,
             source: 'correction',
             confidence,
+            // When provided, the server also bumps the rejection counter on
+            // (mediaId, previousCategory). That soft-penalty signal is what
+            // lets the scorer learn "this embedding is NOT category X"
+            // gradually — one rejection is a nudge, many are decisive.
+            ...(previousCategory && previousCategory !== newCategory
+              ? { previousCategory }
+              : {}),
           }),
         })
       } catch (err) {
@@ -367,15 +444,41 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
         presetId: activePresetId,
       })
 
-      // Apply personalized re-ranking if enabled and unlocked
+      // Cache embeddings before any reranking drops them — used by the
+      // confirm-capture flow on Approve All / Publish.
+      for (const r of results) {
+        if (Array.isArray(r.embedding) && r.embedding.length === 512) {
+          embeddingCacheRef.current.set(r.id, r.embedding)
+        }
+      }
+
+      // Legacy style-profile re-ranking (distinct from Brain #2 embedding
+      // personalisation, which already ran inside classifyBatch). Keeps the
+      // per-category boost/penalty heuristic on top of the newer pipeline.
       if (personalizationEnabled && styleProfile?.personalizedModeUnlocked && styleProfile) {
         const reranked = applyPersonalization(
           results.map((r) => ({ category: r.category, score: r.confidence, id: r.id })),
           styleProfile,
           activePresetId,
         )
-        results = reranked.map((r) => ({ id: r.id, category: r.category, confidence: r.score }))
+        // Preserve fields the reranker doesn't know about (embedding,
+        // personalised, personalMatchCount) by merging back into originals.
+        const byId = new Map(results.map((r) => [r.id, r]))
+        results = reranked.map((r) => ({
+          ...byId.get(r.id)!,
+          category: r.category,
+          confidence: r.score,
+        }))
       }
+
+      // Record personalised matches for UI badges.
+      setPersonalMatches((prev) => {
+        const next = new Map(prev)
+        for (const r of results) {
+          if (r.personalised && r.personalMatchCount) next.set(r.id, r.personalMatchCount)
+        }
+        return next
+      })
 
       // Update the local media store with AI results
       await Promise.all(
@@ -388,9 +491,46 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     }
   }, [classifierStatus, isAIRunning, allRawMedia, classifyBatch, project.id, activePresetId, editMedia, personalizationEnabled, styleProfile])
 
+  // Flush confirm-style embeddings to the style library. Uses the per-session
+  // embedding cache — no re-embedding here. Skips photos the user touched
+  // this session (corrections and explicit confirms have already been
+  // written through stronger paths). Called on Approve All and Publish.
+  //
+  // Fails silently: a confirm flush that doesn't happen is a missed learning
+  // opportunity, never a user-visible failure.
+  const flushConfirmCapture = useCallback(async () => {
+    const items: Array<{ mediaId: string; category: string; embedding: number[]; confidence?: number }> = []
+    for (const m of allRawMedia) {
+      if (!m.ai_category) continue
+      if (touchedMediaRef.current.has(m.id)) continue
+      const embedding = embeddingCacheRef.current.get(m.id)
+      if (!embedding) continue
+      items.push({
+        mediaId: m.id,
+        category: m.ai_category,
+        embedding,
+        confidence: m.ai_confidence ?? undefined,
+      })
+    }
+    if (items.length === 0) return
+    try {
+      const captured = await captureConfirms(items, activePresetId)
+      // Mark everything we just sent as touched so a subsequent flush in
+      // this session doesn't re-send the same photos.
+      for (const it of items) touchedMediaRef.current.add(it.mediaId)
+      if (captured > 0) {
+        console.info(`[style-confirm] captured ${captured} confirms`)
+      }
+    } catch {
+      // Silent — see header comment.
+    }
+  }, [allRawMedia, captureConfirms, activePresetId])
+
   const handlePublish = useCallback(() => {
+    // Fire-and-forget: we don't block navigation on the confirm flush.
+    void flushConfirmCapture()
     router.push(`/dashboard/project/${project.id}/publish`)
-  }, [router, project.id])
+  }, [router, project.id, flushConfirmCapture])
 
   const handleDeleteSelected = useCallback(async () => {
     if (!confirm(`Delete ${selectedIds.size} photo(s)? This cannot be undone.`)) return
@@ -468,30 +608,89 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     await Promise.all(
       ids.map(async (id) => {
         const m = allRawMedia.find((media) => media.id === id)
-        if (m?.ai_category) {
-          recordStyleFeedback(activePresetId, m.ai_category, false)
+        const previousCategory = m?.ai_category ?? undefined
+        if (previousCategory) {
+          recordStyleFeedback(activePresetId, previousCategory, false)
           recordStyleFeedback(activePresetId, targetCategory, true)
         }
         await editMedia(id, { ai_category: targetCategory })
         // Persist the correction as a CLIP embedding in the user's style library.
-        void captureStyleCorrection(id, targetCategory, m?.ai_confidence ?? undefined)
+        // Passing previousCategory also bumps its soft-rejection counter
+        // server-side so future similar photos get down-weighted away from it.
+        void captureStyleCorrection(
+          id,
+          targetCategory,
+          m?.ai_confidence ?? undefined,
+          previousCategory ?? undefined,
+        )
       }),
     )
     deselectAll()
   }, [selectedIds, allRawMedia, editMedia, recordStyleFeedback, deselectAll, captureStyleCorrection, activePresetId])
+
+  // Thumbs-up on a personalised prediction — record a positive style-profile
+  // signal and persist a CLIP embedding tagged source='confirm' so the user's
+  // style library learns that this photo belongs where we put it.
+  const handleConfirmPrediction = useCallback(
+    async (mediaId: string) => {
+      const m = allRawMedia.find((media) => media.id === mediaId)
+      if (!m?.ai_category || !m.thumbnail_url || classifierStatus !== 'ready') return
+      recordStyleFeedback(activePresetId, m.ai_category, true)
+      touchedMediaRef.current.add(mediaId)
+      try {
+        // Use the cached embedding when available; otherwise compute fresh
+        // and cache for any later confirm flush.
+        let embedding = embeddingCacheRef.current.get(mediaId)
+        if (!embedding) {
+          embedding = await embedImage(m.thumbnail_url, mediaId)
+          embeddingCacheRef.current.set(mediaId, embedding)
+        }
+        await fetch('/api/style/capture-correction', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mediaId,
+            presetId: activePresetId,
+            category: m.ai_category,
+            embedding,
+            source: 'confirm',
+            confidence: m.ai_confidence ?? undefined,
+          }),
+        })
+      } catch (err) {
+        console.warn('[confirm-prediction] Failed:', err)
+      }
+      // Clear the personalisation badge — user has acted on the suggestion.
+      setPersonalMatches((prev) => {
+        if (!prev.has(mediaId)) return prev
+        const next = new Map(prev)
+        next.delete(mediaId)
+        return next
+      })
+    },
+    [allRawMedia, classifierStatus, embedImage, recordStyleFeedback, activePresetId],
+  )
 
   // Handle drag-drop between category columns
   const handleCategoryDrop = useCallback(
     async (mediaId: string, targetCategory: string) => {
       const m = allRawMedia.find((media) => media.id === mediaId)
       if (m?.ai_category === targetCategory) return
-      if (m?.ai_category) {
-        recordStyleFeedback(activePresetId, m.ai_category, false)
+      const previousCategory = m?.ai_category ?? undefined
+      if (previousCategory) {
+        recordStyleFeedback(activePresetId, previousCategory, false)
       }
       recordStyleFeedback(activePresetId, targetCategory, true)
       await editMedia(mediaId, { ai_category: targetCategory })
       // Persist the correction as a CLIP embedding in the user's style library.
-      void captureStyleCorrection(mediaId, targetCategory, m?.ai_confidence ?? undefined)
+      // previousCategory drives the soft-rejection counter: recurring drags
+      // away from the same category grow the penalty with log(1+count).
+      void captureStyleCorrection(
+        mediaId,
+        targetCategory,
+        m?.ai_confidence ?? undefined,
+        previousCategory ?? undefined,
+      )
     },
     [allRawMedia, editMedia, recordStyleFeedback, captureStyleCorrection, activePresetId],
   )
@@ -517,12 +716,17 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
     await Promise.all(ids.map((id) => editMedia(id, { review_flag: 'reject' })))
   }, [editMedia])
 
-  // Approve all — set review_flag = 'keep' for every photo that hasn't been flagged yet
+  // Approve all — set review_flag = 'keep' for every photo that hasn't been
+  // flagged yet. This is the canonical "I accept the AI's sort" action, so
+  // it's also the right moment to capture confirm signals for everything
+  // the user *didn't* move.
   const handleApproveAll = useCallback(async () => {
     const unflagged = allRawMedia.filter((m) => !m.review_flag)
     if (unflagged.length === 0) return
     await Promise.all(unflagged.map((m) => editMedia(m.id, { review_flag: 'keep' })))
-  }, [allRawMedia, editMedia])
+    // Fire the confirm flush in the background — doesn't block UI.
+    void flushConfirmCapture()
+  }, [allRawMedia, editMedia, flushConfirmCapture])
 
   const projectStatus = (project.status ?? 'processing') as ProjectStatus
 
@@ -639,6 +843,9 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
                   onReviewFlags={handleReviewFlags}
                   onCategoryDrop={handleCategoryDrop}
                   onBatchReclassify={handleRunAI}
+                  personalMatches={personalMatches}
+                  onConfirmPrediction={handleConfirmPrediction}
+                  onRejectPrediction={handleCategoryDrop}
                 />
               )
             ) : activeSubTab === 'upload' ? (
@@ -765,6 +972,15 @@ export function AIWorkspaceView({ project, initialMedia }: AIWorkspaceViewProps)
           currentIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           onNavigate={setLightboxIndex}
+        />
+      )}
+
+      {/* Onboarding trainer (first preset selection) */}
+      {trainerOpen && (
+        <OnboardingTrainerModal
+          userId={user?.id}
+          presetId={activePresetId}
+          onClose={() => setTrainerOpen(false)}
         />
       )}
     </div>

@@ -22,6 +22,14 @@ interface CaptureCorrectionBody {
   embedding: number[]
   source?: 'correction' | 'confirm' | 'import'
   confidence?: number
+  /**
+   * The category the photo was in *before* the user moved it. When provided,
+   * we increment a rejection counter on (media, previousCategory) so future
+   * nearest-neighbor votes know this embedding is evidence *against* that
+   * category. Omitted if the photo had no prior AI category (first sort).
+   * Ignored when equal to `category` (user dragged onto the same column).
+   */
+  previousCategory?: string
 }
 
 export async function POST(req: NextRequest) {
@@ -33,7 +41,15 @@ export async function POST(req: NextRequest) {
     }
 
     const body = (await req.json().catch(() => ({}))) as Partial<CaptureCorrectionBody>
-    const { mediaId, presetId, category, embedding, source = 'correction', confidence } = body
+    const {
+      mediaId,
+      presetId,
+      category,
+      embedding,
+      source = 'correction',
+      confidence,
+      previousCategory,
+    } = body
 
     if (!mediaId || !presetId || !category) {
       return NextResponse.json(
@@ -75,7 +91,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ id: data, ok: true })
+    // If the user moved this photo *away from* a different category, bump
+    // the rejection counter. One rejection = soft signal; N rejections over
+    // time = strong "this embedding is not that category" evidence that the
+    // client-side scorer penalises proportionally to log(1 + count).
+    let rejectionCount: number | null = null
+    const shouldRecordRejection =
+      source === 'correction' &&
+      typeof previousCategory === 'string' &&
+      previousCategory.length > 0 &&
+      previousCategory !== category
+
+    if (shouldRecordRejection) {
+      const { data: countData, error: rejErr } = await supabase.rpc('increment_style_rejection', {
+        p_media_id: mediaId,
+        p_category: previousCategory,
+      })
+      if (rejErr) {
+        // Non-fatal — the positive embedding has already been persisted.
+        console.warn('[capture-correction] rejection RPC error:', rejErr.message)
+      } else {
+        rejectionCount = typeof countData === 'number' ? countData : null
+      }
+    }
+
+    return NextResponse.json({ id: data, ok: true, rejectionCount })
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error'
     console.error('[capture-correction]', msg)
