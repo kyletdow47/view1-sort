@@ -132,7 +132,10 @@ export function StripeConnectSetup({
       setStatus(previewStatus)
       return
     }
-    if (!user) return
+    if (!user) {
+      setStatus('not_connected')
+      return
+    }
 
     const load = async () => {
       try {

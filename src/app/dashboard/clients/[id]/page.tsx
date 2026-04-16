@@ -210,7 +210,7 @@ function TabButton({ id, label, active, onClick }: { id: TabId; label: string; a
       onClick={() => onClick(id)}
       className={`px-4 py-2.5 text-sm font-medium rounded-lg transition-all whitespace-nowrap ${
         active
-          ? 'bg-primary/15 text-primary'
+          ? 'bg-primary text-on-primary'
           : 'text-on-surface/50 hover:text-on-surface/80 hover:bg-on-surface/5'
       }`}
     >

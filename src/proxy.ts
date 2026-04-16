@@ -5,22 +5,23 @@ import type { NextRequest } from 'next/server'
 const DEMO_BYPASS_KEY = 'view1-preview-2026'
 
 export async function proxy(request: NextRequest) {
-  // Pass through immediately if Supabase env vars are not configured
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    return NextResponse.next({ request })
-  }
-
   const { pathname, searchParams } = request.nextUrl
   let response = NextResponse.next({ request })
 
-  // Demo bypass — allows browsing all pages without auth/onboarding.
-  // Activate with ?demo=view1-preview-2026
-  if (searchParams.get('demo') === DEMO_BYPASS_KEY) {
+  // Demo bypass — must run BEFORE env var check so QA environment works without Supabase creds.
+  // Activate with ?demo=view1-preview-2026 (keyed) or ?demo=true (QA shortcut)
+  const demoParam = searchParams.get('demo')
+  if (demoParam === DEMO_BYPASS_KEY || demoParam === 'true') {
     response.cookies.set('demo_mode', 'true', { path: '/', maxAge: 60 * 60 * 24 })
     return response
   }
   if (request.cookies.get('demo_mode')?.value === 'true') {
     return response
+  }
+
+  // Pass through immediately if Supabase env vars are not configured
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return NextResponse.next({ request })
   }
 
   const supabase = createServerClient(
