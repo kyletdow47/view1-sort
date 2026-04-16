@@ -154,12 +154,12 @@ export function OverviewTab({ dateRange }: OverviewTabProps) {
       {/* Middle row: AI Insights + Chart */}
       <div className="grid grid-cols-12 gap-4">
         {/* AI Insights */}
-        <GlassCard className="col-span-4 flex flex-col gap-3 p-4">
-          <div className="flex items-center justify-between">
+        <GlassCard className="col-span-4 flex flex-col gap-3 overflow-hidden p-4">
+          <div className="flex shrink-0 items-center justify-between">
             <span className="text-[13px] font-semibold text-white">AI Insights</span>
             <Zap className="h-4 w-4 text-amber-400" />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
             {AI_INSIGHTS.map((insight) => (
               <div
                 key={insight.id}

@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import Link from 'next/link'
 import {
   Camera,
   CheckCircle2,
@@ -65,13 +64,90 @@ function readAsDataURL(file: File): Promise<string> {
 function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
+      type="button"
+      role="switch"
+      aria-checked={on}
       onClick={() => onChange(!on)}
-      className={`relative h-5 w-9 rounded-full transition-colors ${on ? 'bg-violet-500' : 'bg-white/20'}`}
+      className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${
+        on ? 'bg-indigo-500' : 'bg-white/15'
+      }`}
     >
       <span
-        className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-4' : 'translate-x-0.5'}`}
+        className="absolute top-[2px] h-5 w-5 rounded-full bg-white shadow-md transition-all duration-200"
+        style={{ left: on ? 'calc(100% - 22px)' : '2px' }}
       />
     </button>
+  )
+}
+
+/* ─── Vibe Tag Input ────────────────────────────────────────────────────── */
+
+function VibeTagInput({
+  keywords,
+  onChange,
+  compact = false,
+}: {
+  keywords: string[]
+  onChange: (v: string[]) => void
+  compact?: boolean
+}) {
+  const [input, setInput] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const addKeyword = (raw: string) => {
+    const trimmed = raw.replace(/,/g, '').trim()
+    if (!trimmed || keywords.includes(trimmed)) return
+    onChange([...keywords, trimmed])
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault()
+      addKeyword(input)
+      setInput('')
+    } else if (e.key === 'Backspace' && input === '' && keywords.length > 0) {
+      onChange(keywords.slice(0, -1))
+    }
+  }
+
+  const handleBlur = () => {
+    if (input.trim()) {
+      addKeyword(input)
+      setInput('')
+    }
+  }
+
+  return (
+    <div
+      className={`flex cursor-text flex-wrap gap-1.5 rounded-xl border border-white/10 bg-white/[0.08] px-3 py-2 ${compact ? 'min-h-[38px]' : 'min-h-[80px] items-start'}`}
+      onClick={() => inputRef.current?.focus()}
+    >
+      {keywords.map((kw) => (
+        <span
+          key={kw}
+          className="flex items-center gap-1 rounded-full border border-indigo-400/30 bg-indigo-500/20 px-2.5 py-0.5 text-[11px] font-medium text-indigo-200"
+        >
+          {kw}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onChange(keywords.filter((k) => k !== kw)) }}
+            className="leading-none text-indigo-300/60 transition-colors hover:text-indigo-200"
+          >
+            ✕
+          </button>
+        </span>
+      ))}
+      <input
+        ref={inputRef}
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+        placeholder={keywords.length === 0 ? (compact ? 'Add keyword, press Enter…' : 'e.g. golden hour, moody, outdoor…') : ''}
+        className="min-w-[140px] flex-1 bg-transparent text-[12px] text-white outline-none placeholder:text-white/30"
+      />
+    </div>
   )
 }
 
@@ -88,6 +164,7 @@ function SortSettingsPanel({
   setVibeKeywords,
   onStartSorting,
   disabled,
+  showStartButton = true,
 }: {
   presetId: string
   setPresetId: (v: string) => void
@@ -95,10 +172,11 @@ function SortSettingsPanel({
   setConfidence: (v: number) => void
   categories: SortCategories
   setCategories: (c: SortCategories) => void
-  vibeKeywords: string
-  setVibeKeywords: (v: string) => void
+  vibeKeywords: string[]
+  setVibeKeywords: (v: string[]) => void
   onStartSorting: () => void
   disabled: boolean
+  showStartButton?: boolean
 }) {
   const catItems: { key: keyof SortCategories; label: string }[] = [
     { key: 'blurry', label: 'Blurry' },
@@ -112,7 +190,7 @@ function SortSettingsPanel({
 
   return (
     <div
-      className="flex w-full md:w-[320px] shrink-0 flex-col gap-5 rounded-3xl p-5"
+      className="flex h-full w-full md:w-[320px] shrink-0 flex-col gap-5 overflow-y-auto rounded-3xl p-5"
       style={{
         background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)',
         backdropFilter: 'blur(32px)',
@@ -198,56 +276,136 @@ function SortSettingsPanel({
       {/* Vibe Keywords */}
       <div className="flex flex-col gap-2">
         <span className="text-[13px] font-medium text-white/80">Vibe Keywords</span>
-        <input
-          type="text"
-          value={vibeKeywords}
-          onChange={(e) => setVibeKeywords(e.target.value)}
-          placeholder="e.g. golden hour, moody, outdoor..."
-          className="w-full rounded-xl bg-white/[0.08] px-3 py-2 text-[13px] text-white placeholder:text-white/30 outline-none focus:ring-1 focus:ring-indigo-400/50 border border-white/10"
-        />
+        <VibeTagInput keywords={vibeKeywords} onChange={setVibeKeywords} compact />
       </div>
 
-      {/* Spacer */}
-      <div className="flex-1" />
+      {showStartButton && (
+        <>
+          {/* Spacer */}
+          <div className="flex-1" />
 
-      {/* Start Sorting */}
-      <button
-        onClick={onStartSorting}
-        disabled={disabled}
-        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl font-semibold text-white transition-opacity disabled:opacity-40 hover:opacity-90"
-        style={{
-          background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)',
-          boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
-        }}
-      >
-        <Zap className="h-4 w-4" />
-        Start Sorting
-      </button>
+          {/* Start Sorting */}
+          <button
+            onClick={onStartSorting}
+            disabled={disabled}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl font-semibold text-white transition-opacity disabled:opacity-40 hover:opacity-90"
+            style={{
+              background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)',
+              boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
+            }}
+          >
+            <Zap className="h-4 w-4" />
+            Start Sorting
+          </button>
+        </>
+      )}
     </div>
   )
 }
 
 /* ─── Upload Zone ───────────────────────────────────────────────────────── */
 
+// Matches standard image types AND all common RAW formats
+const RAW_EXT = /\.(jpe?g|png|webp|gif|tiff?|raw|cr[23]|nef|nrw|arw|srf|sr2|dng|raf|orf|rw2|pef|ptx|srw|iiq|3fr|fff|mef|mrw|heic|heif)$/i
+const FILE_ACCEPT = 'image/*,.raw,.cr2,.cr3,.nef,.nrw,.arw,.srf,.sr2,.dng,.raf,.orf,.rw2,.pef,.ptx,.srw,.iiq,.3fr,.fff,.mef,.mrw,.heic,.heif'
+
 function UploadZone({
-  onFiles,
-  fileCount,
+  files,
+  onAddFiles,
+  onRemoveFile,
 }: {
-  onFiles: (files: File[]) => void
-  fileCount: number
+  files: SortableFile[]
+  onAddFiles: (files: File[]) => void
+  onRemoveFile: (id: string) => void
 }) {
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleFiles = (files: FileList | null) => {
-    if (!files) return
-    onFiles(Array.from(files).filter((f) => /\.(jpe?g|png|webp|tiff?|raw|cr2|nef|arw|dng|heic|heif)$/i.test(f.name)))
+  const handleFileList = (fileList: FileList | null) => {
+    if (!fileList) return
+    const filtered = Array.from(fileList).filter(
+      (f) => f.type.startsWith('image/') || RAW_EXT.test(f.name)
+    )
+    if (filtered.length > 0) onAddFiles(filtered)
   }
 
+  const openPicker = () => {
+    if (inputRef.current) {
+      inputRef.current.value = '' // reset so same files can be re-selected
+      inputRef.current.click()
+    }
+  }
+
+  const hiddenInput = (
+    <input
+      ref={inputRef}
+      type="file"
+      multiple
+      accept={FILE_ACCEPT}
+      className="hidden"
+      onChange={(e) => handleFileList(e.target.files)}
+    />
+  )
+
+  /* ── Files selected: show thumbnail grid ── */
+  if (files.length > 0) {
+    return (
+      <div className="flex flex-1 flex-col gap-4 overflow-hidden">
+        {/* Mini add-more bar */}
+        <div
+          onClick={openPicker}
+          onDrop={(e) => { e.preventDefault(); setDragging(false); handleFileList(e.dataTransfer.files) }}
+          onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+          onDragLeave={() => setDragging(false)}
+          className={`flex h-14 cursor-pointer items-center justify-center gap-3 rounded-2xl border-2 border-dashed transition-all ${
+            dragging
+              ? 'border-indigo-400/60 bg-indigo-400/10'
+              : 'border-white/15 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.05]'
+          }`}
+        >
+          <Upload className="h-4 w-4 text-white/40" />
+          <span className="text-[13px] text-white/50">
+            {files.length} photo{files.length !== 1 ? 's' : ''} selected — drop or click to add more
+          </span>
+        </div>
+
+        {/* Thumbnail grid */}
+        <div className="flex-1 overflow-auto">
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8">
+            {files.map((item) => (
+              <div
+                key={item.id}
+                className="group relative aspect-square overflow-hidden rounded-xl bg-white/[0.06]"
+              >
+                <PhotoThumbnail
+                  file={item.file}
+                  alt={item.file.name}
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 to-transparent p-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                  <p className="truncate text-[8px] text-white/70">{item.file.name}</p>
+                </div>
+                <button
+                  onClick={() => onRemoveFile(item.id)}
+                  className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-[9px] text-white/60 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-500/80 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {hiddenInput}
+      </div>
+    )
+  }
+
+  /* ── Empty state: full drop zone ── */
   return (
     <div
-      onClick={() => inputRef.current?.click()}
-      onDrop={(e) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files) }}
+      onClick={openPicker}
+      onDrop={(e) => { e.preventDefault(); setDragging(false); handleFileList(e.dataTransfer.files) }}
       onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
       onDragLeave={() => setDragging(false)}
       className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-5 rounded-2xl transition-all"
@@ -256,22 +414,19 @@ function UploadZone({
         border: `2px ${dragging ? 'solid rgba(99,102,241,0.6)' : 'dashed rgba(255,255,255,0.2)'}`,
       }}
     >
-      {/* Camera icon wrap */}
       <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.08]">
         <Camera className={`h-9 w-9 transition-colors ${dragging ? 'text-indigo-300' : 'text-white/40'}`} />
       </div>
 
       <div className="flex flex-col items-center gap-1 text-center">
-        <p className="text-[17px] font-semibold text-white/90">
-          {fileCount > 0 ? `${fileCount} photo${fileCount > 1 ? 's' : ''} selected` : 'Drop photos or folders here'}
-        </p>
+        <p className="text-[17px] font-semibold text-white/90">Drop photos or folders here</p>
         <p className="text-[12px] text-white/40">
-          Supports JPEG, PNG, HEIC, RAW, TIFF — up to 500 photos per batch
+          JPEG, PNG, HEIC, TIFF, RAW (CR2, CR3, NEF, ARW, DNG, RAF…) — up to 500 photos
         </p>
       </div>
 
       <button
-        onClick={(e) => { e.stopPropagation(); inputRef.current?.click() }}
+        onClick={(e) => { e.stopPropagation(); openPicker() }}
         className="flex items-center gap-2 rounded-xl px-7 py-3 text-[13px] font-semibold text-white"
         style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
       >
@@ -281,14 +436,7 @@ function UploadZone({
 
       <p className="text-[12px] text-white/30">or drag and drop from Finder</p>
 
-      <input
-        ref={inputRef}
-        type="file"
-        multiple
-        accept=".jpg,.jpeg,.png,.webp,.tif,.tiff,.raw,.cr2,.nef,.arw,.dng,.heic,.heif"
-        className="hidden"
-        onChange={(e) => handleFiles(e.target.files)}
-      />
+      {hiddenInput}
     </div>
   )
 }
@@ -352,7 +500,7 @@ function ProgressStepper({ stage }: { stage: StepperStage }) {
   )
 }
 
-/* ─── Cull Phase (restyled) ─────────────────────────────────────────────── */
+/* ─── Cull Phase ────────────────────────────────────────────────────────── */
 
 function CullPhase({
   files,
@@ -364,6 +512,8 @@ function CullPhase({
   const [items, setItems] = useState<SortableFile[]>(files)
   const [analysing, setAnalysing] = useState(true)
   const [progress, setProgress] = useState(0)
+  const [lightboxItem, setLightboxItem] = useState<SortableFile | null>(null)
+  const initialCount = useRef(files.length)
 
   useEffect(() => {
     let cancelled = false
@@ -391,51 +541,67 @@ function CullPhase({
   }, [])
 
   const flagged = items.filter((f) => f.cullResult && f.cullResult.flags.length > 0)
-  const kept = items.filter((f) => f.keep)
+  const removed = initialCount.current - items.length
 
-  const toggle = (id: string) => setItems((prev) => prev.map((f) => f.id === id ? { ...f, keep: !f.keep } : f))
-  const rejectAll = () => setItems((prev) => prev.map((f) => f.cullResult && f.cullResult.flags.length > 0 ? { ...f, keep: false } : f))
+  // X button: permanently removes photo from the batch
+  const removeItem = (id: string) =>
+    setItems((prev) => prev.filter((f) => f.id !== id))
+
+  // Remove all AI-flagged photos at once
+  const removeAllFlagged = () =>
+    setItems((prev) => prev.filter((f) => !f.cullResult || f.cullResult.flags.length === 0))
 
   return (
     <div className="flex-1 space-y-6 overflow-auto px-10 py-6">
+      {/* Header */}
       <div className="flex items-end justify-between">
         <div>
           <h2 className="text-2xl font-bold text-white">Smart Cull</h2>
           <p className="mt-1 text-sm text-white/60">
-            {analysing ? `Analysing quality… ${progress}%` : `${flagged.length} issues found across ${items.length} photos`}
+            {analysing
+              ? `Analysing quality… ${progress}%`
+              : `${flagged.length} issues found across ${items.length} photos`}
           </p>
         </div>
         <div className="flex gap-3">
           {!analysing && flagged.length > 0 && (
-            <button onClick={rejectAll} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur-sm hover:bg-white/15 transition-colors">
-              Reject All Flagged
+            <button
+              onClick={removeAllFlagged}
+              className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur-sm transition-colors hover:bg-white/15"
+            >
+              Remove All Flagged
             </button>
           )}
           <button
-            onClick={() => onContinue(items)}
+            onClick={() => onContinue(items.map((f) => ({ ...f, keep: true })))}
             disabled={analysing}
-            className="flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
+            className="flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold text-white transition-opacity disabled:opacity-40"
             style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
           >
-            Continue with {kept.length} photos
+            Continue with {items.length} photos
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>
 
+      {/* Progress bar */}
       {analysing && (
         <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-          <div className="h-full rounded-full bg-indigo-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+          <div
+            className="h-full rounded-full bg-indigo-500 transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       )}
 
+      {/* Stats */}
       {!analysing && (
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label: 'Total', value: items.length, color: 'text-white' },
+            { label: 'Total', value: initialCount.current, color: 'text-white' },
             { label: 'Flagged', value: flagged.length, color: 'text-amber-300' },
-            { label: 'Keeping', value: kept.length, color: 'text-emerald-300' },
-            { label: 'Rejecting', value: items.length - kept.length, color: 'text-red-300' },
+            { label: 'Keeping', value: items.length, color: 'text-emerald-300' },
+            { label: 'Removed', value: removed, color: 'text-red-300' },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-center backdrop-blur-sm">
               <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
@@ -445,6 +611,7 @@ function CullPhase({
         </div>
       )}
 
+      {/* Photo grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {items.map((item) => {
           const flags = item.cullResult?.flags ?? []
@@ -453,8 +620,11 @@ function CullPhase({
           return (
             <div
               key={item.id}
-              className={`group relative overflow-hidden rounded-2xl border-2 transition-all ${item.keep ? flags.length > 0 ? 'border-amber-400/40' : 'border-emerald-400/20' : 'border-red-400/40 opacity-50'}`}
+              className={`group relative overflow-hidden rounded-2xl border-2 transition-all ${
+                flags.length > 0 ? 'border-amber-400/40' : 'border-white/10 hover:border-white/20'
+              }`}
             >
+              {/* Thumbnail */}
               <div className="flex aspect-square items-center justify-center overflow-hidden bg-white/[0.06]">
                 {preview ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -463,20 +633,36 @@ function CullPhase({
                   <ImageIcon className="h-8 w-8 text-white/20" />
                 )}
               </div>
+
+              {/* Hover overlay with filename */}
               <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 via-transparent to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
                 <p className="truncate text-[9px] text-white/70">{item.file.name}</p>
               </div>
+
+              {/* Eye button → lightbox */}
               <button
-                onClick={() => toggle(item.id)}
-                className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 backdrop-blur-sm transition-transform hover:scale-110"
+                onClick={() => setLightboxItem(item)}
+                className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:scale-110"
               >
-                {item.keep ? <Eye className="h-3.5 w-3.5 text-emerald-300" /> : <EyeOff className="h-3.5 w-3.5 text-red-300" />}
+                <Eye className="h-3.5 w-3.5 text-white/80" />
               </button>
-              {flags.length > 0 && item.keep && (
+
+              {/* X button → remove from batch */}
+              <button
+                onClick={() => removeItem(item.id)}
+                className="absolute right-2 bottom-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-[11px] font-bold text-white/60 opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-red-500/80 hover:text-white hover:scale-110"
+              >
+                ✕
+              </button>
+
+              {/* Quality flag badge */}
+              {flags.length > 0 && (
                 <div className="absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400/80">
                   <AlertTriangle className="h-3 w-3 text-black" />
                 </div>
               )}
+
+              {/* Duplicate badge */}
               {flags.some((f) => f.type === 'duplicate') && (
                 <div className="absolute bottom-2 left-2 flex h-5 w-5 items-center justify-center rounded-full bg-violet-400/80">
                   <Copy className="h-3 w-3 text-white" />
@@ -486,6 +672,57 @@ function CullPhase({
           )
         })}
       </div>
+
+      {/* Lightbox */}
+      {lightboxItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-6"
+          onClick={() => setLightboxItem(null)}
+        >
+          <div className="relative max-h-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <PhotoThumbnail
+              file={lightboxItem.file}
+              alt={lightboxItem.file.name}
+              className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl"
+            />
+            {/* Flag info */}
+            {(lightboxItem.cullResult?.flags ?? []).length > 0 && (
+              <div className="mt-2 flex flex-wrap justify-center gap-2">
+                {lightboxItem.cullResult!.flags.map((f) => (
+                  <span
+                    key={f.type}
+                    className="rounded-full bg-amber-400/20 border border-amber-400/30 px-3 py-0.5 text-[11px] font-medium text-amber-200"
+                  >
+                    {f.type}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="mt-1.5 text-center text-[12px] text-white/50">{lightboxItem.file.name}</div>
+            {/* Close + remove buttons */}
+            <div className="mt-3 flex justify-center gap-3">
+              <button
+                onClick={() => setLightboxItem(null)}
+                className="rounded-xl border border-white/20 bg-white/10 px-5 py-2 text-[13px] font-semibold text-white/80 hover:bg-white/15 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => { removeItem(lightboxItem.id); setLightboxItem(null) }}
+                className="rounded-xl border border-red-400/30 bg-red-500/20 px-5 py-2 text-[13px] font-semibold text-red-200 hover:bg-red-500/30 transition-colors"
+              >
+                Remove Photo
+              </button>
+            </div>
+            <button
+              className="absolute -right-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-colors"
+              onClick={() => setLightboxItem(null)}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -505,21 +742,36 @@ function SortPhase({
   const [stage, setStage] = useState<'loading' | 'classifying' | 'done' | 'error'>('loading')
   const [modelProgress, setModelProgress] = useState(0)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const workerRef = useRef<Worker | null>(null)
   const hasDoneRef = useRef(false)
+
+  const handleRetry = useCallback(() => {
+    // Terminate any hanging worker before restarting
+    workerRef.current?.terminate()
+    workerRef.current = null
+    hasDoneRef.current = false
+    setStage('loading')
+    setModelProgress(0)
+    setProgress(0)
+    setErrorMsg(null)
+    setRetryCount((n) => n + 1)
+  }, [])
 
   useEffect(() => {
     const kept = files.filter((f) => f.keep)
     if (kept.length === 0) { onDone(files); return }
 
+    hasDoneRef.current = false
     const results = new Map<string, string>()
     let classified = 0
 
     let worker: Worker
     try {
-      // Use relative path — @/ alias does not resolve inside new URL() in
-      // production Webpack builds. Path: app/dashboard/ai-sort → lib/ai/worker.ts
-      worker = new Worker(new URL('../../../lib/ai/worker.ts', import.meta.url))
+      // Use the static public worker — bypasses Turbopack/Webpack entirely.
+      // It imports @xenova/transformers from CDN as an ES module, which also
+      // resolves WASM binaries from an absolute CDN URL (no blob-URL path issue).
+      worker = new Worker('/ai-worker.js', { type: 'module' })
     } catch (err) {
       setStage('error')
       setErrorMsg(`Could not start AI worker: ${err instanceof Error ? err.message : String(err)}`)
@@ -527,11 +779,29 @@ function SortPhase({
     }
     workerRef.current = worker
 
-    // Surface uncaught worker errors (script load failure, syntax errors, etc.)
+    // Surface uncaught worker errors (script load failure, CORS issues, etc.)
     worker.onerror = (e) => {
+      clearTimeout(modelLoadTimeout)
       setStage('error')
-      setErrorMsg(e.message ?? 'Worker failed to start — check browser console for details')
+      const raw = e.message ?? ''
+      setErrorMsg(
+        raw.includes('Failed to fetch') || raw.includes('NetworkError')
+          ? 'Could not download the AI model. Check your internet connection and try again.'
+          : raw || 'Worker failed — open browser console for details'
+      )
     }
+
+    // Safety timeout: if no loadProgress fires within 90 s the worker silently
+    // crashed before it could start the model download.
+    const modelLoadTimeout = setTimeout(() => {
+      if (!hasDoneRef.current) {
+        setStage('error')
+        setErrorMsg(
+          'AI model is taking too long to start. Make sure you have a stable internet connection — the model downloads once (~330 MB) and is cached after that. Chrome works best.'
+        )
+        worker.terminate()
+      }
+    }, 90_000)
 
     // Resolve preset labels once before classification starts so the CLIP model
     // scores against niche-specific vocabulary (travel, wedding, etc.) rather
@@ -541,7 +811,7 @@ function SortPhase({
 
     worker.onmessage = async (e: MessageEvent<WorkerResponse>) => {
       const msg = e.data
-      if (msg.type === 'loadProgress') { setModelProgress(msg.progress); return }
+      if (msg.type === 'loadProgress') { clearTimeout(modelLoadTimeout); setModelProgress(msg.progress); return }
       if (msg.type === 'error' && !msg.photoId) {
         // Global worker error (e.g. model load failed)
         setStage('error')
@@ -549,6 +819,7 @@ function SortPhase({
         return
       }
       if (msg.type === 'modelLoaded') {
+        clearTimeout(modelLoadTimeout)
         setStage('classifying')
         for (const item of kept) {
           try {
@@ -592,9 +863,9 @@ function SortPhase({
     }
 
     worker.postMessage({ type: 'loadModel' })
-    return () => { worker.terminate() }
+    return () => { clearTimeout(modelLoadTimeout); worker.terminate() }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [retryCount])
 
   const displayProgress = stage === 'loading' ? modelProgress : progress
 
@@ -609,15 +880,25 @@ function SortPhase({
           <h2 className="text-xl font-bold text-white">AI Sort failed</h2>
           <p className="mt-2 max-w-sm text-[13px] text-white/60">{errorMsg ?? 'An unexpected error occurred.'}</p>
         </div>
-        <p className="max-w-sm text-center text-[11px] text-white/30">
-          Try refreshing the page. If this is your first time, the AI model (~330 MB) needs to download once — make sure you have a stable internet connection.
+        <div className="flex gap-3">
+          <button
+            onClick={handleRetry}
+            className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
+          >
+            <Zap className="h-4 w-4" />
+            Try again
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-[13px] font-semibold text-white/80 hover:bg-white/15 transition-colors"
+          >
+            Reload page
+          </button>
+        </div>
+        <p className="max-w-xs text-center text-[11px] text-white/25">
+          First-time setup downloads the AI model (~330 MB). Requires a stable connection and a modern browser — Chrome works best.
         </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-[13px] font-semibold text-white/80 hover:bg-white/15 transition-colors"
-        >
-          Reload &amp; retry
-        </button>
       </div>
     )
   }
@@ -675,9 +956,61 @@ function SortPhase({
   )
 }
 
-/* ─── Results Phase (restyled) ──────────────────────────────────────────── */
+/* ─── Photo Thumbnail (object-URL based, cleans up on unmount) ───────────── */
 
-function ResultsPhase({ files }: { files: SortableFile[] }) {
+function PhotoThumbnail({
+  file,
+  alt,
+  className,
+  onClick,
+}: {
+  file: File
+  alt: string
+  className?: string
+  onClick?: () => void
+}) {
+  const [src, setSrc] = useState<string | null>(null)
+  const [imgError, setImgError] = useState(false)
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file)
+    setSrc(url)
+    setImgError(false)
+    return () => URL.revokeObjectURL(url)
+  }, [file])
+
+  // RAW files (and any format the browser can't decode) fall back to a labeled tile
+  if (!src || imgError) {
+    const ext = file.name.split('.').pop()?.toUpperCase() ?? '?'
+    return (
+      <div
+        className={`flex flex-col items-center justify-center gap-1 bg-white/[0.06] ${className ?? ''}`}
+        onClick={onClick}
+      >
+        <ImageIcon className="h-5 w-5 text-white/25" />
+        <span className="text-[8px] font-semibold tracking-wide text-white/30">{ext}</span>
+      </div>
+    )
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      onClick={onClick}
+      onError={() => setImgError(true)}
+    />
+  )
+}
+
+/* ─── Results Phase ─────────────────────────────────────────────────────── */
+
+function ResultsPhase({ files, onReSort }: { files: SortableFile[]; onReSort: () => void }) {
+  const [expandedCat, setExpandedCat] = useState<string | null>(null)
+  const [lightbox, setLightbox] = useState<SortableFile | null>(null)
+
   const sorted = files.filter((f) => f.keep && f.category)
   const byCategory = sorted.reduce<Record<string, SortableFile[]>>((acc, f) => {
     const cat = f.category ?? 'Uncategorized'
@@ -687,8 +1020,21 @@ function ResultsPhase({ files }: { files: SortableFile[] }) {
   const categories = Object.keys(byCategory).sort()
   const rejected = files.filter((f) => !f.keep)
 
+  const downloadCategory = (cat: string) => {
+    const catFiles = byCategory[cat]
+    catFiles.forEach((item) => {
+      const url = URL.createObjectURL(item.file)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = item.file.name
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    })
+  }
+
   return (
     <div className="flex-1 space-y-6 overflow-auto px-10 py-6">
+      {/* Header */}
       <div className="flex items-end justify-between">
         <div>
           <h2 className="flex items-center gap-3 text-2xl font-bold text-white">
@@ -700,41 +1046,106 @@ function ResultsPhase({ files }: { files: SortableFile[] }) {
             {rejected.length > 0 && `, ${rejected.length} rejected`}
           </p>
         </div>
-        <Link
-          href="/dashboard/gallery"
-          className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white"
-          style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
+        <button
+          onClick={onReSort}
+          className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/80 hover:bg-white/15 transition-colors"
         >
-          View in Gallery
-          <ChevronRight className="h-4 w-4" />
-        </Link>
+          Re-sort
+        </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {/* Category grid */}
+      <div className="space-y-4">
         {categories.map((cat) => {
           const catFiles = byCategory[cat]
-          const preview = catFiles[0]?.cullResult?.preview
+          const isExpanded = expandedCat === cat
+
           return (
-            <div key={cat} className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] transition-all hover:border-white/20">
-              <div className="relative aspect-video overflow-hidden bg-white/[0.04]">
-                {preview ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={preview} alt={cat} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    <FolderOpen className="h-10 w-10 text-white/20" />
+            <div
+              key={cat}
+              className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]"
+              style={{ transition: 'all 0.2s ease' }}
+            >
+              {/* Category header row */}
+              <div
+                className="flex cursor-pointer items-center justify-between px-4 py-3 hover:bg-white/[0.04] transition-colors"
+                onClick={() => setExpandedCat(isExpanded ? null : cat)}
+              >
+                <div className="flex items-center gap-3">
+                  {/* Preview strip — first 3 photos */}
+                  <div className="flex -space-x-2">
+                    {catFiles.slice(0, 3).map((item) => (
+                      <div key={item.id} className="h-9 w-9 overflow-hidden rounded-lg border-2 border-white/10">
+                        <PhotoThumbnail file={item.file} alt={item.file.name} className="h-full w-full object-cover" />
+                      </div>
+                    ))}
                   </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between">
-                  <p className="truncate text-sm font-semibold text-white">{cat}</p>
-                  <span className="rounded bg-black/40 px-1.5 py-0.5 text-[10px] text-white/70">{catFiles.length}</span>
+                  <div>
+                    <p className="text-[14px] font-semibold text-white">{cat}</p>
+                    <p className="text-[11px] text-white/40">{catFiles.length} photo{catFiles.length !== 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); downloadCategory(cat) }}
+                    className="rounded-lg border border-white/15 bg-white/[0.06] px-3 py-1.5 text-[11px] font-semibold text-white/70 hover:bg-white/10 transition-colors"
+                  >
+                    Download
+                  </button>
+                  <ChevronRight
+                    className={`h-4 w-4 text-white/40 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                  />
                 </div>
               </div>
+
+              {/* Expanded photo grid */}
+              {isExpanded && (
+                <div className="grid grid-cols-4 gap-2 border-t border-white/[0.06] px-4 pb-4 pt-3 sm:grid-cols-6 lg:grid-cols-8">
+                  {catFiles.map((item) => (
+                    <div
+                      key={item.id}
+                      className="group relative aspect-square cursor-pointer overflow-hidden rounded-xl bg-white/[0.06]"
+                      onClick={() => setLightbox(item)}
+                    >
+                      <PhotoThumbnail
+                        file={item.file}
+                        alt={item.file.name}
+                        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 to-transparent p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                        <p className="truncate text-[8px] text-white/70">{item.file.name}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )
         })}
       </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-6"
+          onClick={() => setLightbox(null)}
+        >
+          <div className="relative max-h-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <PhotoThumbnail
+              file={lightbox.file}
+              alt={lightbox.file.name}
+              className="max-h-[85vh] max-w-full rounded-2xl object-contain shadow-2xl"
+            />
+            <div className="mt-2 text-center text-[12px] text-white/50">{lightbox.file.name} · {lightbox.category}</div>
+            <button
+              className="absolute -right-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition-colors"
+              onClick={() => setLightbox(null)}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -791,8 +1202,8 @@ function PreferencesTab({
   setConfidence: (v: number) => void
   categories: SortCategories
   setCategories: (c: SortCategories) => void
-  vibeKeywords: string
-  setVibeKeywords: (v: string) => void
+  vibeKeywords: string[]
+  setVibeKeywords: (v: string[]) => void
 }) {
   const catItems: { key: keyof SortCategories; label: string; desc: string }[] = [
     { key: 'blurry', label: 'Blurry / Out of focus', desc: 'Flag photos that fail sharpness analysis' },
@@ -894,15 +1305,9 @@ function PreferencesTab({
         >
           <h3 className="mb-1 text-[15px] font-semibold text-white">Vibe Keywords</h3>
           <p className="mb-4 text-[12px] text-white/40">
-            Describe the mood or style of this session to refine AI categorization.
+            Type a keyword and press <kbd className="rounded bg-white/10 px-1 py-0.5 text-[10px]">Enter</kbd> to add it. These refine how the AI categorizes your photos.
           </p>
-          <textarea
-            value={vibeKeywords}
-            onChange={(e) => setVibeKeywords(e.target.value)}
-            placeholder="e.g. golden hour, moody, outdoor ceremony, candid moments, film-inspired…"
-            rows={3}
-            className="w-full rounded-xl bg-white/[0.08] px-4 py-3 text-[13px] text-white placeholder:text-white/30 outline-none focus:ring-1 focus:ring-indigo-400/50 border border-white/10 resize-none"
-          />
+          <VibeTagInput keywords={vibeKeywords} onChange={setVibeKeywords} />
         </div>
 
       </div>
@@ -994,11 +1399,15 @@ export default function AISortPage() {
   const [categories, setCategories] = useState<SortCategories>({
     blurry: true, shaky: false, duplicates: true, eyesClosed: true, lensFlare: false, group: false, others: true,
   })
-  const [vibeKeywords, setVibeKeywords] = useState('')
+  const [vibeKeywords, setVibeKeywords] = useState<string[]>([])
 
-  const handleFiles = useCallback((raw: File[]) => {
+  const handleAddFiles = useCallback((raw: File[]) => {
     const sortable: SortableFile[] = raw.map((f) => ({ file: f, id: uid(), keep: true }))
-    setFiles(sortable)
+    setFiles((prev) => [...prev, ...sortable])
+  }, [])
+
+  const handleRemoveFile = useCallback((id: string) => {
+    setFiles((prev) => prev.filter((f) => f.id !== id))
   }, [])
 
   const handleStartSorting = useCallback(() => {
@@ -1006,6 +1415,8 @@ export default function AISortPage() {
     setActiveTab('upload')
     setPhase('cull')
   }, [files.length])
+
+
 
   const handleCullDone = useCallback((updated: SortableFile[]) => {
     setFiles(updated)
@@ -1016,6 +1427,12 @@ export default function AISortPage() {
     setFiles(sorted)
     setPhase('results')
     setActiveTab('workspace') // Auto-switch to Workspace when sort is done
+  }, [])
+
+  const handleReSort = useCallback(() => {
+    // Keep files but go back to upload phase so user can re-run
+    setPhase('upload')
+    setActiveTab('upload')
   }, [])
 
   const stepperStage: StepperStage =
@@ -1031,52 +1448,89 @@ export default function AISortPage() {
     { id: 'vibePresets', label: 'Vibe Presets' },
   ]
 
+  const tabBar = (
+    <div
+      className="flex w-fit items-center gap-1 rounded-2xl p-1"
+      style={{
+        background: 'rgba(255,255,255,0.08)',
+        backdropFilter: 'blur(16px)',
+        border: '1px solid rgba(255,255,255,0.2)',
+      }}
+    >
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setActiveTab(tab.id)}
+          className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-medium transition-colors ${activeTab === tab.id ? 'bg-white/[0.15] font-semibold text-white' : 'text-white/60 hover:text-white/80'}`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  )
+
+  const isUploadPhase = activeTab === 'upload' && phase === 'upload'
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Page Header */}
-      <div className="flex flex-col gap-4 px-10 pb-0 pt-6">
-        <h1 className="text-[28px] font-bold text-white">AI Sort</h1>
+      {isUploadPhase ? (
+        /* Upload phase: right panel spans full height alongside header + content */
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+          {/* Left column: header + upload area + start button + stepper */}
+          <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+            <div className="flex flex-col gap-4 px-10 pb-0 pt-6">
+              <h1 className="text-[28px] font-bold text-white">AI Sort</h1>
+              {tabBar}
+            </div>
+            <div className="flex flex-1 min-h-0 overflow-hidden px-10 py-6">
+              <UploadZone files={files} onAddFiles={handleAddFiles} onRemoveFile={handleRemoveFile} />
+            </div>
 
-        {/* Sub-tab bar */}
-        <div
-          className="flex w-fit items-center gap-1 rounded-2xl p-1"
-          style={{
-            background: 'rgba(255,255,255,0.08)',
-            backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255,255,255,0.2)',
-          }}
-        >
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-[13px] font-medium transition-colors ${activeTab === tab.id ? 'bg-white/[0.15] font-semibold text-white' : 'text-white/60 hover:text-white/80'}`}
-            >
-              {tab.label}
-            </button>
-          ))}
+            {/* Start Sorting button */}
+            <div className="shrink-0 px-10 pb-2 pt-2">
+              <button
+                onClick={handleStartSorting}
+                disabled={files.length === 0}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl font-semibold text-white transition-opacity disabled:opacity-40 hover:opacity-90"
+                style={{
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)',
+                  boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
+                }}
+              >
+                <Zap className="h-4 w-4" />
+                Start Sorting
+              </button>
+            </div>
+
+            <ProgressStepper stage={stepperStage} />
+          </div>
+
+          {/* Right column: Sort Settings Panel — full height from top */}
+          <div className="shrink-0 overflow-y-auto py-6 pr-10">
+            <SortSettingsPanel
+              presetId={presetId}
+              setPresetId={setPresetId}
+              confidence={confidence}
+              setConfidence={setConfidence}
+              categories={categories}
+              setCategories={setCategories}
+              vibeKeywords={vibeKeywords}
+              setVibeKeywords={setVibeKeywords}
+              onStartSorting={handleStartSorting}
+              disabled={files.length === 0}
+              showStartButton={false}
+            />
+          </div>
         </div>
-      </div>
-
-      {/* ── Upload tab ─────────────────────────────────────────────────────── */}
-      {activeTab === 'upload' && phase === 'upload' && (
-        <div className="flex flex-col md:flex-row flex-1 gap-6 overflow-hidden px-10 py-6">
-          <UploadZone onFiles={handleFiles} fileCount={files.length} />
-          <SortSettingsPanel
-            presetId={presetId}
-            setPresetId={setPresetId}
-            confidence={confidence}
-            setConfidence={setConfidence}
-            categories={categories}
-            setCategories={setCategories}
-            vibeKeywords={vibeKeywords}
-            setVibeKeywords={setVibeKeywords}
-            onStartSorting={handleStartSorting}
-            disabled={files.length === 0}
-          />
+      ) : (
+        /* Non-upload tabs: standard header */
+        <div className="flex flex-col gap-4 px-10 pb-0 pt-6">
+          <h1 className="text-[28px] font-bold text-white">AI Sort</h1>
+          {tabBar}
         </div>
       )}
 
+      {/* ── Upload tab (non-upload phases) ─────────────────────────────────── */}
       {activeTab === 'upload' && phase === 'cull' && (
         <CullPhase files={files} onContinue={handleCullDone} />
       )}
@@ -1085,7 +1539,6 @@ export default function AISortPage() {
         <SortPhase files={files} presetId={presetId} onDone={handleSortDone} />
       )}
 
-      {/* If sort finishes and user is still on upload tab, show a nudge */}
       {activeTab === 'upload' && phase === 'results' && (
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-10 py-6">
           <CheckCircle2 className="h-12 w-12 text-emerald-300" />
@@ -1104,7 +1557,7 @@ export default function AISortPage() {
       {/* ── Workspace tab ──────────────────────────────────────────────────── */}
       {activeTab === 'workspace' && (
         phase === 'results'
-          ? <ResultsPhase files={files} />
+          ? <ResultsPhase files={files} onReSort={handleReSort} />
           : <WorkspaceEmptyState onGoToUpload={() => setActiveTab('upload')} />
       )}
 
@@ -1127,8 +1580,8 @@ export default function AISortPage() {
         <VibePresetsTab presetId={presetId} setPresetId={setPresetId} />
       )}
 
-      {/* Bottom stepper — only show during active sort phases */}
-      {(activeTab === 'upload' || phase !== 'upload') && (
+      {/* Bottom stepper — only show during non-upload active sort phases (upload phase has it inline) */}
+      {!isUploadPhase && (activeTab === 'upload' || phase !== 'upload') && (
         <ProgressStepper stage={stepperStage} />
       )}
     </div>

@@ -60,11 +60,13 @@ const SESSION_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 /* ------------------------------------------------------------------ */
 
 export function AIBriefingCard({ userName = 'there' }: AIBriefingCardProps) {
+  const [open, setOpen] = useState(false)
   const [insights, setInsights] = useState<string[]>(sessionCache?.insights ?? [])
   const [loading, setLoading] = useState(!sessionCache)
   const [source, setSource] = useState<string>(sessionCache?.source ?? 'fallback')
   const [error, setError] = useState<string | null>(null)
   const mountedRef = useRef(true)
+  const panelRef = useRef<HTMLDivElement>(null)
 
   const fetchInsights = useCallback(async (force = false) => {
     // Use session cache if fresh
@@ -135,92 +137,123 @@ export function AIBriefingCard({ userName = 'there' }: AIBriefingCardProps) {
 
   const greeting = getGreeting(userName)
 
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return
+    function handleClick(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl p-5"
-      style={{
-        background: 'linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(168,85,247,0.08) 50%, rgba(236,72,153,0.06) 100%)',
-        backdropFilter: 'blur(24px)',
-        border: '1px solid rgba(255,255,255,0.12)',
-      }}
-    >
-      {/* Gradient glow accent */}
-      <div
-        className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-30 blur-3xl"
-        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.6), transparent)' }}
-      />
+    <div ref={panelRef} className="fixed bottom-6 right-6 z-50">
+      {/* Floating trigger button */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-105"
+        style={{
+          background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+          boxShadow: '0 4px 20px rgba(99,102,241,0.5)',
+        }}
+        title="AI Briefing"
+      >
+        <Sparkles className="h-5 w-5 text-white" />
+      </button>
 
-      {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500">
-            <Sparkles className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <p className="text-[15px] font-semibold text-white">{greeting}</p>
-            <p className="text-[11px] text-white/40">
-              AI Briefing
-              {source === 'claude' && <span className="ml-1 text-indigo-400/60">powered by Claude</span>}
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={() => void fetchInsights(true)}
-          disabled={loading}
-          className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/[0.06] text-white/40 transition-colors hover:bg-white/10 hover:text-white/70 disabled:opacity-50"
-          title="Refresh insights"
+      {/* Popover panel */}
+      {open && (
+        <div
+          className="absolute bottom-16 right-0 w-[380px] overflow-hidden rounded-2xl p-5"
+          style={{
+            background: 'linear-gradient(135deg, rgba(20,20,35,0.97) 0%, rgba(15,15,30,0.98) 100%)',
+            backdropFilter: 'blur(24px)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+          }}
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-        </button>
-      </div>
+          {/* Gradient glow accent */}
+          <div
+            className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-30 blur-3xl"
+            style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.6), transparent)' }}
+          />
 
-      {/* Error banner */}
-      {error && (
-        <div className="mb-3 flex items-center gap-2 rounded-xl px-3 py-2 text-[11px] text-amber-300/80"
-          style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.15)' }}>
-          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-          {error}
-          <button
-            onClick={() => void fetchInsights(true)}
-            className="ml-auto text-amber-300/60 underline transition-colors hover:text-amber-300"
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {/* Loading skeleton */}
-      {loading && (
-        <div className="flex flex-col gap-2.5">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-start gap-2.5">
-              <div className="h-5 w-5 shrink-0 animate-pulse rounded-lg bg-white/10" />
-              <div className="flex-1">
-                <div className="mb-1 h-3 w-full animate-pulse rounded bg-white/[0.08]" />
-                <div className="h-3 w-2/3 animate-pulse rounded bg-white/[0.05]" />
+          {/* Header */}
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="text-[15px] font-semibold text-white">{greeting}</p>
+                <p className="text-[11px] text-white/40">
+                  AI Briefing
+                  {source === 'claude' && <span className="ml-1 text-indigo-400/60">powered by Claude</span>}
+                </p>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+            <button
+              onClick={() => void fetchInsights(true)}
+              disabled={loading}
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/[0.06] text-white/40 transition-colors hover:bg-white/10 hover:text-white/70 disabled:opacity-50"
+              title="Refresh insights"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
 
-      {/* Insights list */}
-      {!loading && insights.length > 0 && (
-        <div className="flex flex-col gap-2.5">
-          {insights.map((text, i) => {
-            const { Icon, color } = getInsightIcon(text)
-            return (
-              <div key={i} className="flex items-start gap-2.5">
-                <div
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg"
-                  style={{ background: color + '15' }}
-                >
-                  <Icon className="h-3 w-3" style={{ color }} />
+          {/* Error banner */}
+          {error && (
+            <div className="mb-3 flex items-center gap-2 rounded-xl px-3 py-2 text-[11px] text-amber-300/80"
+              style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.15)' }}>
+              <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+              {error}
+              <button
+                onClick={() => void fetchInsights(true)}
+                className="ml-auto text-amber-300/60 underline transition-colors hover:text-amber-300"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {/* Loading skeleton */}
+          {loading && (
+            <div className="flex flex-col gap-2.5">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="h-5 w-5 shrink-0 animate-pulse rounded-lg bg-white/10" />
+                  <div className="flex-1">
+                    <div className="mb-1 h-3 w-full animate-pulse rounded bg-white/[0.08]" />
+                    <div className="h-3 w-2/3 animate-pulse rounded bg-white/[0.05]" />
+                  </div>
                 </div>
-                <p className="text-[12px] leading-relaxed text-white/65">{text}</p>
-              </div>
-            )
-          })}
+              ))}
+            </div>
+          )}
+
+          {/* Insights list */}
+          {!loading && insights.length > 0 && (
+            <div className="flex flex-col gap-2.5">
+              {insights.map((text, i) => {
+                const { Icon, color } = getInsightIcon(text)
+                return (
+                  <div key={i} className="flex items-start gap-2.5">
+                    <div
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg"
+                      style={{ background: color + '15' }}
+                    >
+                      <Icon className="h-3 w-3" style={{ color }} />
+                    </div>
+                    <p className="text-[12px] leading-relaxed text-white/65">{text}</p>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>

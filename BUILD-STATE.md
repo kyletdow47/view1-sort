@@ -60,7 +60,7 @@ Mode: ACTIVE — AI Sort integration sprint
 
 ## Currently Broken
 
-- Landing page scroll sections render black — PR #7 scroll-linked video bg covers content sections below hero with z-index/opacity issue
+- ~~Landing page scroll sections render black~~ — FIXED: replaced overflowX:'clip' with 'hidden' and added explicit bg-[#07070f] to all content sections
 - AI Sort "Run AI Sort" button (AIWorkspaceView.tsx:119) is a setTimeout stub — CLIP classifier never actually runs
 - Manual re-categorization drag-drop not wired to DB — TODO comment only, changes are local state
 - Star/flag/keep/reject handlers in workspace are all TODO stubs — no DB writes

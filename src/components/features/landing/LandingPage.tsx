@@ -384,7 +384,7 @@ const WAITLIST_BENEFITS = [
 function WaitlistSection() {
   const geist = { fontFamily: "'Geist', system-ui, sans-serif" }
   return (
-    <section id="waitlist" className="relative z-10">
+    <section id="waitlist" className="relative z-10 bg-[#07070f]">
 
       {/* ── Mobile: full-bleed immersive ── */}
       <div className="sm:hidden flex flex-col justify-center min-h-[100svh] px-6 pt-20 pb-16"
@@ -489,7 +489,7 @@ function WaitlistSection() {
 /* ── Waitlist mid (after Platform) ── */
 function WaitlistMid() {
   return (
-    <section className="py-16 px-6 relative z-10">
+    <section className="py-16 px-6 relative z-10 bg-[#07070f]">
       <div className="mx-auto max-w-2xl">
         <AnimatedSection>
           <div className="p-[1.5px] rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.5) 0%, rgba(59,130,246,0.4) 50%, rgba(236,72,153,0.5) 100%)' }}>
@@ -517,7 +517,7 @@ function WaitlistMid() {
 /* ── Waitlist end (before FAQ) ── */
 function WaitlistEnd() {
   return (
-    <section className="py-16 px-6 relative z-10">
+    <section className="py-16 px-6 relative z-10 bg-[#07070f]">
       <div className="mx-auto max-w-xl text-center">
         <AnimatedSection>
           <SectionLabel>One more thing</SectionLabel>
@@ -583,7 +583,7 @@ export function LandingPage() {
   }, [])
 
   return (
-    <div className="min-h-screen text-white relative" style={{ fontFamily: "'Inter', system-ui, sans-serif", background: '#030305', overflowX: 'clip' }}>
+    <div className="min-h-screen text-white relative" style={{ fontFamily: "'Inter', system-ui, sans-serif", background: '#030305', overflowX: 'hidden' }}>
 
       {/* ── Background layers ── */}
       <div className="fixed inset-0 z-0 pointer-events-none" style={{ background: 'linear-gradient(160deg, rgba(3,3,5,0.5) 0%, rgba(8,8,16,0.56) 30%, rgba(6,6,9,0.56) 60%, rgba(3,3,5,0.5) 100%)' }} />
@@ -614,7 +614,7 @@ export function LandingPage() {
       <ProductPreview />
 
       {/* ── PROBLEM ── */}
-      <section className="pt-6 pb-24 px-6 relative z-10">
+      <section className="pt-6 pb-24 px-6 relative z-10 bg-[#07070f]">
         <div className="mx-auto max-w-5xl">
           <AnimatedSection className="text-center mb-14">
             <SectionLabel>The Problem</SectionLabel>
@@ -639,7 +639,7 @@ export function LandingPage() {
       </section>
 
       {/* ── AI DIFFERENCE ── */}
-      <section className="pt-24 pb-2 px-6 relative z-10">
+      <section className="pt-24 pb-2 px-6 relative z-10 bg-[#07070f]">
         <div className="mx-auto max-w-6xl">
           <AnimatedSection className="text-center mb-14">
             <SectionLabel>The AI Difference</SectionLabel>
@@ -691,7 +691,7 @@ export function LandingPage() {
       </section>
 
       {/* ── AI MOMENT ── */}
-      <section className="pt-12 pb-24 px-6 relative z-10">
+      <section className="pt-12 pb-24 px-6 relative z-10 bg-[#07070f]">
         <div className="mx-auto max-w-6xl">
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-20 items-center">
             <AnimatedSection>
@@ -728,7 +728,7 @@ export function LandingPage() {
       <WaitlistMid />
 
       {/* ── WORKFLOW ── */}
-      <section className="py-24 px-6 relative z-10">
+      <section className="py-24 px-6 relative z-10 bg-[#07070f]">
         <div className="mx-auto max-w-5xl">
           <AnimatedSection className="text-center mb-14">
             <SectionLabel>Workflow</SectionLabel>
@@ -753,7 +753,7 @@ export function LandingPage() {
       </section>
 
       {/* ── PLATFORM ── */}
-      <section className="py-24 px-6 relative z-10">
+      <section className="py-24 px-6 relative z-10 bg-[#07070f]">
         <div className="mx-auto max-w-5xl">
           <AnimatedSection className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight lg:text-5xl text-white" style={{ fontFamily: "'Geist', system-ui, sans-serif", lineHeight: 1.1 }}>Everything in one place. Finally.</h2>
@@ -764,7 +764,7 @@ export function LandingPage() {
       </section>
 
       {/* ── USE CASES ── */}
-      <section className="py-24 px-6 relative z-10">
+      <section className="py-24 px-6 relative z-10 bg-[#07070f]">
         <div className="mx-auto max-w-5xl">
           <AnimatedSection className="text-center mb-10">
             <SectionLabel>Built for every shoot</SectionLabel>
@@ -778,7 +778,7 @@ export function LandingPage() {
       <WaitlistEnd />
 
       {/* ── FAQ ── */}
-      <section className="py-24 px-6 relative z-10">
+      <section className="py-24 px-6 relative z-10 bg-[#07070f]">
         <div className="mx-auto max-w-2xl">
           <div className="text-center mb-12">
             <SectionLabel>FAQ</SectionLabel>
@@ -797,7 +797,7 @@ export function LandingPage() {
       </div>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-white/10 py-10 px-6 relative z-10 mb-[56px] md:mb-0">
+      <footer className="border-t border-white/10 py-10 px-6 relative z-10 bg-[#07070f] mb-[56px] md:mb-0">
         <div className="mx-auto max-w-7xl flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
             <div className="flex h-5 w-5 items-center justify-center rounded bg-indigo-500"><Camera size={10} className="text-white" /></div>

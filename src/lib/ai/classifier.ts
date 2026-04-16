@@ -6,6 +6,15 @@ import { LABEL_STRINGS, getCategoryForLabel } from './labels'
 env.allowRemoteModels = true
 env.useBrowserCache = true
 
+// Fix for Turbopack/Next.js dev mode: when the worker is compiled as a blob
+// URL, relative WASM paths (./ort-wasm-simd.wasm) have no valid base and fail
+// silently. Point ONNX Runtime to the CDN so WASM is always resolved
+// absolutely — works in dev (Turbopack), production (Webpack), and Vercel.
+const TRANSFORMERS_VERSION = '2.17.2'
+;(env as unknown as { backends: { onnx: { wasm: { wasmPaths: string } } } })
+  .backends.onnx.wasm.wasmPaths =
+  `https://cdn.jsdelivr.net/npm/@xenova/transformers@${TRANSFORMERS_VERSION}/dist/`
+
 export interface ClassificationResult {
   photoId: string
   label: string

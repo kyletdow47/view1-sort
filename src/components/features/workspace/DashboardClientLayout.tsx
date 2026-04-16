@@ -39,7 +39,7 @@ export function DashboardClientLayout({
   // Gradient shell for all dashboard pages (including main dashboard)
   return (
     <div
-      className="relative flex min-h-screen flex-col overflow-hidden text-white"
+      className="relative flex h-screen flex-col overflow-hidden text-white"
       style={{ background: '#050508' }}
     >
       {/* Metallic rainbow mesh gradient — matches Pencil dark metallic design */}
@@ -70,8 +70,8 @@ export function DashboardClientLayout({
         markRead={markRead}
       />
 
-      <main className="relative flex flex-1 flex-col overflow-auto">
-        <div className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 pb-10 pt-6 md:px-10">
+      <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="mx-auto flex h-full w-full max-w-[1400px] flex-col px-6 py-6 md:px-10">
           {children}
         </div>
       </main>
