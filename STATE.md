@@ -39,6 +39,7 @@ Current mode: standby — run coordinator to begin
 - [x] DashboardV2 hardcoded hex colors — migrated ~130 instances across 18 files to CSS variable tokens (--chart-*, --brand-*) and Tailwind semantic classes. themes/page.tsx left as-is (swatch data). A few theme-preset bg values (#f5f3f0, #1a1a1a, #1d1916) left as unique light-mode swatches.
 - [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
 - [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
+- [x] Notification bell/panel state race — useNotifications recreated its Supabase client every render, re-firing the fetch effect and transiently clearing `notifications` while the panel was open. Memoized with useMemo + added 5 regression tests. PR #49 (branch feat/dev-agent/notification-badge-empty-panel, Asana 1213998715323386).
 
 ## Session Budget
 Window:             Manual session (2026-04-02)
