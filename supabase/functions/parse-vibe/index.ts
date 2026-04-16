@@ -4,6 +4,7 @@
 // Invoke via: supabase.functions.invoke('parse-vibe', { body: { description, projectId } })
 
 import Anthropic from 'npm:@anthropic-ai/sdk'
+import { checkRateLimit, getUserKey } from '../_shared/rate-limit.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,29 +21,12 @@ interface ErrorResponse {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Rate limiter (in-memory, per-user, 20 req/min)                    */
+/*  Rate limiter — see ../_shared/rate-limit.ts (durable, Postgres-backed) */
 /* ------------------------------------------------------------------ */
 
-const rateLimitMap = new Map<string, { count: number; windowStart: number }>()
+const RATE_LIMIT_FUNCTION = 'parse-vibe'
 const RATE_LIMIT_MAX = 20
-const RATE_LIMIT_WINDOW_MS = 60_000
-
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(userId)
-
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimitMap.set(userId, { count: 1, windowStart: now })
-    return true
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) {
-    return false
-  }
-
-  entry.count++
-  return true
-}
+const RATE_LIMIT_WINDOW_SECONDS = 60
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -82,13 +66,12 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // ── Rate limiting ──
-    const authHeader = req.headers.get('authorization') ?? ''
-    const userId = authHeader ? `auth:${authHeader.slice(-16)}` : 'anon'
-
-    if (!checkRateLimit(userId)) {
+    // ── Rate limiting (durable, Postgres-backed) ──
+    const userId = getUserKey(req)
+    const allowed = await checkRateLimit(userId, RATE_LIMIT_FUNCTION, RATE_LIMIT_WINDOW_SECONDS, RATE_LIMIT_MAX)
+    if (!allowed) {
       return errorResponse(
-        'Rate limit exceeded. Maximum 20 requests per minute.',
+        `Rate limit exceeded. Maximum ${RATE_LIMIT_MAX} requests per minute.`,
         'RATE_LIMIT_EXCEEDED',
         429,
       )

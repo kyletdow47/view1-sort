@@ -4,6 +4,7 @@
 // Invoke via: supabase.functions.invoke('generate-insights', { body: { stats, projectId, photographerNiche } })
 
 import Anthropic from 'npm:@anthropic-ai/sdk'
+import { checkRateLimit, getUserKey } from '../_shared/rate-limit.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,29 +36,12 @@ interface ErrorResponse {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Rate limiter (in-memory, 10 req/min)                              */
+/*  Rate limiter — see ../_shared/rate-limit.ts (durable, Postgres-backed) */
 /* ------------------------------------------------------------------ */
 
-const rateLimitMap = new Map<string, { count: number; windowStart: number }>()
+const RATE_LIMIT_FUNCTION = 'generate-insights'
 const RATE_LIMIT_MAX = 10
-const RATE_LIMIT_WINDOW_MS = 60_000
-
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(userId)
-
-  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimitMap.set(userId, { count: 1, windowStart: now })
-    return true
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) {
-    return false
-  }
-
-  entry.count++
-  return true
-}
+const RATE_LIMIT_WINDOW_SECONDS = 60
 
 /* ------------------------------------------------------------------ */
 /*  In-memory response cache (1 hour TTL)                             */
@@ -144,13 +128,12 @@ Deno.serve(async (req: Request) => {
       return errorResponse('stats.categoryCounts is required', 'INVALID_INPUT', 400)
     }
 
-    // ── Rate limiting ──
-    const authHeader = req.headers.get('authorization') ?? ''
-    const userId = authHeader ? `auth:${authHeader.slice(-16)}` : 'anon'
-
-    if (!checkRateLimit(userId)) {
+    // ── Rate limiting (durable, Postgres-backed) ──
+    const userId = getUserKey(req)
+    const allowed = await checkRateLimit(userId, RATE_LIMIT_FUNCTION, RATE_LIMIT_WINDOW_SECONDS, RATE_LIMIT_MAX)
+    if (!allowed) {
       return errorResponse(
-        'Rate limit exceeded. Maximum 10 requests per minute.',
+        `Rate limit exceeded. Maximum ${RATE_LIMIT_MAX} requests per minute.`,
         'RATE_LIMIT_EXCEEDED',
         429,
       )

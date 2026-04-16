@@ -19,7 +19,12 @@ export interface ClassificationResult {
   photoId: string
   label: string
   score: number
-  category: PhotoCategory
+  /**
+   * Generic taxonomy category from labels.ts. Set by the direct `classify()`
+   * function for local use. Not set by the browser worker — useAIClassifier
+   * derives category from the active preset (or labels.ts as a fallback).
+   */
+  category?: PhotoCategory
 }
 
 type RawPipelineResult = Array<{ label: string; score: number }>
@@ -27,8 +32,13 @@ type RawPipelineResult = Array<{ label: string; score: number }>
 // SigLIP / CLIP model hosted on Hugging Face via Xenova
 const MODEL_ID = 'Xenova/clip-vit-base-patch32'
 
+/** CLIP base image embedding dimension — stays in sync with vector(512) in style_embeddings. */
+export const EMBEDDING_DIM = 512
+
 type ClassificationPipeline = Awaited<ReturnType<typeof pipeline>>
+type FeatureExtractionPipeline = Awaited<ReturnType<typeof pipeline>>
 let pipelineInstance: ClassificationPipeline | null = null
+let embeddingPipelineInstance: FeatureExtractionPipeline | null = null
 
 type ProgressInfo = { status: string; progress?: number }
 
@@ -81,4 +91,26 @@ export async function classify(
 /** Reset the cached pipeline (useful for testing). */
 export function resetModel(): void {
   pipelineInstance = null
+  embeddingPipelineInstance = null
+}
+
+/**
+ * Extract a mean-pooled, L2-normalised image embedding for the given source.
+ * Dimension is `EMBEDDING_DIM` (512 for clip-vit-base-patch32). Used both
+ * at sort time (query nearest-neighbors) and at correction time (persist
+ * the embedding into style_embeddings).
+ */
+export async function embed(imageSource: string): Promise<number[]> {
+  if (embeddingPipelineInstance === null) {
+    embeddingPipelineInstance = await pipeline('image-feature-extraction', MODEL_ID)
+  }
+
+  const pipe = embeddingPipelineInstance
+  const rawOutput = (await (pipe as unknown as (
+    src: string,
+    opts: { pooling: 'mean'; normalize: boolean },
+  ) => Promise<{ data: Float32Array | number[] }>)(imageSource, { pooling: 'mean', normalize: true }))
+
+  const data = rawOutput.data
+  return data instanceof Float32Array ? Array.from(data) : data.map(Number)
 }

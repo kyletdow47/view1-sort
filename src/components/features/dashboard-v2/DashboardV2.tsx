@@ -16,6 +16,8 @@ export interface DashboardV2Props {
   upcomingShoots?: number
   revenueThisMonth?: number
   pendingActions?: number
+  /** Use hardcoded demo stats instead of fetching real per-user stats. */
+  demoMode?: boolean
 }
 
 export function DashboardV2({
@@ -26,6 +28,7 @@ export function DashboardV2({
   upcomingShoots = 0,
   revenueThisMonth = 0,
   pendingActions = 0,
+  demoMode = false,
 }: DashboardV2Props) {
   return (
     <div className="relative flex h-full min-h-0 flex-col gap-4">
@@ -50,7 +53,7 @@ export function DashboardV2({
       </div>
 
       {/* AI Briefing — floating bottom-right */}
-      <AIBriefingCard userName={userName} />
+      <AIBriefingCard userName={userName} demoMode={demoMode} />
     </div>
   )
 }

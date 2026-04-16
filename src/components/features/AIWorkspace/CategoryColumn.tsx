@@ -12,6 +12,14 @@ interface CategoryColumnProps {
   onDoubleClick: (id: string) => void
   /** Called when a photo is dragged from another column and dropped here */
   onDrop?: (mediaId: string, targetCategory: string) => void
+  /** media id → neighbour-agreement count; drives the "matches N" badge */
+  personalMatches?: Map<string, number>
+  /** Categories shown in the per-photo thumbs-down move-to picker */
+  categoryOptions?: string[]
+  /** Thumbs-up: confirm the personalised prediction */
+  onConfirmPrediction?: (mediaId: string) => void
+  /** Thumbs-down: reject + move to a different category (also records a rejection) */
+  onRejectPrediction?: (mediaId: string, targetCategory: string) => void
 }
 
 /* ── Culling flag helpers ─────────────────────────────────────────── */
@@ -128,7 +136,12 @@ export function CategoryColumn({
   onSelect,
   onDoubleClick,
   onDrop,
+  personalMatches,
+  categoryOptions,
+  onConfirmPrediction,
+  onRejectPrediction,
 }: CategoryColumnProps) {
+  const [moveToOpenFor, setMoveToOpenFor] = useState<string | null>(null)
   const photoCount = photos.length
   const [isDragOver, setIsDragOver] = useState(false)
 
@@ -207,6 +220,9 @@ export function CategoryColumn({
             const isRejected = photo.review_flag === 'reject'
             const isKept = photo.review_flag === 'keep'
             const isStarred = photo.is_starred === true
+            const matchCount = personalMatches?.get(photo.id) ?? 0
+            const isPersonalised = matchCount > 0
+            const moveToOpen = moveToOpenFor === photo.id
 
             return (
               <button
@@ -275,6 +291,110 @@ export function CategoryColumn({
                   <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded text-[10px] font-mono
                     bg-black/60 text-white/70 backdrop-blur-sm">
                     {Math.round(photo.ai_confidence * 100)}%
+                  </div>
+                )}
+
+                {/* Personalisation badge — "matches N photos you sorted here" */}
+                {isPersonalised && (
+                  <div
+                    className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full
+                      bg-indigo-500/90 text-white text-[9px] font-semibold tracking-wide
+                      backdrop-blur-sm shadow-md flex items-center gap-1 pointer-events-none"
+                    title={`Matches ${matchCount} photo${matchCount === 1 ? '' : 's'} you sorted here`}
+                    aria-label={`Matches ${matchCount} photos you sorted here`}
+                  >
+                    <svg className="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path d="M10 2a1 1 0 01.894.553l2.382 4.829 5.33.775a1 1 0 01.554 1.706l-3.857 3.76.91 5.308a1 1 0 01-1.451 1.054L10 17.347l-4.767 2.638A1 1 0 013.78 18.93l.91-5.308L.834 9.863a1 1 0 01.554-1.706l5.33-.775L9.106 2.553A1 1 0 0110 2z" />
+                    </svg>
+                    matches {matchCount}
+                  </div>
+                )}
+
+                {/* Thumbs up / down on personalised predictions */}
+                {isPersonalised && (onConfirmPrediction || onRejectPrediction) && (
+                  <div
+                    className="absolute bottom-1.5 left-1.5 flex gap-1 opacity-0 group-hover:opacity-100
+                      focus-within:opacity-100 transition-opacity duration-150"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {onConfirmPrediction && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onConfirmPrediction(photo.id)
+                        }}
+                        className="w-6 h-6 rounded-full bg-emerald-500/90 hover:bg-emerald-400
+                          text-white flex items-center justify-center shadow-md backdrop-blur-sm
+                          transition-all active:scale-95"
+                        title="Yes, this is right"
+                        aria-label="Confirm AI prediction"
+                      >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path d="M2 10a2 2 0 012-2h1.5v9H4a2 2 0 01-2-2v-5zm5.5-2l3.2-5.335A1.5 1.5 0 0113.5 4v3h3.7a1.8 1.8 0 011.77 2.12l-1.1 6A1.8 1.8 0 0116.1 16.5H7.5V8z" />
+                        </svg>
+                      </button>
+                    )}
+                    {onRejectPrediction && (
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setMoveToOpenFor(moveToOpen ? null : photo.id)
+                          }}
+                          className="w-6 h-6 rounded-full bg-rose-500/90 hover:bg-rose-400
+                            text-white flex items-center justify-center shadow-md backdrop-blur-sm
+                            transition-all active:scale-95"
+                          title="Wrong — move to…"
+                          aria-label="Reject AI prediction and move to another category"
+                          aria-expanded={moveToOpen}
+                        >
+                          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M18 10a2 2 0 01-2 2h-1.5V3H16a2 2 0 012 2v5zm-5.5 2l-3.2 5.335A1.5 1.5 0 016.5 16v-3H2.8a1.8 1.8 0 01-1.77-2.12l1.1-6A1.8 1.8 0 013.9 3.5h8.6v8.5z" />
+                          </svg>
+                        </button>
+
+                        {moveToOpen && categoryOptions && categoryOptions.length > 0 && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-40"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setMoveToOpenFor(null)
+                              }}
+                            />
+                            <div
+                              className="absolute bottom-full left-0 mb-1.5 z-50 min-w-[140px]
+                                rounded-lg border border-white/15 bg-[#1a1520]/95 backdrop-blur-xl
+                                shadow-2xl py-1 flex flex-col"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <span className="px-3 py-1 text-[9px] font-semibold uppercase tracking-wider text-white/40">
+                                Move to
+                              </span>
+                              {categoryOptions
+                                .filter((c) => c !== photo.ai_category)
+                                .map((cat) => (
+                                  <button
+                                    key={cat}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setMoveToOpenFor(null)
+                                      onRejectPrediction(photo.id, cat)
+                                    }}
+                                    className="px-3 py-1.5 text-left text-xs text-white/80
+                                      hover:bg-white/10 transition-colors"
+                                  >
+                                    {cat}
+                                  </button>
+                                ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </button>

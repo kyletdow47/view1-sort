@@ -24,7 +24,7 @@ describe('AIBriefingCard', () => {
       json: () => Promise.resolve({ insights: ['Test insight'], source: 'claude' }),
     })
 
-    render(<AIBriefingCard userName="Kyle" />)
+    render(<AIBriefingCard userName="Kyle" demoMode />)
 
     // Should show a time-appropriate greeting
     const greeting = screen.getByText(/Kyle/)
@@ -34,7 +34,7 @@ describe('AIBriefingCard', () => {
   it('shows loading skeleton initially', () => {
     mockFetch.mockImplementation(() => new Promise(() => {})) // Never resolves
 
-    render(<AIBriefingCard userName="Kyle" />)
+    render(<AIBriefingCard userName="Kyle" demoMode />)
 
     // Should have animated pulse elements (loading skeleton)
     const pulseElements = document.querySelectorAll('.animate-pulse')
@@ -50,7 +50,7 @@ describe('AIBriefingCard', () => {
       }),
     })
 
-    render(<AIBriefingCard userName="Kyle" />)
+    render(<AIBriefingCard userName="Kyle" demoMode />)
 
     await waitFor(() => {
       expect(screen.getByText(/portfolio grew 12%/)).toBeDefined()
@@ -67,7 +67,7 @@ describe('AIBriefingCard', () => {
       }),
     })
 
-    render(<AIBriefingCard userName="Kyle" />)
+    render(<AIBriefingCard userName="Kyle" demoMode />)
 
     await waitFor(() => {
       expect(screen.getByText(/powered by Claude/)).toBeDefined()
@@ -77,7 +77,7 @@ describe('AIBriefingCard', () => {
   it('shows error state and fallback insights on fetch failure', async () => {
     mockFetch.mockRejectedValue(new Error('Network error'))
 
-    render(<AIBriefingCard userName="Kyle" />)
+    render(<AIBriefingCard userName="Kyle" demoMode />)
 
     await waitFor(() => {
       expect(screen.getByText(/AI insights unavailable/)).toBeDefined()
@@ -96,7 +96,7 @@ describe('AIBriefingCard', () => {
       status: 500,
     })
 
-    render(<AIBriefingCard userName="Kyle" />)
+    render(<AIBriefingCard userName="Kyle" demoMode />)
 
     await waitFor(() => {
       expect(screen.getByText(/AI insights unavailable/)).toBeDefined()
@@ -109,7 +109,7 @@ describe('AIBriefingCard', () => {
       json: () => Promise.resolve({ insights: ['Test insight'], source: 'claude' }),
     })
 
-    render(<AIBriefingCard userName="Kyle" />)
+    render(<AIBriefingCard userName="Kyle" demoMode />)
 
     const refreshButton = screen.getByTitle('Refresh insights')
     expect(refreshButton).toBeDefined()
@@ -122,7 +122,7 @@ describe('AIBriefingCard', () => {
       json: () => Promise.resolve({ insights: ['Test insight'], source: 'claude' }),
     })
 
-    render(<AIBriefingCard userName="Kyle" />)
+    render(<AIBriefingCard userName="Kyle" demoMode />)
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(1)

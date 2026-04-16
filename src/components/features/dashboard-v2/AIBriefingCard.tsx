@@ -9,11 +9,37 @@ import { Sparkles, RefreshCw, TrendingUp, TrendingDown, AlertCircle, Lightbulb }
 
 interface AIBriefingCardProps {
   userName?: string
+  /** When true, skip the real stats fetch and use baked-in demo stats. */
+  demoMode?: boolean
 }
 
 interface InsightsApiResponse {
   insights: string[]
   source: 'claude' | 'cache' | 'fallback'
+}
+
+interface DashboardAIStatsResponse {
+  totalPhotos: number
+  qualityDistribution: { high: number; medium: number; low: number }
+  categoryCounts: Record<string, number>
+  duplicateCount: number
+  blurryCount: number
+  photographerNiche?: string
+}
+
+const DEMO_STATS: DashboardAIStatsResponse = {
+  totalPhotos: 2847,
+  categoryCounts: {
+    Portraits: 890,
+    Ceremony: 620,
+    Details: 540,
+    Reception: 410,
+    Candids: 387,
+  },
+  qualityDistribution: { high: 2100, medium: 580, low: 167 },
+  duplicateCount: 45,
+  blurryCount: 28,
+  photographerNiche: 'wedding and portrait photography',
 }
 
 /* ------------------------------------------------------------------ */
@@ -59,7 +85,7 @@ const SESSION_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export function AIBriefingCard({ userName = 'there' }: AIBriefingCardProps) {
+export function AIBriefingCard({ userName = 'there', demoMode = false }: AIBriefingCardProps) {
   const [open, setOpen] = useState(false)
   const [insights, setInsights] = useState<string[]>(sessionCache?.insights ?? [])
   const [loading, setLoading] = useState(!sessionCache)
@@ -84,25 +110,24 @@ export function AIBriefingCard({ userName = 'there' }: AIBriefingCardProps) {
     const timeout = setTimeout(() => controller.abort(), 30_000)
 
     try {
-      // Aggregated stats across all projects (mock for now — wire to Supabase in production)
-      const stats = {
-        totalPhotos: 2847,
-        categoryCounts: {
-          portraits: 890,
-          ceremony: 620,
-          details: 540,
-          reception: 410,
-          candid: 387,
-        },
-        qualityDistribution: { high: 2100, medium: 580, low: 167 },
-        duplicateCount: 45,
-        blurryCount: 28,
+      // Fetch real per-user stats unless caller requested demo mode
+      let stats: DashboardAIStatsResponse = DEMO_STATS
+      if (!demoMode) {
+        const statsRes = await fetch('/api/dashboard/ai-stats', { signal: controller.signal })
+        if (statsRes.ok) {
+          stats = (await statsRes.json()) as DashboardAIStatsResponse
+        }
+        // If the fetch failed (unauthed, network) we keep DEMO_STATS as a
+        // last-resort fallback rather than erroring out the card.
       }
 
       const res = await fetch('/api/ai/insights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stats, photographerNiche: 'wedding and portrait photography' }),
+        body: JSON.stringify({
+          stats,
+          photographerNiche: stats.photographerNiche ?? 'professional photography',
+        }),
         signal: controller.signal,
       })
 
@@ -127,7 +152,7 @@ export function AIBriefingCard({ userName = 'there' }: AIBriefingCardProps) {
       clearTimeout(timeout)
       if (mountedRef.current) setLoading(false)
     }
-  }, [])
+  }, [demoMode])
 
   useEffect(() => {
     mountedRef.current = true

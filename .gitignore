@@ -8,3 +8,13 @@ dist/
 coverage/
 .vercel
 .DS_Store
+
+# AI training data — photos stay local, manifest/reports committed
+ai-training/raw/
+ai-training/eval-stock/*/
+!ai-training/eval-stock/manifest.json
+ai-training/**/*.jpg
+ai-training/**/*.jpeg
+ai-training/**/*.png
+ai-training/**/*.webp
+ai-training/**/*.heic

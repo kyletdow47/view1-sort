@@ -20,6 +20,12 @@ interface AISortWorkspaceProps {
   onReviewFlags: () => void
   onCategoryDrop?: (mediaId: string, targetCategory: string) => void
   onBatchReclassify?: () => void
+  /** media id → number of user-library neighbours that voted for this category */
+  personalMatches?: Map<string, number>
+  /** Thumbs-up on a personalised prediction */
+  onConfirmPrediction?: (mediaId: string) => void
+  /** Thumbs-down — caller is expected to open a move-to flow; signature mirrors onCategoryDrop */
+  onRejectPrediction?: (mediaId: string, targetCategory: string) => void
 }
 
 /**
@@ -36,7 +42,11 @@ export function AISortWorkspace({
   onReviewFlags,
   onCategoryDrop,
   onBatchReclassify,
+  personalMatches,
+  onConfirmPrediction,
+  onRejectPrediction,
 }: AISortWorkspaceProps) {
+  const allCategoryNames = useMemo(() => categoryColumns.map((c) => c.name), [categoryColumns])
   const [settings, setSettings] = useState<AISortSettings>(DEFAULT_AI_SORT_SETTINGS)
   const [isReclassifying, setIsReclassifying] = useState(false)
   const reclassifyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -139,6 +149,10 @@ export function AISortWorkspace({
             onSelect={onSelect}
             onDoubleClick={onDoubleClick}
             onDrop={onCategoryDrop}
+            personalMatches={personalMatches}
+            categoryOptions={allCategoryNames}
+            onConfirmPrediction={onConfirmPrediction}
+            onRejectPrediction={onRejectPrediction}
           />
         ))}
 
