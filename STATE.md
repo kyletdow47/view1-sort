@@ -40,6 +40,12 @@ Current mode: standby — run coordinator to begin
 - [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
 - [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
 - [x] Notification bell/panel state race — useNotifications recreated its Supabase client every render, re-firing the fetch effect and transiently clearing `notifications` while the panel was open. Memoized with useMemo + added 5 regression tests. PR #49 (branch feat/dev-agent/notification-badge-empty-panel, Asana 1213998715323386).
+- [x] Dashboard/Projects data divergence — RecentProjects and QuickStats silently fell back to hardcoded mock data (Wedding Shoot 248 / Real Estate Tour 132 / Travel Portfolio 89; pending 12 / active 4 / shoots 3 / revenue $3.2k) when real Supabase data was empty, conflicting with the Projects page's accurate empty state. Removed both fallback paths + added 8 regression tests. PR #59 (branch feat/dev-agent/1213998758351854-projects-dashboard-data-sync, Asana 1213998758351854).
+
+## Completed Builds
+| When (UTC) | Task | Branch | PR | Files changed |
+|---|---|---|---|---|
+| 2026-04-17T09:15Z | 1213998758351854 — Dashboard/Projects mock fallback removal | feat/dev-agent/1213998758351854-projects-dashboard-data-sync | https://github.com/kyletdow47/view1-sort/pull/59 | 4 |
 
 ## Session Budget
 Window:             Manual session (2026-04-02)
