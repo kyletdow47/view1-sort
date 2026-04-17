@@ -42,6 +42,14 @@ describe('Button', () => {
     expect(screen.getByRole('button')).toHaveClass('text-white')
   })
 
+  it('applies cta variant (brand gradient) for primary CTAs', () => {
+    render(<Button variant="cta">Create</Button>)
+    const btn = screen.getByRole('button', { name: 'Create' })
+    expect(btn).toHaveClass('bg-cta')
+    expect(btn).toHaveClass('text-white')
+    expect(btn).toHaveClass('font-semibold')
+  })
+
   it('applies size classes', () => {
     render(<Button size="lg">Large</Button>)
     expect(screen.getByRole('button')).toHaveClass('text-base')
