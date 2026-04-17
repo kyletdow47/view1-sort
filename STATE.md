@@ -40,6 +40,12 @@ Current mode: standby — run coordinator to begin
 - [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
 - [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
 - [x] Notification bell/panel state race — useNotifications recreated its Supabase client every render, re-firing the fetch effect and transiently clearing `notifications` while the panel was open. Memoized with useMemo + added 5 regression tests. PR #49 (branch feat/dev-agent/notification-badge-empty-panel, Asana 1213998715323386).
+- [x] Analytics Revenue by Source chart empty — stacked Bars had radius on both + default animation, produced zero-height paths in recharts 3.8.1. Moved radius to top bar only, set isAnimationActive=false, added 5 regression tests. PR #52 (branch feat/dev-agent/analytics-revenue-by-source, Asana 1213998665020614).
+
+## Completed Builds
+| Timestamp (UTC) | Task ID | Branch | PR | Files |
+|---|---|---|---|---|
+| 2026-04-17T08:40:00Z | 1213998665020614 | feat/dev-agent/analytics-revenue-by-source | https://github.com/kyletdow47/view1-sort/pull/52 | 2 |
 
 ## Session Budget
 Window:             Manual session (2026-04-02)
