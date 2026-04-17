@@ -286,7 +286,10 @@ export function ClientsKanbanView({
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex flex-1 gap-3 overflow-x-auto px-6 py-4">
+      <div
+        data-testid="clients-kanban-scroll"
+        className="flex flex-1 gap-3 overflow-x-auto scroll-smooth pl-6 py-4"
+      >
         {COLUMNS.map((col) => {
           const colClients = displayClients.filter((c) => c.stage === col.key)
           return (
@@ -298,6 +301,10 @@ export function ClientsKanbanView({
             />
           )
         })}
+        {/* Trailing spacer preserves right-side breathing room during horizontal
+            scroll — WebKit/Blink drop padding-right from the scrollable extent
+            of overflow-x flex containers, which clipped the final "Paid" column. */}
+        <div aria-hidden="true" data-testid="clients-kanban-trailing-spacer" className="w-6 shrink-0" />
       </div>
 
       {/* Drag overlay — rendered outside columns to avoid clipping */}
