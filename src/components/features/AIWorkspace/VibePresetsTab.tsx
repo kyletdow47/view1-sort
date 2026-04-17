@@ -1,10 +1,9 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
-  ChevronRight,
-  Check,
   Edit3,
+  MessageSquare,
   Palette,
   Plus,
   Sparkles,
@@ -13,9 +12,11 @@ import {
   X,
 } from 'lucide-react'
 
-import type { ParseVibeResponse, VibePreset, VibeStyleParams } from '@/types/vibe-presets'
-import { EXAMPLE_PROMPTS } from '@/types/vibe-presets'
+import type { VibePreset, VibeStyleParams } from '@/types/vibe-presets'
 import { useVibePresets } from '@/hooks/useVibePresets'
+
+import { VibeChat } from './VibeChat'
+import type { VibeChatBuiltInOption, VibeChatFinalizeEvent } from './VibeChat'
 
 /* ─────────────────────────────────────────────
    Internal UI primitives (scoped to this file)
@@ -136,138 +137,6 @@ function PresetCard({ preset, isActive, onApply, onEdit, onDelete }: PresetCardP
         </button>
       </div>
     </GlassCard>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   StyleParamsPreview — after AI extraction
-   ───────────────────────────────────────────── */
-
-interface StyleParamsPreviewProps {
-  params: VibeStyleParams
-  presetName: string
-  onNameChange: (name: string) => void
-  onSave: () => void
-  onDiscard: () => void
-}
-
-function StyleParamsPreview({
-  params,
-  presetName,
-  onNameChange,
-  onSave,
-  onDiscard,
-}: StyleParamsPreviewProps) {
-  const paramRows = [
-    { label: 'Mood', value: params.mood },
-    { label: 'Lighting', value: params.lighting },
-    { label: 'Composition', value: params.composition },
-    { label: 'Color Temp', value: params.colorTemp },
-  ] as const
-
-  return (
-    <div className="flex flex-col gap-4">
-      {/* Success indicator */}
-      <div className="flex items-center gap-2 text-[#34D399]">
-        <Check className="w-4 h-4" />
-        <span className="text-sm font-medium font-[Geist,sans-serif]">
-          Style parameters extracted
-        </span>
-      </div>
-
-      {/* Param grid */}
-      <div className="grid grid-cols-2 gap-2">
-        {paramRows.map(({ label, value }) => (
-          <div key={label} className="p-2 rounded-lg bg-white/5 border border-white/10">
-            <div className="text-white/40 text-[10px] uppercase tracking-wider font-[Geist_Mono,monospace] mb-0.5">
-              {label}
-            </div>
-            <div className="text-white/80 text-xs font-medium font-[Geist,sans-serif] capitalize">
-              {value}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {params.subjects.length > 0 && (
-        <div>
-          <p className="text-white/40 text-[10px] uppercase tracking-wider font-[Geist_Mono,monospace] mb-1.5">
-            Prioritize
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {params.subjects.map((s) => (
-              <span
-                key={s}
-                className="text-xs px-2 py-0.5 rounded-full bg-[#5749F4]/20 text-[#818CF8]
-                  border border-[#5749F4]/30 font-[Geist,sans-serif]"
-              >
-                {s}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {params.avoidPatterns.length > 0 && (
-        <div>
-          <p className="text-white/40 text-[10px] uppercase tracking-wider font-[Geist_Mono,monospace] mb-1.5">
-            Avoid
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {params.avoidPatterns.map((p) => (
-              <span
-                key={p}
-                className="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-400
-                  border border-red-500/20 font-[Geist,sans-serif]"
-              >
-                {p}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Name Input */}
-      <div>
-        <label className="text-white/50 text-xs font-medium font-[Geist,sans-serif] block mb-1.5">
-          Preset name
-        </label>
-        <input
-          type="text"
-          value={presetName}
-          onChange={(e) => onNameChange(e.target.value)}
-          placeholder="e.g. Moody Editorial"
-          className="w-full h-9 px-3 rounded-lg bg-white/5 border border-white/15
-            focus:border-[#5749F4]/60 focus:ring-1 focus:ring-[#5749F4]/30
-            text-white text-sm font-[Geist,sans-serif] placeholder-white/30
-            outline-none transition-all"
-        />
-      </div>
-
-      {/* Save / Discard */}
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={onSave}
-          disabled={!presetName.trim()}
-          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg
-            bg-[#5749F4] hover:bg-[#4f46e5]
-            disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed
-            text-white text-sm font-medium font-[Geist,sans-serif] transition-all duration-150"
-        >
-          <Check className="w-3.5 h-3.5" />
-          Save Preset
-        </button>
-        <button
-          type="button"
-          onClick={onDiscard}
-          className="px-4 h-9 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10
-            text-white/50 hover:text-white/80 text-sm font-[Geist,sans-serif] transition-all duration-150"
-        >
-          Discard
-        </button>
-      </div>
-    </div>
   )
 }
 
@@ -423,6 +292,62 @@ function ApplyPresetModal({ preset, currentDistribution, onConfirm, onCancel }: 
 }
 
 /* ─────────────────────────────────────────────
+   CoachLauncher — replaces the single-shot form
+   ───────────────────────────────────────────── */
+
+function CoachLauncher({ onStart }: { onStart: () => void }) {
+  return (
+    <GlassCard className="flex flex-1 flex-col gap-5 p-5">
+      <div className="flex items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#5749F4]/20">
+          <Wand2 className="h-4 w-4 text-[#818CF8]" />
+        </div>
+        <div>
+          <h4 className="font-[Geist,sans-serif] text-sm font-semibold text-white">
+            Teach the AI your eye
+          </h4>
+          <p className="mt-0.5 font-[Geist,sans-serif] text-[11px] text-white/50">
+            The style coach asks a few targeted questions and saves the result as a preset.
+          </p>
+        </div>
+      </div>
+
+      {/* Bullets — what the user should expect */}
+      <ul className="flex flex-col gap-2">
+        {[
+          'Two or three questions, one at a time.',
+          'Built with Claude — mirrors your own words.',
+          'Skip to an existing preset at any point.',
+        ].map((line) => (
+          <li
+            key={line}
+            className="flex items-start gap-2 font-[Geist,sans-serif] text-[12px] text-white/60"
+          >
+            <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-[#818CF8]" />
+            {line}
+          </li>
+        ))}
+      </ul>
+
+      <button
+        type="button"
+        onClick={onStart}
+        className="mt-auto flex h-11 items-center justify-center gap-2 rounded-xl
+          bg-[#5749F4] font-[Geist,sans-serif] text-sm font-semibold text-white
+          transition-colors hover:bg-[#4f46e5]"
+      >
+        <MessageSquare className="h-4 w-4" />
+        Start coach chat
+      </button>
+
+      <p className="text-center font-[Geist,sans-serif] text-[10px] text-white/30">
+        Takes about 30 seconds · 5 question cap
+      </p>
+    </GlassCard>
+  )
+}
+
+/* ─────────────────────────────────────────────
    VibePresetsTab — main export
    ───────────────────────────────────────────── */
 
@@ -439,75 +364,15 @@ export function VibePresetsTab({ projectId, categoryDistribution = [] }: VibePre
     deletePreset: deletePresetFromCloud,
     applyPreset: applyPresetToCloud,
   } = useVibePresets(projectId)
-  const [description, setDescription] = useState('')
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [parsedResult, setParsedResult] = useState<ParseVibeResponse | null>(null)
-  const [presetName, setPresetName] = useState('')
+
+  const [chatOpen, setChatOpen] = useState(false)
   const [applyingPreset, setApplyingPreset] = useState<VibePreset | null>(null)
-  const [parseError, setParseError] = useState<string | null>(null)
-  const [parseSource, setParseSource] = useState<string | null>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const handleExamplePrompt = useCallback(
-    (prompt: string) => {
-      setDescription(prompt)
-      setParsedResult(null)
-      setTimeout(() => textareaRef.current?.focus(), 50)
-    },
-    [],
+  // Offer existing saved presets as "skip to" options inside the coach.
+  const skipOptions = useMemo<VibeChatBuiltInOption[]>(
+    () => presets.map((p) => ({ id: p.id, name: p.name, icon: '🎨' })),
+    [presets],
   )
-
-  const handleParseVibe = useCallback(async () => {
-    if (!description.trim()) return
-    setIsProcessing(true)
-    setParseError(null)
-    setParseSource(null)
-
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 30_000)
-
-    try {
-      const res = await fetch('/api/ai/parse-vibe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description, projectId }),
-        signal: controller.signal,
-      })
-      if (!res.ok) throw new Error('Failed to parse vibe description')
-      const data = (await res.json()) as ParseVibeResponse
-      setParsedResult(data)
-      setPresetName(data.presetName)
-      setParseSource(data.source ?? 'claude')
-    } catch (err) {
-      const msg = err instanceof Error && err.name === 'AbortError'
-        ? 'Request timed out. Please try again.'
-        : 'Could not analyze style. Please try again.'
-      setParseError(msg)
-      console.error('[VibePresetsTab] parse error:', err)
-    } finally {
-      clearTimeout(timeout)
-      setIsProcessing(false)
-    }
-  }, [description, projectId])
-
-  const handleSavePreset = useCallback(async () => {
-    if (!parsedResult || !presetName.trim()) return
-    await savePresetToCloud({
-      name: presetName.trim(),
-      description: description.trim(),
-      styleParams: parsedResult.styleParams,
-      source: 'ai_parsed',
-    })
-    setParsedResult(null)
-    setDescription('')
-    setPresetName('')
-  }, [parsedResult, presetName, description, savePresetToCloud])
-
-  const handleDiscard = useCallback(() => {
-    setParsedResult(null)
-    setDescription('')
-    setPresetName('')
-  }, [])
 
   const handleDelete = useCallback(
     (id: string) => {
@@ -516,19 +381,40 @@ export function VibePresetsTab({ projectId, categoryDistribution = [] }: VibePre
     [deletePresetFromCloud],
   )
 
-  const handleEdit = useCallback((preset: VibePreset) => {
-    setDescription(preset.description)
-    setParsedResult(null)
-    setPresetName('')
-    setTimeout(() => textareaRef.current?.focus(), 50)
-  }, [])
+  const handleEdit = useCallback(
+    (_preset: VibePreset) => {
+      // Editing an existing preset means re-teaching: open a fresh coach session.
+      setChatOpen(true)
+    },
+    [],
+  )
 
   const handleConfirmApply = useCallback(() => {
     if (!applyingPreset) return
     void applyPresetToCloud(applyingPreset.id)
     setApplyingPreset(null)
-    console.info('[VibePresetsTab] Applying preset:', applyingPreset.id)
   }, [applyingPreset, applyPresetToCloud])
+
+  const handleChatFinalize = useCallback(
+    async (event: VibeChatFinalizeEvent) => {
+      if (event.type === 'builtIn') {
+        await applyPresetToCloud(event.presetId)
+        setChatOpen(false)
+        return
+      }
+      const saved = await savePresetToCloud({
+        name: event.preset.name,
+        description: event.preset.description,
+        styleParams: event.preset.styleParams,
+        source: 'ai_parsed',
+      })
+      if (saved) {
+        await applyPresetToCloud(saved.id)
+      }
+      setChatOpen(false)
+    },
+    [applyPresetToCloud, savePresetToCloud],
+  )
 
   return (
     <div className="flex gap-4 flex-1 min-h-0 py-3">
@@ -546,11 +432,7 @@ export function VibePresetsTab({ projectId, categoryDistribution = [] }: VibePre
           </div>
           <button
             type="button"
-            onClick={() => {
-              setDescription('')
-              setParsedResult(null)
-              setTimeout(() => textareaRef.current?.focus(), 50)
-            }}
+            onClick={() => setChatOpen(true)}
             className="flex items-center gap-1.5 h-8 px-3 rounded-lg
               bg-[#5749F4]/20 hover:bg-[#5749F4]/30 border border-[#5749F4]/30 hover:border-[#5749F4]/50
               text-[#818CF8] hover:text-white text-xs font-medium font-[Geist,sans-serif]
@@ -573,9 +455,19 @@ export function VibePresetsTab({ projectId, categoryDistribution = [] }: VibePre
             <div>
               <p className="text-white/50 text-sm font-[Geist,sans-serif]">No presets yet</p>
               <p className="text-white/30 text-xs font-[Geist,sans-serif] mt-0.5">
-                Create your first style preset to teach the AI your eye
+                Chat with the coach to create your first one
               </p>
             </div>
+            <button
+              type="button"
+              onClick={() => setChatOpen(true)}
+              className="mt-1 flex items-center gap-1.5 rounded-lg bg-[#5749F4]/20 border border-[#5749F4]/30
+                px-3 py-2 text-xs font-medium text-[#818CF8] transition-colors
+                hover:bg-[#5749F4]/30 hover:text-white"
+            >
+              <MessageSquare className="h-3 w-3" />
+              Start coach chat
+            </button>
           </div>
         ) : (
           /* Preset Cards Grid */
@@ -594,147 +486,19 @@ export function VibePresetsTab({ projectId, categoryDistribution = [] }: VibePre
         )}
       </div>
 
-      {/* ── Right: Create / Edit Panel ── */}
+      {/* ── Right: Coach launcher ── */}
       <div className="w-80 flex-shrink-0 flex flex-col">
-        <GlassCard className="flex-1 flex flex-col gap-4 p-4 overflow-y-auto">
-          {/* Panel Header */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-[#5749F4]/20 flex items-center justify-center">
-              <Wand2 className="w-3.5 h-3.5 text-[#818CF8]" />
-            </div>
-            <div>
-              <h4 className="text-white text-sm font-semibold font-[Geist,sans-serif]">
-                Teach the AI
-              </h4>
-              <p className="text-white/40 text-[11px] font-[Geist,sans-serif]">
-                Describe your ideal style in plain English
-              </p>
-            </div>
-          </div>
-
-          {/* Error banner */}
-          {parseError && (
-            <div className="flex items-center gap-2 rounded-xl px-3 py-2 text-[11px] text-amber-300/80"
-              style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.15)' }}>
-              <Sparkles className="w-3.5 h-3.5 shrink-0" />
-              {parseError}
-              <button
-                onClick={() => void handleParseVibe()}
-                className="ml-auto text-amber-300/60 underline transition-colors hover:text-amber-300"
-              >
-                Retry
-              </button>
-            </div>
-          )}
-
-          {/* Powered by Claude attribution */}
-          {parseSource === 'claude' && parsedResult && (
-            <p className="text-[10px] text-indigo-400/50 text-center">
-              Powered by Claude
-            </p>
-          )}
-
-          {!parsedResult ? (
-            <>
-              {/* Example Prompts */}
-              <div className="flex flex-col gap-1.5">
-                <p className="text-white/30 text-[10px] uppercase tracking-wider font-[Geist_Mono,monospace]">
-                  Example prompts
-                </p>
-                {EXAMPLE_PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt}
-                    type="button"
-                    onClick={() => handleExamplePrompt(prompt)}
-                    className="text-left px-3 py-2 rounded-lg bg-white/[0.04] hover:bg-white/[0.08]
-                      border border-white/10 hover:border-white/20
-                      text-white/50 hover:text-white/80 text-xs font-[Geist,sans-serif]
-                      transition-all duration-150 flex items-start gap-2"
-                  >
-                    <ChevronRight className="w-3 h-3 flex-shrink-0 text-[#818CF8] mt-0.5" />
-                    <span>{prompt}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Textarea */}
-              <div className="flex flex-col gap-2 flex-1">
-                <p className="text-white/40 text-xs font-[Geist,sans-serif]">
-                  Or write your own:
-                </p>
-                <textarea
-                  ref={textareaRef}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                      void handleParseVibe()
-                    }
-                  }}
-                  placeholder="Describe your ideal photo selection style..."
-                  rows={4}
-                  className="w-full flex-1 px-3 py-2.5 rounded-xl bg-white/[0.06] border border-white/15
-                    focus:border-[#5749F4]/50 focus:ring-1 focus:ring-[#5749F4]/20
-                    text-white text-sm font-[Geist,sans-serif] placeholder-white/25
-                    outline-none resize-none transition-all"
-                />
-                <p className="text-white/20 text-[10px] font-[Geist,sans-serif]">
-                  ⌘ + Enter to extract
-                </p>
-                <button
-                  type="button"
-                  onClick={() => void handleParseVibe()}
-                  disabled={!description.trim() || isProcessing}
-                  className="w-full h-9 rounded-xl flex items-center justify-center gap-2
-                    bg-[#5749F4] hover:bg-[#4f46e5]
-                    disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed
-                    text-white text-sm font-medium font-[Geist,sans-serif]
-                    transition-all duration-150"
-                >
-                  {isProcessing ? (
-                    <>
-                      <svg
-                        className="animate-spin w-3.5 h-3.5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        aria-hidden="true"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                        />
-                      </svg>
-                      Analyzing style...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-3.5 h-3.5" />
-                      Extract Style Parameters
-                    </>
-                  )}
-                </button>
-              </div>
-            </>
-          ) : (
-            <StyleParamsPreview
-              params={parsedResult.styleParams}
-              presetName={presetName}
-              onNameChange={setPresetName}
-              onSave={() => void handleSavePreset()}
-              onDiscard={handleDiscard}
-            />
-          )}
-        </GlassCard>
+        <CoachLauncher onStart={() => setChatOpen(true)} />
       </div>
+
+      {/* ── Coach Chat Overlay ── */}
+      <VibeChat
+        open={chatOpen}
+        projectId={projectId}
+        builtInPresets={skipOptions}
+        onClose={() => setChatOpen(false)}
+        onFinalize={(event) => void handleChatFinalize(event)}
+      />
 
       {/* ── Apply Confirmation Modal ── */}
       {applyingPreset !== null && (
