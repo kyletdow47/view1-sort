@@ -73,3 +73,8 @@ None
 
 ## Operator Notes
 None
+
+## Completed Builds
+| Timestamp (UTC) | Task | Branch | PR | Files |
+|---|---|---|---|---|
+| 2026-04-17T10:30:00Z | D1.2 SUPABASE_SERVICE_ROLE_KEY leak scan | feat/dev-agent/D1.2-service-role-key-scan | https://github.com/kyletdow47/view1-sort/pull/62 | 13 |
