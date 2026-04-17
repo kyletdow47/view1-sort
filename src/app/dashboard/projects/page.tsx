@@ -421,7 +421,7 @@ function NewProjectModal({ open, onClose, onCreated, workspaceId }: NewProjectMo
             <Button type="button" variant="secondary" size="sm" onClick={handleClose}>
               Cancel
             </Button>
-            <Button type="submit" size="sm" loading={loading} disabled={!aiPrompt.trim()}>
+            <Button type="submit" variant="cta" size="sm" loading={loading} disabled={!aiPrompt.trim()}>
               <Sparkles className="w-3.5 h-3.5" />
               Create with AI
             </Button>
@@ -469,7 +469,7 @@ function NewProjectModal({ open, onClose, onCreated, workspaceId }: NewProjectMo
             <Button type="button" variant="secondary" size="sm" onClick={handleClose}>
               Cancel
             </Button>
-            <Button type="submit" size="sm" loading={loading} disabled={!name.trim()}>
+            <Button type="submit" variant="cta" size="sm" loading={loading} disabled={!name.trim()}>
               Create Project
             </Button>
           </div>
