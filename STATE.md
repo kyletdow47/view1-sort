@@ -40,6 +40,12 @@ Current mode: standby — run coordinator to begin
 - [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
 - [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
 - [x] Notification bell/panel state race — useNotifications recreated its Supabase client every render, re-firing the fetch effect and transiently clearing `notifications` while the panel was open. Memoized with useMemo + added 5 regression tests. PR #49 (branch feat/dev-agent/notification-badge-empty-panel, Asana 1213998715323386).
+- [x] Content Hub Schedule/Post CTAs — split CreatePostPanel into a scrollable region + sticky `shrink-0` footer so CTAs stay pinned at the bottom of the right column on desktop; switched the 3-column area to per-column scroll on desktop and page scroll on mobile, so Top Posts also scrolls inside its column. PR #60 (branch feat/dev-agent/1213998758308882-content-hub-scroll, Asana 1213998758308882). Files: 2 (1 modified + 1 new test).
+
+## Completed Builds
+| When (UTC)            | Task GID              | Branch                                                            | PR                                                             | Files |
+| --------------------- | --------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------- | ----- |
+| 2026-04-17T09:55:00Z  | 1213998758308882      | feat/dev-agent/1213998758308882-content-hub-scroll                | https://github.com/kyletdow47/view1-sort/pull/60               | 2     |
 
 ## Session Budget
 Window:             Manual session (2026-04-02)
