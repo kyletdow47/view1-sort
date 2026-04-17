@@ -40,13 +40,14 @@ Current mode: standby — run coordinator to begin
 - [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
 - [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
 - [x] Notification bell/panel state race — useNotifications recreated its Supabase client every render, re-firing the fetch effect and transiently clearing `notifications` while the panel was open. Memoized with useMemo + added 5 regression tests. PR #49 (branch feat/dev-agent/notification-badge-empty-panel, Asana 1213998715323386).
+- [x] Analytics Leads tab — Conversion Funnel chart rendered empty. ResponsiveContainer parent had no `min-w-0`, so grid-sibling intrinsic widths collapsed it to ~22px; missing FunnelChart margin also clipped right-side stage labels. Wrapped in `min-w-0` + 240px-height container, added chart margin, disabled animation, centered value labels, plus 6 Vitest regression tests. PR #53 (branch feat/dev-agent/analytics-funnel-empty, Asana 1213998660753302). 2026-04-17T00:00Z.
 
 ## Session Budget
 Window:             Manual session (2026-04-02)
 Started:            now
 Resets:             —
 Auto-resume:        —
-Tasks done:         16
+Tasks done:         17
 Avg tokens/task:    — (update every 3 tasks)
 % window remaining: 100%
 Tasks fit:          3 fix tasks
