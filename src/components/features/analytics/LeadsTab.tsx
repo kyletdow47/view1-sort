@@ -118,21 +118,29 @@ export function LeadsTab({ dateRange }: LeadsTabProps) {
         {/* Funnel chart */}
         <GlassCard className="col-span-5 flex flex-col gap-3">
           <span className="text-[13px] font-semibold text-white">Conversion Funnel</span>
-          <div style={{ height: '240px' }}>
+          <div className="min-w-0" style={{ height: '240px' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <FunnelChart>
+              <FunnelChart margin={{ top: 8, right: 96, bottom: 8, left: 8 }}>
                 <Tooltip content={<FunnelTooltip />} />
                 <Funnel
                   dataKey="value"
                   data={FUNNEL_STEPS.map((s) => ({ ...s, fill: s.color, name: s.label }))}
-                  isAnimationActive
+                  isAnimationActive={false}
+                  stroke="rgba(255,255,255,0.25)"
                 >
                   <LabelList
                     position="right"
-                    fill="rgba(255,255,255,0.60)"
+                    fill="rgba(255,255,255,0.75)"
                     stroke="none"
                     dataKey="label"
                     style={{ fontSize: '11px' }}
+                  />
+                  <LabelList
+                    position="center"
+                    fill="rgba(255,255,255,0.95)"
+                    stroke="none"
+                    dataKey="value"
+                    style={{ fontSize: '11px', fontWeight: 600 }}
                   />
                 </Funnel>
               </FunnelChart>
