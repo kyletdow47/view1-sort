@@ -94,9 +94,9 @@ export function GalleryTab({ dateRange }: GalleryTabProps) {
   void dateRange
 
   return (
-    <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
       {/* Stat cards */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid shrink-0 grid-cols-4 gap-3">
         {GALLERY_STATS.map((s) => (
           <GlassCard key={s.label} className="flex flex-col gap-2 p-4">
             <span className="text-[11px] text-white/50">{s.label}</span>
@@ -109,7 +109,7 @@ export function GalleryTab({ dateRange }: GalleryTabProps) {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid shrink-0 grid-cols-12 gap-4">
         {/* Daily views bar chart */}
         <GlassCard className="col-span-8 flex flex-col gap-3 p-5">
           <span className="text-[13px] font-semibold text-white">Daily Gallery Views</span>
@@ -172,14 +172,15 @@ export function GalleryTab({ dateRange }: GalleryTabProps) {
       </div>
 
       {/* Top galleries table */}
-      <GlassCard className="p-5">
-        <div className="mb-4 flex items-center justify-between">
+      <GlassCard className="flex min-h-0 flex-1 flex-col overflow-hidden p-5">
+        <div className="mb-4 flex shrink-0 items-center justify-between">
           <span className="text-[13px] font-semibold text-white">Top Galleries by Engagement</span>
           <button className="text-[11px] text-white/40 transition-colors hover:text-white/70">
             View all
           </button>
         </div>
-        <table className="w-full">
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <table className="w-full">
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
               {['Gallery', 'Views', 'Selections', 'Downloads', 'Favorites'].map((col) => (
@@ -204,6 +205,7 @@ export function GalleryTab({ dateRange }: GalleryTabProps) {
             ))}
           </tbody>
         </table>
+        </div>
       </GlassCard>
     </div>
   )
