@@ -47,7 +47,18 @@ const DEMO_GALLERY: Gallery = {
 // Mock media — 16 photos across 4 categories
 // ---------------------------------------------------------------------------
 
-const DEMO_MEDIA: Media[] = [
+type DemoMediaBase = Omit<
+  Media,
+  | 'is_blurry'
+  | 'is_duplicate'
+  | 'is_overexposed'
+  | 'is_underexposed'
+  | 'culling_confidence'
+  | 'is_starred'
+  | 'review_flag'
+>
+
+const DEMO_MEDIA_BASE: DemoMediaBase[] = [
   // ── Ceremony ──────────────────────────────────────────────────────────────
   {
     id: 'demo-c1',
@@ -376,6 +387,17 @@ const DEMO_MEDIA: Media[] = [
     created_at: '2026-06-15T12:45:00Z',
   },
 ]
+
+const DEMO_MEDIA: Media[] = DEMO_MEDIA_BASE.map((m) => ({
+  ...m,
+  is_blurry: null,
+  is_duplicate: null,
+  is_overexposed: null,
+  is_underexposed: null,
+  culling_confidence: null,
+  is_starred: null,
+  review_flag: null,
+}))
 
 // ---------------------------------------------------------------------------
 // Page
