@@ -8,7 +8,7 @@ export default async function ProfileSettingsPage() {
   let initialWorkspaceId: string | null = null
 
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()
