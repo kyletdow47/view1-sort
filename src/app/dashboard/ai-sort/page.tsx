@@ -1216,7 +1216,7 @@ function PreferencesTab({
   ]
 
   return (
-    <div className="flex-1 overflow-auto px-10 py-6">
+    <div className="min-h-0 flex-1 overflow-y-auto px-10 py-6">
       <div className="mx-auto max-w-2xl space-y-6">
 
         {/* Photography Type */}
