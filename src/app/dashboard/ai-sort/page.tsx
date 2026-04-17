@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   Camera,
   CheckCircle2,
@@ -15,10 +16,14 @@ import {
   ImageIcon,
   Zap,
   Upload,
+  FolderPlus,
+  Images,
 } from 'lucide-react'
 import { analyzeFile, type CullResult } from '@/lib/ai/culling'
 import { BUILT_IN_PRESETS, getPreset, getAllLabels, getCategoryForLabel as getPresetCategoryForLabel } from '@/lib/ai/presets'
 import type { WorkerResponse } from '@/lib/ai/worker'
+import { saveSortToProject, type SaveSortFile } from '@/lib/local-media/save-sort'
+import { useVibeChat } from '@/hooks/useVibeChat'
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
@@ -32,6 +37,10 @@ interface SortableFile {
   category?: string
   score?: number
   keep: boolean
+  /** True when Claude Vision (Brain 2) refined the CLIP classification. */
+  escalated?: boolean
+  /** Claude's one-sentence description when escalated. */
+  description?: string
 }
 
 interface SortCategories {
@@ -727,22 +736,157 @@ function CullPhase({
   )
 }
 
+/* ─── Context Phase ─────────────────────────────────────────────────────── */
+
+function ContextPhase({
+  fileCount,
+  onContinue,
+  onSkip,
+}: {
+  fileCount: number
+  onContinue: (hints: string[]) => void
+  onSkip: () => void
+}) {
+  const { messages, isThinking, send, draft } = useVibeChat({
+    greeting: `You've got ${fileCount} photos ready to sort. Any vibe keywords, client notes, or things to watch for?`,
+  })
+  const [input, setInput] = useState('')
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: 'smooth',
+    })
+  }, [messages.length, isThinking])
+
+  const userHints = messages.filter((m) => m.role === 'user').map((m) => m.text)
+
+  const handleSend = () => {
+    if (!input.trim() || isThinking) return
+    void send(input)
+    setInput('')
+  }
+
+  return (
+    <div className="flex flex-1 flex-col gap-4 px-10 py-6">
+      <div className="text-center">
+        <h2 className="text-xl font-bold text-white">Shoot context</h2>
+        <p className="mt-1 text-sm text-white/60">
+          Give the AI a sentence or two so it knows what matters for this
+          shoot. Skip if you want a straight-up sort.
+        </p>
+      </div>
+
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+        <div
+          ref={scrollRef}
+          className="min-h-0 flex-1 space-y-3 overflow-y-auto p-5"
+        >
+          {messages.map((m) => (
+            <div
+              key={m.id}
+              className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm ${
+                  m.role === 'user'
+                    ? 'bg-violet-500/20 text-white'
+                    : 'bg-white/[0.06] text-white/90'
+                }`}
+              >
+                <p className="whitespace-pre-wrap">{m.text}</p>
+                {m.draft && (
+                  <p className="mt-1 text-[11px] text-violet-200">
+                    Style: {m.draft.styleParams.mood} · {m.draft.styleParams.lighting} · {m.draft.styleParams.colorTemp}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+          {isThinking && (
+            <div className="flex items-center gap-2 text-sm text-white/60">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Reading context…
+            </div>
+          )}
+        </div>
+
+        <div className="border-t border-white/10 bg-white/[0.02] p-4">
+          <div className="flex items-end gap-2">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  handleSend()
+                }
+              }}
+              rows={2}
+              placeholder="e.g. Outdoor wedding, golden-hour portraits, emphasize the bride's bouquet."
+              className="flex-1 resize-none rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-violet-400/40 focus:outline-none"
+              disabled={isThinking}
+            />
+            <button
+              onClick={handleSend}
+              disabled={!input.trim() || isThinking}
+              className="flex h-10 items-center gap-1.5 rounded-xl bg-white/10 px-4 text-sm font-semibold text-white disabled:opacity-40"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto flex w-full max-w-2xl flex-wrap items-center justify-between gap-3">
+        <button
+          onClick={onSkip}
+          className="text-sm text-white/60 underline-offset-4 hover:text-white/90 hover:underline"
+        >
+          Skip — sort without context
+        </button>
+        <button
+          onClick={() => onContinue(userHints)}
+          disabled={userHints.length === 0 && !draft}
+          className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+          style={{
+            background:
+              'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)',
+          }}
+        >
+          <Zap className="h-4 w-4" />
+          Start sorting with context
+        </button>
+      </div>
+    </div>
+  )
+}
+
 /* ─── Sort Phase (restyled) ─────────────────────────────────────────────── */
 
 function SortPhase({
   files,
   presetId,
   onDone,
+  escalateBelow = 0.22,
+  userHints = [],
 }: {
   files: SortableFile[]
   presetId: string
   onDone: (sorted: SortableFile[]) => void
+  /** CLIP confidence below this triggers Claude Vision (Brain 2) escalation. */
+  escalateBelow?: number
+  /** Free-form photographer notes from the context phase — used as a hint
+   *  on Brain-2 vision escalation prompts. */
+  userHints?: string[]
 }) {
   const [progress, setProgress] = useState(0)
   const [stage, setStage] = useState<'loading' | 'classifying' | 'done' | 'error'>('loading')
   const [modelProgress, setModelProgress] = useState(0)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
+  const [escalationCount, setEscalationCount] = useState(0)
   const workerRef = useRef<Worker | null>(null)
   const hasDoneRef = useRef(false)
 
@@ -764,7 +908,45 @@ function SortPhase({
 
     hasDoneRef.current = false
     const results = new Map<string, string>()
+    const escalated = new Map<string, { category: string; description?: string }>()
     let classified = 0
+
+    const escalateToVision = async (
+      item: SortableFile,
+      clipCategory: string,
+    ): Promise<void> => {
+      try {
+        const dataUrl = await readAsDataURL(item.file)
+        const categoriesList = activePreset?.categories.map((c) => c.name) ?? []
+        const res = await fetch('/api/ai/vision-classify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            photoUrl: dataUrl,
+            preset: presetId,
+            categories: categoriesList,
+            userHints: userHints.length > 0 ? userHints : undefined,
+          }),
+        })
+        if (!res.ok) return
+        const data = (await res.json()) as {
+          category: string
+          confidence: number
+          description?: string
+          source: string
+        }
+        if (data.source === 'degraded' || !data.category) return
+        results.set(item.id, data.category)
+        escalated.set(item.id, {
+          category: data.category,
+          description: data.description,
+        })
+        setEscalationCount((n) => n + 1)
+      } catch {
+        // Silent failure — keep the CLIP category
+        void clipCategory
+      }
+    }
 
     let worker: Worker
     try {
@@ -832,6 +1014,8 @@ function SortPhase({
       }
       if (msg.type === 'result') {
         const top = msg.results[0]
+        let needsEscalation = false
+        let clipCategory = ''
         if (top) {
           // top.label is now one of the preset's own label strings, so
           // getPresetCategoryForLabel will correctly map it to a category name.
@@ -841,24 +1025,49 @@ function SortPhase({
             if (mapped) category = mapped
           }
           results.set(msg.photoId, category)
+          clipCategory = category
+          if (escalateBelow > 0 && top.score < escalateBelow) {
+            needsEscalation = true
+          }
         }
-        classified++
-        setProgress(Math.round((classified / kept.length) * 100))
-        if (classified >= kept.length && !hasDoneRef.current) {
-          hasDoneRef.current = true
-          setStage('done')
-          const updated = files.map((f) => ({ ...f, category: results.get(f.id) ?? f.category }))
-          setTimeout(() => onDone(updated), 800)
+
+        const item = kept.find((f) => f.id === msg.photoId)
+        if (needsEscalation && item) {
+          void escalateToVision(item, clipCategory).finally(() => {
+            classified++
+            setProgress(Math.round((classified / kept.length) * 100))
+            maybeFinish()
+          })
+        } else {
+          classified++
+          setProgress(Math.round((classified / kept.length) * 100))
+          maybeFinish()
         }
       }
       if (msg.type === 'error') {
         classified++
         setProgress(Math.round((classified / kept.length) * 100))
-        if (classified >= kept.length && !hasDoneRef.current) {
-          hasDoneRef.current = true
-          setStage('done')
-          setTimeout(() => onDone(files.map((f) => ({ ...f, category: results.get(f.id) ?? 'Uncategorized' }))), 800)
-        }
+        maybeFinish()
+      }
+    }
+
+    function maybeFinish() {
+      if (classified >= kept.length && !hasDoneRef.current) {
+        hasDoneRef.current = true
+        setStage('done')
+        const updated = files.map((f) => {
+          const next: SortableFile = {
+            ...f,
+            category: results.get(f.id) ?? f.category ?? 'Uncategorized',
+          }
+          const esc = escalated.get(f.id)
+          if (esc) {
+            next.escalated = true
+            next.description = esc.description
+          }
+          return next
+        })
+        setTimeout(() => onDone(updated), 800)
       }
     }
 
@@ -952,6 +1161,13 @@ function SortPhase({
       <p className="max-w-xs text-center text-[10px] text-white/30">
         Running entirely in your browser — no photos leave your device.
       </p>
+
+      {escalationCount > 0 && (
+        <p className="flex items-center gap-1.5 text-[11px] text-violet-300/80">
+          <Sparkles className="h-3 w-3" />
+          {escalationCount} {escalationCount === 1 ? 'photo' : 'photos'} refined with Claude Vision
+        </p>
+      )}
     </div>
   )
 }
@@ -1007,9 +1223,16 @@ function PhotoThumbnail({
 
 /* ─── Results Phase ─────────────────────────────────────────────────────── */
 
+type SaveMode = 'project' | 'gallery'
+
 function ResultsPhase({ files, onReSort }: { files: SortableFile[]; onReSort: () => void }) {
   const [expandedCat, setExpandedCat] = useState<string | null>(null)
   const [lightbox, setLightbox] = useState<SortableFile | null>(null)
+  const [saveMode, setSaveMode] = useState<SaveMode | null>(null)
+  const [projectName, setProjectName] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const router = useRouter()
 
   const sorted = files.filter((f) => f.keep && f.category)
   const byCategory = sorted.reduce<Record<string, SortableFile[]>>((acc, f) => {
@@ -1032,10 +1255,43 @@ function ResultsPhase({ files, onReSort }: { files: SortableFile[]; onReSort: ()
     })
   }
 
+  const openSaveModal = (mode: SaveMode) => {
+    setSaveMode(mode)
+    setProjectName('')
+    setSaveError(null)
+  }
+
+  const handleSave = async () => {
+    if (!saveMode) return
+    if (!projectName.trim()) {
+      setSaveError('Give this project a name')
+      return
+    }
+    setSaving(true)
+    setSaveError(null)
+    try {
+      const saveFiles: SaveSortFile[] = sorted.map((f) => ({
+        file: f.file,
+        category: f.category ?? null,
+        score: f.score,
+      }))
+      const { project } = await saveSortToProject(projectName, saveFiles)
+      const destination =
+        saveMode === 'gallery'
+          ? `/dashboard/project/${project.id}/gallery-builder`
+          : `/dashboard/project/${project.id}`
+      router.push(destination)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not save sort'
+      setSaveError(message)
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="flex-1 space-y-6 overflow-auto px-10 py-6">
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-3 text-2xl font-bold text-white">
             <CheckCircle2 className="h-7 w-7 text-emerald-300" />
@@ -1046,12 +1302,36 @@ function ResultsPhase({ files, onReSort }: { files: SortableFile[]; onReSort: ()
             {rejected.length > 0 && `, ${rejected.length} rejected`}
           </p>
         </div>
-        <button
-          onClick={onReSort}
-          className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/80 hover:bg-white/15 transition-colors"
-        >
-          Re-sort
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => openSaveModal('project')}
+            disabled={sorted.length === 0}
+            className="flex items-center gap-2 rounded-xl bg-white/10 px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <FolderPlus className="h-4 w-4" />
+            Save to New Project
+          </button>
+          <button
+            onClick={() => openSaveModal('gallery')}
+            disabled={sorted.length === 0}
+            className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              background:
+                sorted.length === 0
+                  ? 'rgba(255,255,255,0.06)'
+                  : 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)',
+            }}
+          >
+            <Images className="h-4 w-4" />
+            Create Gallery
+          </button>
+          <button
+            onClick={onReSort}
+            className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/[0.04] px-5 py-2.5 text-sm font-semibold text-white/80 hover:bg-white/10 transition-colors"
+          >
+            Re-sort
+          </button>
+        </div>
       </div>
 
       {/* Category grid */}
@@ -1112,6 +1392,14 @@ function ResultsPhase({ files, onReSort }: { files: SortableFile[]; onReSort: ()
                         alt={item.file.name}
                         className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
                       />
+                      {item.escalated && (
+                        <div
+                          title="Refined with Claude Vision"
+                          className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-violet-500/90 text-white shadow-md"
+                        >
+                          <Sparkles className="h-3 w-3" />
+                        </div>
+                      )}
                       <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/60 to-transparent p-1 opacity-0 transition-opacity group-hover:opacity-100">
                         <p className="truncate text-[8px] text-white/70">{item.file.name}</p>
                       </div>
@@ -1143,6 +1431,73 @@ function ResultsPhase({ files, onReSort }: { files: SortableFile[]; onReSort: ()
             >
               ✕
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Save-to-project modal */}
+      {saveMode && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6"
+          onClick={() => !saving && setSaveMode(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-white/10 bg-zinc-950 p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="mb-1 text-lg font-semibold text-white">
+              {saveMode === 'gallery' ? 'Create Gallery' : 'Save to New Project'}
+            </h3>
+            <p className="mb-4 text-sm text-white/60">
+              {sorted.length} photos will be saved to your device (no cloud storage used yet).
+            </p>
+            <label className="mb-2 block text-[12px] font-medium uppercase tracking-wide text-white/50">
+              Project name
+            </label>
+            <input
+              type="text"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !saving) handleSave()
+              }}
+              autoFocus
+              disabled={saving}
+              placeholder="Johnson Wedding"
+              className="w-full rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2.5 text-sm text-white placeholder:text-white/30 focus:border-violet-400/40 focus:outline-none"
+            />
+            {saveError && (
+              <p className="mt-2 text-[12px] text-rose-300">{saveError}</p>
+            )}
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => setSaveMode(null)}
+                disabled={saving}
+                className="rounded-xl border border-white/15 bg-white/[0.04] px-4 py-2 text-sm text-white/70 hover:bg-white/10 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                style={{
+                  background:
+                    'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)',
+                }}
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving…
+                  </>
+                ) : saveMode === 'gallery' ? (
+                  'Create Gallery'
+                ) : (
+                  'Save Project'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1400,6 +1755,7 @@ export default function AISortPage() {
     blurry: true, shaky: false, duplicates: true, eyesClosed: true, lensFlare: false, group: false, others: true,
   })
   const [vibeKeywords, setVibeKeywords] = useState<string[]>([])
+  const [contextHints, setContextHints] = useState<string[]>([])
 
   const handleAddFiles = useCallback((raw: File[]) => {
     const sortable: SortableFile[] = raw.map((f) => ({ file: f, id: uid(), keep: true }))
@@ -1420,6 +1776,16 @@ export default function AISortPage() {
 
   const handleCullDone = useCallback((updated: SortableFile[]) => {
     setFiles(updated)
+    setPhase('context')
+  }, [])
+
+  const handleContextDone = useCallback((hints: string[]) => {
+    setContextHints(hints)
+    setPhase('sort')
+  }, [])
+
+  const handleContextSkip = useCallback(() => {
+    setContextHints([])
     setPhase('sort')
   }, [])
 
@@ -1438,6 +1804,7 @@ export default function AISortPage() {
   const stepperStage: StepperStage =
     phase === 'upload' ? 'idle'
     : phase === 'cull' ? 'uploading'
+    : phase === 'context' ? 'uploading'
     : phase === 'sort' ? 'analyzing'
     : 'sorted'
 
@@ -1535,8 +1902,21 @@ export default function AISortPage() {
         <CullPhase files={files} onContinue={handleCullDone} />
       )}
 
+      {activeTab === 'upload' && phase === 'context' && (
+        <ContextPhase
+          fileCount={files.filter((f) => f.keep).length}
+          onContinue={handleContextDone}
+          onSkip={handleContextSkip}
+        />
+      )}
+
       {activeTab === 'upload' && phase === 'sort' && (
-        <SortPhase files={files} presetId={presetId} onDone={handleSortDone} />
+        <SortPhase
+          files={files}
+          presetId={presetId}
+          userHints={contextHints}
+          onDone={handleSortDone}
+        />
       )}
 
       {activeTab === 'upload' && phase === 'results' && (
