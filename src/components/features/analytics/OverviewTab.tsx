@@ -123,9 +123,9 @@ export function OverviewTab({ dateRange }: OverviewTabProps) {
   void dateRange
 
   return (
-    <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
       {/* KPI row */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid shrink-0 grid-cols-4 gap-3">
         {KPI_DATA.map((kpi) => {
           const Icon = kpi.icon
           return (
@@ -152,7 +152,7 @@ export function OverviewTab({ dateRange }: OverviewTabProps) {
       </div>
 
       {/* Middle row: AI Insights + Chart */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid shrink-0 grid-cols-12 gap-4">
         {/* AI Insights */}
         <GlassCard className="col-span-4 flex flex-col gap-3 overflow-hidden p-4">
           <div className="flex shrink-0 items-center justify-between">
@@ -246,14 +246,15 @@ export function OverviewTab({ dateRange }: OverviewTabProps) {
       </div>
 
       {/* Bottom row: Gallery Performance */}
-      <GlassCard className="p-5">
-        <div className="mb-4 flex items-center justify-between">
+      <GlassCard className="flex min-h-0 flex-1 flex-col overflow-hidden p-5">
+        <div className="mb-4 flex shrink-0 items-center justify-between">
           <span className="text-[13px] font-semibold text-white">Gallery Performance</span>
           <button className="text-[11px] text-white/40 transition-colors hover:text-white/70">
             View all
           </button>
         </div>
-        <table className="w-full">
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <table className="w-full">
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
               {['Project', 'Views', 'Selections', 'Status'].map((col) => (
@@ -297,6 +298,7 @@ export function OverviewTab({ dateRange }: OverviewTabProps) {
             ))}
           </tbody>
         </table>
+        </div>
       </GlassCard>
     </div>
   )

@@ -133,9 +133,9 @@ export function RevenueTab({ dateRange }: RevenueTabProps) {
   void showInvoiceCreator
 
   return (
-    <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
       {/* KPI row */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid shrink-0 grid-cols-4 gap-3">
         {FINANCE_KPIS.map((kpi) => (
           <GlassCard key={kpi.label}>
             <span className="text-[11px] text-white/50">{kpi.label}</span>
@@ -157,7 +157,7 @@ export function RevenueTab({ dateRange }: RevenueTabProps) {
       </div>
 
       {/* Revenue breakdown chart */}
-      <GlassCard>
+      <GlassCard className="shrink-0">
         <div className="mb-3 flex items-center justify-between">
           <span className="text-[13px] font-semibold text-white">Revenue by Source</span>
           <span className="text-[11px] text-white/40">Last 6 months</span>
@@ -190,11 +190,11 @@ export function RevenueTab({ dateRange }: RevenueTabProps) {
       </GlassCard>
 
       {/* Invoices + Payouts */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid min-h-0 flex-1 grid-cols-12 gap-4">
         {/* Invoices table */}
-        <GlassCard className="col-span-8" noPad>
+        <GlassCard className="col-span-8 flex min-h-0 flex-col overflow-hidden" noPad>
           <div
-            className="flex items-center justify-between px-5 py-4"
+            className="flex shrink-0 items-center justify-between px-5 py-4"
             style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}
           >
             <span className="text-[13px] font-semibold text-white">Invoices</span>
@@ -213,6 +213,7 @@ export function RevenueTab({ dateRange }: RevenueTabProps) {
               </button>
             </div>
           </div>
+          <div className="min-h-0 flex-1 overflow-y-auto">
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -277,13 +278,14 @@ export function RevenueTab({ dateRange }: RevenueTabProps) {
               })}
             </tbody>
           </table>
+          </div>
         </GlassCard>
 
         {/* Payouts panel */}
-        <GlassCard className="col-span-4 flex flex-col gap-4">
-          <span className="text-[13px] font-semibold text-white">Stripe Payouts</span>
+        <GlassCard className="col-span-4 flex min-h-0 flex-col gap-4 overflow-hidden">
+          <span className="shrink-0 text-[13px] font-semibold text-white">Stripe Payouts</span>
           {/* TODO(stripe-connect): replace with real payout data from /api/analytics/payouts */}
-          <div className="flex flex-col gap-2">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
             {PAYOUTS.map((p) => (
               <div
                 key={p.date}
@@ -308,7 +310,7 @@ export function RevenueTab({ dateRange }: RevenueTabProps) {
             ))}
           </div>
           <div
-            className="mt-auto pt-3"
+            className="shrink-0 pt-3"
             style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}
           >
             <p className="text-[11px] text-white/35">
