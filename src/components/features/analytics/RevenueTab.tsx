@@ -162,9 +162,9 @@ export function RevenueTab({ dateRange }: RevenueTabProps) {
           <span className="text-[13px] font-semibold text-white">Revenue by Source</span>
           <span className="text-[11px] text-white/40">Last 6 months</span>
         </div>
-        <div style={{ height: '180px' }}>
+        <div style={{ height: '220px' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={REVENUE_BY_MONTH} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+            <BarChart data={REVENUE_BY_MONTH} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis
                 dataKey="month"
@@ -178,12 +178,27 @@ export function RevenueTab({ dateRange }: RevenueTabProps) {
                 tickLine={false}
                 tickFormatter={(v: number) => `$${v / 1000}k`}
               />
-              <Tooltip content={<RevenueTooltip />} />
+              <Tooltip content={<RevenueTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+              <Bar
+                dataKey="bookings"
+                name="Bookings"
+                fill="#6366F1"
+                fillOpacity={0.85}
+                stackId="a"
+                isAnimationActive={false}
+              />
+              <Bar
+                dataKey="gallery"
+                name="Gallery"
+                fill="#34D399"
+                fillOpacity={0.85}
+                stackId="a"
+                radius={[4, 4, 0, 0]}
+                isAnimationActive={false}
+              />
               <Legend
                 wrapperStyle={{ fontSize: '11px', color: 'rgba(255,255,255,0.50)' }}
               />
-              <Bar dataKey="bookings" name="Bookings" fill="#6366F1" radius={[4, 4, 0, 0]} fillOpacity={0.85} stackId="a" />
-              <Bar dataKey="gallery" name="Gallery" fill="#34D399" radius={[4, 4, 0, 0]} fillOpacity={0.85} stackId="a" />
             </BarChart>
           </ResponsiveContainer>
         </div>
