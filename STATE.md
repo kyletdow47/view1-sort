@@ -40,6 +40,7 @@ Current mode: standby — run coordinator to begin
 - [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
 - [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
 - [x] Notification bell/panel state race — useNotifications recreated its Supabase client every render, re-firing the fetch effect and transiently clearing `notifications` while the panel was open. Memoized with useMemo + added 5 regression tests. PR #49 (branch feat/dev-agent/notification-badge-empty-panel, Asana 1213998715323386).
+- [x] Clients list view not scrollable — ClientsListView root was `flex-1 overflow-auto` but missing `min-h-0`, so it grew to fit content and bottom rows clipped under the viewport. Swapped to `flex min-h-0 flex-1 flex-col overflow-y-auto` + 4 regression tests. PR #54 (branch feat/dev-agent/clients-list-table-scroll, Asana 1213998758246017).
 
 ## Session Budget
 Window:             Manual session (2026-04-02)
