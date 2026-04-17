@@ -1,4 +1,10 @@
 import withPWAInit from '@ducanh2912/next-pwa'
+import bundleAnalyzer from '@next/bundle-analyzer'
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+  openAnalyzer: false,
+})
 
 const withPWA = withPWAInit({
   dest: 'public',
@@ -13,9 +19,21 @@ const withPWA = withPWAInit({
   },
 })
 
+const isAnalyze = process.env.ANALYZE === 'true'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   turbopack: {},
+
+  // Only for `npm run analyze`: allow the build to complete even if pre-existing
+  // TypeScript or lint errors remain, so the bundle report can still be captured.
+  // Production builds keep the default (fail on type errors).
+  typescript: {
+    ignoreBuildErrors: isAnalyze,
+  },
+  eslint: {
+    ignoreDuringBuilds: isAnalyze,
+  },
 
   // Prevent Next.js from trying to bundle native Node modules used by
   // @xenova/transformers (onnxruntime-node, sharp). The CLIP model runs
@@ -54,4 +72,4 @@ const nextConfig = {
   },
 }
 
-export default withPWA(nextConfig)
+export default withBundleAnalyzer(withPWA(nextConfig))
