@@ -223,76 +223,87 @@ function CreatePostPanel() {
   }
 
   return (
-    <GlassCard className="flex flex-col gap-4 p-4">
-      <span className="text-[13px] font-semibold text-white">Create Post</span>
+    <GlassCard className="flex min-h-0 flex-1 flex-col lg:overflow-hidden">
+      {/* Scrollable content region */}
+      <div className="flex min-h-0 flex-1 flex-col gap-4 p-4 lg:overflow-y-auto">
+        <span className="text-[13px] font-semibold text-white">Create Post</span>
 
-      {/* Photo upload area */}
-      <div
-        className="flex h-28 flex-col items-center justify-center gap-2 rounded-xl transition-colors hover:bg-white/08 cursor-pointer"
-        style={{ border: '1.5px dashed rgba(255,255,255,0.20)' }}
-      >
-        <Image className="h-6 w-6 text-white/30" />
-        <span className="text-[12px] text-white/40">Upload photo or drag here</span>
-      </div>
+        {/* Photo upload area */}
+        <div
+          className="flex h-28 shrink-0 flex-col items-center justify-center gap-2 rounded-xl transition-colors hover:bg-white/08 cursor-pointer"
+          style={{ border: '1.5px dashed rgba(255,255,255,0.20)' }}
+        >
+          <Image className="h-6 w-6 text-white/30" />
+          <span className="text-[12px] text-white/40">Upload photo or drag here</span>
+        </div>
 
-      {/* Caption */}
-      <textarea
-        value={caption}
-        onChange={(e) => setCaption(e.target.value)}
-        placeholder="Write your caption…"
-        rows={3}
-        className="w-full resize-none rounded-xl px-3 py-2.5 text-[13px] text-white/80 outline-none placeholder:text-white/25"
-        style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.10)' }}
-      />
-
-      {/* Platform checkboxes */}
-      <div className="flex flex-col gap-2">
-        <span className="text-[11px] font-medium text-white/50">Publish to</span>
-        {[
-          { label: 'Instagram', color: '#E1306C' },
-          { label: 'Facebook', color: '#1877F2' },
-          { label: 'TikTok', color: '#FFFFFF' },
-        ].map((p) => {
-          const active = selectedPlatforms.has(p.label)
-          return (
-            <button
-              key={p.label}
-              onClick={() => togglePlatform(p.label)}
-              className="flex items-center gap-2.5 rounded-xl px-3 py-2 transition-colors"
-              style={{
-                background: active ? p.color + '18' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${active ? p.color + '40' : 'rgba(255,255,255,0.08)'}`,
-              }}
-            >
-              <span
-                className="flex h-4 w-4 items-center justify-center rounded"
-                style={{
-                  background: active ? p.color : 'transparent',
-                  border: `1.5px solid ${active ? p.color : 'rgba(255,255,255,0.25)'}`,
-                }}
-              >
-                {active && <span className="text-[8px] text-white font-bold">✓</span>}
-              </span>
-              <span className="text-[12px] text-white/75">{p.label}</span>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Date/time */}
-      <div className="flex flex-col gap-1.5">
-        <span className="text-[11px] font-medium text-white/50">Schedule for</span>
-        <input
-          type="datetime-local"
-          value={scheduledDate}
-          onChange={(e) => setScheduledDate(e.target.value)}
-          className="w-full rounded-xl px-3 py-2 text-[12px] text-white/70 outline-none"
+        {/* Caption */}
+        <textarea
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          placeholder="Write your caption…"
+          rows={3}
+          className="w-full shrink-0 resize-none rounded-xl px-3 py-2.5 text-[13px] text-white/80 outline-none placeholder:text-white/25"
           style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.10)' }}
         />
+
+        {/* Platform checkboxes */}
+        <div className="flex shrink-0 flex-col gap-2">
+          <span className="text-[11px] font-medium text-white/50">Publish to</span>
+          {[
+            { label: 'Instagram', color: '#E1306C' },
+            { label: 'Facebook', color: '#1877F2' },
+            { label: 'TikTok', color: '#FFFFFF' },
+          ].map((p) => {
+            const active = selectedPlatforms.has(p.label)
+            return (
+              <button
+                key={p.label}
+                onClick={() => togglePlatform(p.label)}
+                className="flex items-center gap-2.5 rounded-xl px-3 py-2 transition-colors"
+                style={{
+                  background: active ? p.color + '18' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${active ? p.color + '40' : 'rgba(255,255,255,0.08)'}`,
+                }}
+              >
+                <span
+                  className="flex h-4 w-4 items-center justify-center rounded"
+                  style={{
+                    background: active ? p.color : 'transparent',
+                    border: `1.5px solid ${active ? p.color : 'rgba(255,255,255,0.25)'}`,
+                  }}
+                >
+                  {active && <span className="text-[8px] text-white font-bold">✓</span>}
+                </span>
+                <span className="text-[12px] text-white/75">{p.label}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Date/time */}
+        <div className="flex shrink-0 flex-col gap-1.5">
+          <span className="text-[11px] font-medium text-white/50">Schedule for</span>
+          <input
+            type="datetime-local"
+            value={scheduledDate}
+            onChange={(e) => setScheduledDate(e.target.value)}
+            className="w-full rounded-xl px-3 py-2 text-[12px] text-white/70 outline-none"
+            style={{ background: 'rgba(0,0,0,0.20)', border: '1px solid rgba(255,255,255,0.10)' }}
+          />
+        </div>
       </div>
 
-      {/* CTA buttons */}
-      <div className="flex gap-2">
+      {/* Sticky CTA footer — always visible even if the panel scrolls */}
+      <div
+        data-testid="create-post-cta"
+        className="flex shrink-0 gap-2 rounded-b-2xl px-4 py-3"
+        style={{
+          background: 'linear-gradient(180deg, rgba(12,12,18,0.55) 0%, rgba(12,12,18,0.80) 100%)',
+          backdropFilter: 'blur(18px)',
+          borderTop: '1px solid rgba(255,255,255,0.10)',
+        }}
+      >
         <button
           className="flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-[13px] font-semibold text-white transition-opacity hover:opacity-90"
           style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #a855f7 100%)' }}
@@ -389,10 +400,12 @@ export default function ContentHubPage() {
         ))}
       </div>
 
-      {/* Main content: Top Posts + Calendar + Create Post */}
-      <div className="flex flex-col lg:flex-row flex-1 gap-4 overflow-hidden px-6 py-4">
+      {/* Main content: Top Posts + Calendar + Create Post.
+          On mobile the whole area scrolls; on desktop each column has its own internal scroll
+          so the Create Post CTA footer stays pinned at the bottom of the right panel. */}
+      <div className="flex flex-col lg:flex-row flex-1 gap-4 overflow-y-auto lg:overflow-hidden px-6 py-4">
         {/* Left: Top Posts */}
-        <div className="flex w-full lg:w-[340px] shrink-0 flex-col gap-3 overflow-y-auto">
+        <div className="flex w-full lg:w-[340px] shrink-0 lg:min-h-0 flex-col gap-3 lg:overflow-y-auto">
           <span className="shrink-0 text-[13px] font-semibold text-white/80">Top Posts</span>
           {TOP_POSTS.map((post) => (
             <GlassCard key={post.id} className="overflow-hidden">
@@ -428,12 +441,12 @@ export default function ContentHubPage() {
         </div>
 
         {/* Center: Content Calendar */}
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 lg:min-h-0 flex-col lg:overflow-y-auto">
           <ContentCalendar />
         </div>
 
-        {/* Right: Create Post */}
-        <div className="w-full lg:w-[260px] shrink-0 overflow-y-auto">
+        {/* Right: Create Post — grows to column height so its internal sticky footer works. */}
+        <div className="flex w-full lg:w-[260px] shrink-0 lg:min-h-0 flex-col">
           <CreatePostPanel />
         </div>
       </div>
