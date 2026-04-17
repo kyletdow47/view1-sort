@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getWorkspaces } from '@/lib/queries/projects'
 import { BookingScheduleView } from '@/components/features/bookings/BookingScheduleView'
+import { ComingSoonOverlay } from '@/components/common/ComingSoonOverlay'
 import type { Booking } from '@/types/supabase'
 
 export default async function BookingsPage() {
@@ -24,6 +25,11 @@ export default async function BookingsPage() {
   }
 
   return (
-    <BookingScheduleView bookings={bookings} workspaceId={workspace?.id ?? ''} />
+    <ComingSoonOverlay
+      feature="Bookings"
+      description="Shoot scheduling, calendar sync, and booking confirmations are on the way."
+    >
+      <BookingScheduleView bookings={bookings} workspaceId={workspace?.id ?? ''} />
+    </ComingSoonOverlay>
   )
 }

@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Clock,
 } from 'lucide-react'
+import { ComingSoonOverlay } from '@/components/common/ComingSoonOverlay'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                               */
@@ -319,6 +320,10 @@ export default function ContentHubPage() {
   const [activeTab, setActiveTab] = useState<PlatformTab>('All')
 
   return (
+    <ComingSoonOverlay
+      feature="Content Hub"
+      description="Multi-platform social scheduling and engagement tracking are in the pipeline."
+    >
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Header */}
       <div
@@ -438,5 +443,6 @@ export default function ContentHubPage() {
         </div>
       </div>
     </div>
+    </ComingSoonOverlay>
   )
 }

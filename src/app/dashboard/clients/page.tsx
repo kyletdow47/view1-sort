@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { getWorkspaces } from '@/lib/queries/projects'
 import { ClientsPageClient } from '@/components/features/clients/ClientsPageClient'
+import { ComingSoonOverlay } from '@/components/common/ComingSoonOverlay'
 import type { ClientRecord, ClientStage } from '@/types/clients'
 import type { GalleryAccess, GalleryPayment, Project } from '@/types/supabase'
 
@@ -149,5 +150,12 @@ export default async function ClientsPage() {
     totalRevenueCents: c.totalPaidCents,
   }))
 
-  return <ClientsPageClient initialClients={clients} />
+  return (
+    <ComingSoonOverlay
+      feature="Clients"
+      description="The Clients workspace is a preview. A future update will unlock bookings, CRM stages, and revenue tracking."
+    >
+      <ClientsPageClient initialClients={clients} />
+    </ComingSoonOverlay>
+  )
 }

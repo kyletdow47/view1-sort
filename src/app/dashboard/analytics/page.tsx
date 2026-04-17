@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { AnalyticsLayout } from '@/components/features/analytics/AnalyticsLayout'
+import { ComingSoonOverlay } from '@/components/common/ComingSoonOverlay'
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -79,14 +80,19 @@ export default async function AnalyticsPage({ searchParams }: AnalyticsPageProps
   const to = params.to ?? defaults.to
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      {/*
-       * Suspense is required here because AnalyticsLayout calls useSearchParams().
-       * The skeleton is shown instantly while the client bundle hydrates.
-       */}
-      <Suspense fallback={<AnalyticsSkeleton />}>
-        <AnalyticsLayout initialFrom={from} initialTo={to} />
-      </Suspense>
-    </div>
+    <ComingSoonOverlay
+      feature="Analytics"
+      description="Revenue, gallery engagement, and delivery metrics will unlock in a future update."
+    >
+      <div className="flex min-h-0 flex-1 flex-col">
+        {/*
+         * Suspense is required here because AnalyticsLayout calls useSearchParams().
+         * The skeleton is shown instantly while the client bundle hydrates.
+         */}
+        <Suspense fallback={<AnalyticsSkeleton />}>
+          <AnalyticsLayout initialFrom={from} initialTo={to} />
+        </Suspense>
+      </div>
+    </ComingSoonOverlay>
   )
 }
