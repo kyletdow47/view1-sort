@@ -40,6 +40,12 @@ Current mode: standby — run coordinator to begin
 - [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
 - [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
 - [x] Notification bell/panel state race — useNotifications recreated its Supabase client every render, re-firing the fetch effect and transiently clearing `notifications` while the panel was open. Memoized with useMemo + added 5 regression tests. PR #49 (branch feat/dev-agent/notification-badge-empty-panel, Asana 1213998715323386).
+- [x] Clients Kanban Paid column clipping — `overflow-x-auto` flex row was using `px-6`; WebKit/Blink drop padding-right from the scrollable extent, so the final "Paid" column count badge was clipped at the viewport edge when scrolled fully right. Swapped to `pl-6` + aria-hidden trailing `w-6` spacer + `scroll-smooth`; added 4 regression tests. PR #55 (branch feat/dev-agent/1213998660777856-kanban-paid-column, Asana 1213998660777856).
+
+## Completed Builds
+| Timestamp (UTC) | Task ID | Branch | PR | Files changed |
+|---|---|---|---|---|
+| 2026-04-17T09:20 | 1213998660777856 | feat/dev-agent/1213998660777856-kanban-paid-column | [#55](https://github.com/kyletdow47/view1-sort/pull/55) | 2 |
 
 ## Session Budget
 Window:             Manual session (2026-04-02)
