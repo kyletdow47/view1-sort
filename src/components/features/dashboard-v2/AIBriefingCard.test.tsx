@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 // We need to reset the module-level session cache between tests
@@ -8,6 +8,13 @@ let AIBriefingCard: typeof import('./AIBriefingCard').AIBriefingCard
 // Mock fetch globally
 const mockFetch = vi.fn()
 global.fetch = mockFetch
+
+// The card renders a floating trigger button; the greeting, insights, and
+// refresh controls live inside a popover that only mounts after the trigger
+// is clicked. Tests must open the popover before asserting its contents.
+function openPanel() {
+  fireEvent.click(screen.getByTitle('AI Briefing'))
+}
 
 describe('AIBriefingCard', () => {
   beforeEach(async () => {
@@ -25,6 +32,7 @@ describe('AIBriefingCard', () => {
     })
 
     render(<AIBriefingCard userName="Kyle" demoMode />)
+    openPanel()
 
     // Should show a time-appropriate greeting
     const greeting = screen.getByText(/Kyle/)
@@ -35,6 +43,7 @@ describe('AIBriefingCard', () => {
     mockFetch.mockImplementation(() => new Promise(() => {})) // Never resolves
 
     render(<AIBriefingCard userName="Kyle" demoMode />)
+    openPanel()
 
     // Should have animated pulse elements (loading skeleton)
     const pulseElements = document.querySelectorAll('.animate-pulse')
@@ -51,6 +60,7 @@ describe('AIBriefingCard', () => {
     })
 
     render(<AIBriefingCard userName="Kyle" demoMode />)
+    openPanel()
 
     await waitFor(() => {
       expect(screen.getByText(/portfolio grew 12%/)).toBeDefined()
@@ -58,7 +68,7 @@ describe('AIBriefingCard', () => {
     })
   })
 
-  it('shows "Powered by Claude" when source is claude', async () => {
+  it('shows "powered by Claude" when source is claude', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({
@@ -68,6 +78,7 @@ describe('AIBriefingCard', () => {
     })
 
     render(<AIBriefingCard userName="Kyle" demoMode />)
+    openPanel()
 
     await waitFor(() => {
       expect(screen.getByText(/powered by Claude/)).toBeDefined()
@@ -78,6 +89,7 @@ describe('AIBriefingCard', () => {
     mockFetch.mockRejectedValue(new Error('Network error'))
 
     render(<AIBriefingCard userName="Kyle" demoMode />)
+    openPanel()
 
     await waitFor(() => {
       expect(screen.getByText(/AI insights unavailable/)).toBeDefined()
@@ -97,19 +109,21 @@ describe('AIBriefingCard', () => {
     })
 
     render(<AIBriefingCard userName="Kyle" demoMode />)
+    openPanel()
 
     await waitFor(() => {
       expect(screen.getByText(/AI insights unavailable/)).toBeDefined()
     })
   })
 
-  it('has a refresh button', async () => {
+  it('has a refresh button', () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ insights: ['Test insight'], source: 'claude' }),
     })
 
     render(<AIBriefingCard userName="Kyle" demoMode />)
+    openPanel()
 
     const refreshButton = screen.getByTitle('Refresh insights')
     expect(refreshButton).toBeDefined()
@@ -123,6 +137,7 @@ describe('AIBriefingCard', () => {
     })
 
     render(<AIBriefingCard userName="Kyle" demoMode />)
+    openPanel()
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(1)
