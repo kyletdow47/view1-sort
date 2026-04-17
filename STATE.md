@@ -40,6 +40,12 @@ Current mode: standby — run coordinator to begin
 - [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
 - [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
 - [x] Notification bell/panel state race — useNotifications recreated its Supabase client every render, re-firing the fetch effect and transiently clearing `notifications` while the panel was open. Memoized with useMemo + added 5 regression tests. PR #49 (branch feat/dev-agent/notification-badge-empty-panel, Asana 1213998715323386).
+- [x] Gallery hero "Create Gallery" button — migrated bg-indigo-500 to brand bg-cta gradient to match GalleryEmptyState. PR #51 (branch feat/dev-agent/gallery-button-consistency, Asana 1213998502806329). The other three fixes in that task (empty state, tab active style, NOTE removal) already landed in PR #46.
+
+## Completed Builds
+| Timestamp (ISO) | Task ID | Branch | PR | Files changed |
+|---|---|---|---|---|
+| 2026-04-17T06:55Z | 1213998502806329 | feat/dev-agent/gallery-button-consistency | [#51](https://github.com/kyletdow47/view1-sort/pull/51) | 1 |
 
 ## Session Budget
 Window:             Manual session (2026-04-02)
