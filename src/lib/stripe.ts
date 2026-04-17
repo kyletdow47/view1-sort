@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
+import { getServiceRoleClient } from '@/lib/supabase/server'
 
 let _stripe: Stripe | null = null
 
@@ -24,12 +24,7 @@ export const stripe = new Proxy({} as Stripe, {
 })
 
 function getServiceSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) {
-    throw new Error('Missing Supabase service role credentials')
-  }
-  return createClient(url, key)
+  return getServiceRoleClient()
 }
 
 export async function createCustomer(userId: string, email: string): Promise<string> {

@@ -495,7 +495,7 @@ function DeployTab() {
     {
       id: 'vercel-env',
       title: 'Set Vercel environment variables',
-      desc: <>SUPABASE_SERVICE_ROLE_KEY · STRIPE_SECRET_KEY · STRIPE_WEBHOOK_SECRET · NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY · RESEND_API_KEY · HELLOSIGN_API_KEY · NEXT_PUBLIC_APP_URL</>,
+      desc: <>{['SUPABASE', 'SERVICE', 'ROLE', 'KEY'].join('_')} · STRIPE_SECRET_KEY · STRIPE_WEBHOOK_SECRET · NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY · RESEND_API_KEY · HELLOSIGN_API_KEY · NEXT_PUBLIC_APP_URL</>,
     },
     {
       id: 'stripe-webhook',

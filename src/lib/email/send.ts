@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import { createClient } from '@supabase/supabase-js'
+import { getServiceRoleClient } from '@/lib/supabase/server'
 import type { EmailStatus } from '@/types/supabase'
 
 let _resend: Resend | null = null
@@ -16,12 +16,7 @@ function getResend(): Resend {
 }
 
 function getServiceSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) {
-    throw new Error('Missing Supabase service role credentials')
-  }
-  return createClient(url, key)
+  return getServiceRoleClient()
 }
 
 const FROM_ADDRESS = process.env.EMAIL_FROM ?? 'View1 Sort <noreply@view1.studio>'
