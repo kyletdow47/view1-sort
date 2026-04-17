@@ -3,10 +3,14 @@
 import { memo } from 'react'
 import { clsx } from 'clsx'
 import { ImageOff } from 'lucide-react'
+import { VirtualGrid } from '@/components/ui/VirtualGrid'
 import { MediaCard } from './MediaCard'
 import type { MediaItem } from '@/types/media'
 
 export type ViewMode = 'grid' | 'list'
+
+const GRID_MIN_ITEM_WIDTH = 200
+const GRID_GAP = 12
 
 export interface PhotoGridProps {
   media: MediaItem[]
@@ -193,21 +197,22 @@ export function PhotoGrid({
   }
 
   return (
-    <div
-      className={clsx(
-        'grid gap-3',
-        '[grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]',
-        className
-      )}
-    >
-      {media.map((item) => (
+    <VirtualGrid
+      items={media}
+      getItemKey={(item) => item.id}
+      minItemWidth={GRID_MIN_ITEM_WIDTH}
+      gap={GRID_GAP}
+      // MediaCard renders an aspect-square thumbnail + ~64px of metadata.
+      rowHeight={(columnWidth) => columnWidth + 64}
+      overscan={3}
+      className={clsx('h-full', className)}
+      renderItem={(item) => (
         <MediaCard
-          key={item.id}
           media={{ ...item, selected: selectedIds.has(item.id) }}
           onSelect={onSelect}
           onDoubleClick={onDoubleClick}
         />
-      ))}
-    </div>
+      )}
+    />
   )
 }

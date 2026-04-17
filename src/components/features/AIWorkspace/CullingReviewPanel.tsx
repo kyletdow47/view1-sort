@@ -3,7 +3,11 @@
 import { useCallback, useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight, Eye, Link2, Sun, Moon, Check, X, Sparkles } from 'lucide-react'
 
+import { VirtualGrid } from '@/components/ui/VirtualGrid'
 import type { MediaItem } from '@/types/media'
+
+const CULL_GRID_MIN_ITEM_WIDTH = 160
+const CULL_GRID_GAP = 12
 
 type CullIssueType = 'blurry' | 'duplicate' | 'overexposed' | 'underexposed'
 
@@ -49,6 +53,90 @@ const ISSUE_CONFIG: Record<CullIssueType, { label: string; icon: React.ReactNode
     color: 'text-blue-400',
     badgeBg: 'bg-blue-500/10',
   },
+}
+
+function CullPhotoCard({
+  photo,
+  onKeep,
+  onReject,
+}: {
+  photo: MediaItem
+  onKeep: (id: string) => void
+  onReject: (id: string) => void
+}) {
+  const confidence = photo.culling_confidence != null
+    ? Math.round(photo.culling_confidence * 100)
+    : null
+  const isKept = photo.review_flag === 'keep'
+  const isRejected = photo.review_flag === 'reject'
+
+  return (
+    <div
+      className={`relative h-full flex flex-col rounded-xl overflow-hidden border transition-all duration-150
+        ${isRejected ? 'opacity-40 border-red-500/30' : isKept ? 'border-emerald-500/30' : 'border-white/[0.08]'}
+        bg-white/[0.04]`}
+    >
+      {/* Thumbnail */}
+      <div className="aspect-[4/3] relative">
+        {photo.thumbnail_url ? (
+          <img
+            src={photo.thumbnail_url}
+            alt={photo.filename}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            draggable={false}
+          />
+        ) : (
+          <div className="w-full h-full bg-white/[0.06] flex items-center justify-center">
+            <span className="text-white/20 text-xs truncate px-2">{photo.filename}</span>
+          </div>
+        )}
+
+        {(isKept || isRejected) && (
+          <div className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide backdrop-blur-sm
+            ${isKept ? 'bg-emerald-500/80 text-white' : 'bg-red-500/80 text-white'}`}>
+            {isKept ? 'Keep' : 'Reject'}
+          </div>
+        )}
+      </div>
+
+      <div className="p-2.5 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <span className="text-white/50 text-[11px] truncate flex-1 min-w-0">{photo.filename}</span>
+          {confidence != null && (
+            <span className="text-white/30 text-[10px] font-mono ml-1 shrink-0">{confidence}%</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onKeep(photo.id)}
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-semibold transition-colors
+              ${isKept
+                ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
+                : 'bg-white/[0.06] text-white/60 border border-white/[0.08] hover:bg-emerald-500/10 hover:text-emerald-400'
+              }`}
+          >
+            <Check className="w-3 h-3" />
+            Keep
+          </button>
+          <button
+            type="button"
+            onClick={() => onReject(photo.id)}
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-semibold transition-colors
+              ${isRejected
+                ? 'bg-red-500/30 text-red-300 border border-red-500/40'
+                : 'bg-white/[0.06] text-white/60 border border-white/[0.08] hover:bg-red-500/10 hover:text-red-400'
+              }`}
+          >
+            <X className="w-3 h-3" />
+            Reject
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function CollapsibleGroup({
@@ -113,86 +201,24 @@ function CollapsibleGroup({
 
       {/* Photo Cards */}
       {isOpen && (
-        <div className="px-4 pb-4 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-3">
-          {group.photos.map((photo) => {
-            const confidence = photo.culling_confidence != null
-              ? Math.round(photo.culling_confidence * 100)
-              : null
-            const isKept = photo.review_flag === 'keep'
-            const isRejected = photo.review_flag === 'reject'
-
-            return (
-              <div
-                key={photo.id}
-                className={`relative rounded-xl overflow-hidden border transition-all duration-150
-                  ${isRejected ? 'opacity-40 border-red-500/30' : isKept ? 'border-emerald-500/30' : 'border-white/[0.08]'}
-                  bg-white/[0.04]`}
-              >
-                {/* Thumbnail */}
-                <div className="aspect-[4/3] relative">
-                  {photo.thumbnail_url ? (
-                    <img
-                      src={photo.thumbnail_url}
-                      alt={photo.filename}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                      draggable={false}
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-white/[0.06] flex items-center justify-center">
-                      <span className="text-white/20 text-xs truncate px-2">{photo.filename}</span>
-                    </div>
-                  )}
-
-                  {/* Review flag badge */}
-                  {(isKept || isRejected) && (
-                    <div className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide backdrop-blur-sm
-                      ${isKept ? 'bg-emerald-500/80 text-white' : 'bg-red-500/80 text-white'}`}>
-                      {isKept ? 'Keep' : 'Reject'}
-                    </div>
-                  )}
-                </div>
-
-                {/* Info + Actions */}
-                <div className="p-2.5 flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/50 text-[11px] truncate flex-1 min-w-0">{photo.filename}</span>
-                    {confidence != null && (
-                      <span className="text-white/30 text-[10px] font-mono ml-1 shrink-0">{confidence}%</span>
-                    )}
-                  </div>
-
-                  {/* Keep / Reject buttons */}
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => onKeep(photo.id)}
-                      className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-semibold transition-colors
-                        ${isKept
-                          ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
-                          : 'bg-white/[0.06] text-white/60 border border-white/[0.08] hover:bg-emerald-500/10 hover:text-emerald-400'
-                        }`}
-                    >
-                      <Check className="w-3 h-3" />
-                      Keep
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onReject(photo.id)}
-                      className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-semibold transition-colors
-                        ${isRejected
-                          ? 'bg-red-500/30 text-red-300 border border-red-500/40'
-                          : 'bg-white/[0.06] text-white/60 border border-white/[0.08] hover:bg-red-500/10 hover:text-red-400'
-                        }`}
-                    >
-                      <X className="w-3 h-3" />
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+        <div className="px-4 pb-4">
+          <VirtualGrid
+            items={group.photos}
+            getItemKey={(photo) => photo.id}
+            minItemWidth={CULL_GRID_MIN_ITEM_WIDTH}
+            gap={CULL_GRID_GAP}
+            // ~4:3 thumb + ~76px of filename + action buttons
+            rowHeight={(columnWidth) => Math.round(columnWidth * 0.75) + 76}
+            overscan={2}
+            className="max-h-[640px]"
+            renderItem={(photo) => (
+              <CullPhotoCard
+                photo={photo}
+                onKeep={onKeep}
+                onReject={onReject}
+              />
+            )}
+          />
         </div>
       )}
     </div>
