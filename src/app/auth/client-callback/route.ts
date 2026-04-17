@@ -23,7 +23,8 @@
 // TODO(admin-api): Use supabase.auth.admin.generateLink() to pre-generate the
 //   Supabase magic link and embed it directly in the invitation email, so the
 //   client only needs ONE click (not two: invitation link → check email → link).
-//   This requires SUPABASE_SERVICE_ROLE_KEY on a server-only route.
+//   This requires the service-role client (see getServiceRoleClient in
+//   src/lib/supabase/server.ts) on a server-only route.
 // =============================================================================
 
 import { NextRequest, NextResponse } from 'next/server'

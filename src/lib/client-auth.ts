@@ -221,7 +221,8 @@ export function buildInvitationCallbackUrl(params: {
  *
  * TODO(admin-api): For server-side invite link generation, use:
  *   supabase.auth.admin.generateLink({ type: 'magiclink', email })
- * This requires SUPABASE_SERVICE_ROLE_KEY and supabase-js admin client.
+ * This requires the Supabase service-role client (see getServiceRoleClient in
+ * src/lib/supabase/server.ts) and the supabase-js admin API.
  */
 export async function generateSupabaseMagicLink(params: {
   email: string

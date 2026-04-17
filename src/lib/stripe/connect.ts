@@ -1,16 +1,11 @@
 import Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
-import { createClient } from '@supabase/supabase-js'
+import { getServiceRoleClient } from '@/lib/supabase/server'
 import { getApplicationFeePercent } from './plans'
 import type { PlanTier } from './plans'
 
 function getServiceSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) {
-    throw new Error('Missing Supabase service role credentials')
-  }
-  return createClient(url, key)
+  return getServiceRoleClient()
 }
 
 export async function createConnectAccount(userId: string): Promise<string> {

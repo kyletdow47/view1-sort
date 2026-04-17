@@ -9,6 +9,7 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "check:service-role-leak": "node scripts/check-service-role-leak.mjs",
     "eval:fetch-stock": "tsx scripts/fetch-eval-stock.ts",
     "eval:sort": "tsx src/lib/ai/__evals__/run-eval.ts",
     "bootstrap:sort": "tsx scripts/bootstrap-sort.ts"
