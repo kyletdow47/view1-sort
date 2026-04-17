@@ -35,6 +35,9 @@ Current mode: standby — run coordinator to begin
 - [ ] Client Portal page — gallery viewer, selections, comments
 - [ ] Settings page — AI workspace setup wizard, branding, integrations
 
+## Completed Builds
+- 2026-04-17T11:20:00Z — D2.8 Virtualize photo grids — `feat/dev-agent/D2.8-virtualize-photo-grids` — [PR #65](https://github.com/kyletdow47/view1-sort/pull/65) — 7 files changed
+
 ## Currently Broken (fix before new features)
 - [x] DashboardV2 hardcoded hex colors — migrated ~130 instances across 18 files to CSS variable tokens (--chart-*, --brand-*) and Tailwind semantic classes. themes/page.tsx left as-is (swatch data). A few theme-preset bg values (#f5f3f0, #1a1a1a, #1d1916) left as unique light-mode swatches.
 - [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
