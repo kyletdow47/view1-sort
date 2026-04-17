@@ -127,7 +127,7 @@ export default function GalleryPage() {
                     <Eye className="h-4 w-4" />
                     View Photos
                   </button>
-                  <button className="flex items-center gap-2 rounded-xl bg-indigo-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-600">
+                  <button className="flex items-center gap-2 rounded-xl bg-cta px-5 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90">
                     <Plus className="h-4 w-4" />
                     Create Gallery
                   </button>
