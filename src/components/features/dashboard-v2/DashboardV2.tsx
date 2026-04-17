@@ -6,6 +6,9 @@ import { QuickActions } from './QuickActions'
 import { RecentActivity } from './RecentActivity'
 import { RecentProjects } from './RecentProjects'
 import { QuickStats } from './QuickStats'
+import { CalendarWidget } from './CalendarWidget'
+import { ProjectDeliveries } from './ProjectDeliveries'
+import { InboxWidget } from './InboxWidget'
 import type { Project } from '@/types/supabase'
 
 export interface DashboardV2Props {
@@ -31,7 +34,7 @@ export function DashboardV2({
   demoMode = false,
 }: DashboardV2Props) {
   return (
-    <div className="relative flex h-full min-h-0 flex-col gap-4">
+    <div className="relative flex h-full min-h-0 flex-col gap-4 overflow-y-auto">
       {/* Welcome / chat */}
       <WelcomeSection userName={userName} />
 
@@ -39,7 +42,7 @@ export function DashboardV2({
       <QuickActions />
 
       {/* Row 1: Activity + Projects + Quick Stats */}
-      <div className="grid min-h-0 flex-1 gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid min-h-0 gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <RecentActivity />
         <RecentProjects projects={projects} photoCounts={photoCounts} />
         <div className="md:col-span-2 lg:col-span-1">
@@ -50,6 +53,13 @@ export function DashboardV2({
             pendingActions={pendingActions}
           />
         </div>
+      </div>
+
+      {/* Row 2: Calendar + Deliveries + Inbox */}
+      <div className="grid min-h-0 gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <CalendarWidget />
+        <ProjectDeliveries />
+        <InboxWidget />
       </div>
 
       {/* AI Briefing — floating bottom-right */}
