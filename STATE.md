@@ -40,6 +40,12 @@ Current mode: standby — run coordinator to begin
 - [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
 - [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
 - [x] Notification bell/panel state race — useNotifications recreated its Supabase client every render, re-firing the fetch effect and transiently clearing `notifications` while the panel was open. Memoized with useMemo + added 5 regression tests. PR #49 (branch feat/dev-agent/notification-badge-empty-panel, Asana 1213998715323386).
+- [x] Pre-existing red test suites — classifier.test.ts mock was missing env.backends.onnx.wasm (module load crash); AIBriefingCard.test.tsx assumed inline layout after refactor to popover+trigger. Fixed mock stub + added openPanel helper. 535/535 passing (was 527/535). PR #61 (branch feat/dev-agent/D0.8-fix-pre-existing-test-failures, Asana 1214117441506403).
+
+## Completed Builds
+| Timestamp (UTC) | Task | Branch | PR | Files |
+| --- | --- | --- | --- | --- |
+| 2026-04-17T10:15Z | D0.8 Fix 3 pre-existing test failures | feat/dev-agent/D0.8-fix-pre-existing-test-failures | [#61](https://github.com/kyletdow47/view1-sort/pull/61) | 2 |
 
 ## Session Budget
 Window:             Manual session (2026-04-02)

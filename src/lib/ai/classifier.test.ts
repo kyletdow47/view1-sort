@@ -15,6 +15,8 @@ vi.mock('@xenova/transformers', () => ({
   env: {
     allowRemoteModels: true,
     useBrowserCache: true,
+    // classifier.ts writes to env.backends.onnx.wasm.wasmPaths at module load.
+    backends: { onnx: { wasm: { wasmPaths: '' } } },
   },
 }))
 
