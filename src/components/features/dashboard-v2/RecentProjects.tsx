@@ -14,12 +14,6 @@ const PRESET_COLORS = [
   'bg-blue-400/40',
 ]
 
-const MOCK_PROJECTS = [
-  { name: 'Wedding Shoot', client: 'Client', photos: 248, color: 'bg-teal-400/40', id: '' },
-  { name: 'Real Estate Tour', client: 'Client', photos: 132, color: 'bg-orange-400/40', id: '' },
-  { name: 'Travel Portfolio', client: 'Client', photos: 89, color: 'bg-yellow-300/40', id: '' },
-]
-
 interface RecentProjectsProps {
   projects?: Project[]
   photoCounts?: Record<string, number>
@@ -28,18 +22,13 @@ interface RecentProjectsProps {
 export function RecentProjects({ projects = [], photoCounts = {} }: RecentProjectsProps) {
   const router = useRouter()
 
-  // Show empty state only when explicitly passed empty projects (not when using defaults)
-  const hasRealData = projects.length > 0
-
-  const displayProjects = hasRealData
-    ? projects.slice(0, 3).map((p, i) => ({
-        id: p.id,
-        name: p.name,
-        client: p.preset ?? 'Project',
-        photos: photoCounts[p.id] ?? 0,
-        color: PRESET_COLORS[i % PRESET_COLORS.length],
-      }))
-    : MOCK_PROJECTS
+  const displayProjects = projects.slice(0, 3).map((p, i) => ({
+    id: p.id,
+    name: p.name,
+    client: p.preset ?? 'Project',
+    photos: photoCounts[p.id] ?? 0,
+    color: PRESET_COLORS[i % PRESET_COLORS.length],
+  }))
 
   return (
     <GlassPanel className="flex h-full flex-col gap-3 p-4">
