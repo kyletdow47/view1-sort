@@ -40,6 +40,12 @@ Current mode: standby — run coordinator to begin
 - [x] Upload progress bar — onProgress callback now captures bytesTotal from tus and updates fileSize in store for accurate progress %.
 - [x] Media card drag-and-drop — removed non-functional drag handle from MediaCard; added TouchSensor with activation constraints to InvoiceBuilder for mobile support.
 - [x] Notification bell/panel state race — useNotifications recreated its Supabase client every render, re-firing the fetch effect and transiently clearing `notifications` while the panel was open. Memoized with useMemo + added 5 regression tests. PR #49 (branch feat/dev-agent/notification-badge-empty-panel, Asana 1213998715323386).
+- [x] AI Sort Preferences tab content cut off — added `min-h-0` + switched `overflow-auto` to `overflow-y-auto` on the PreferencesTab flex child so content (Vibe Keywords card below "Lens flare") scrolls internally instead of getting pushed past the viewport. PR #50 (branch feat/dev-agent/ai-sort-preferences-internal-scroll, Asana 1213998648532279).
+
+## Completed Builds
+| When | Task | Branch | PR | Files |
+|------|------|--------|----|-------|
+| 2026-04-17T00:05Z | 1213998648532279 [fix] AI Sort Preferences internal scroll | feat/dev-agent/ai-sort-preferences-internal-scroll | https://github.com/kyletdow47/view1-sort/pull/50 | 1 |
 
 ## Session Budget
 Window:             Manual session (2026-04-02)
